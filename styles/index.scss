@@ -1,0 +1,29 @@
+.yun-banner, 
+.site-name, 
+.name, 
+.subtitle, 
+.site-subtitle, 
+.description, 
+.site-description, 
+.author-name, 
+.author-description, 
+.status-message {
+  color: #ffffff !important;
+  text-shadow: 2px 2px 4px rgba(0,0,0,1), -2px -2px 4px rgba(0,0,0,1), 0 0 10px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,1) !important;
+  font-weight: 900 !important;
+}
+
+.grid-bg {
+  display: none !important;
+}
+
+body, html, #app, .yun-bg {
+  background-image: none !important;
+  background-color: transparent !important;
+}
+
+:root {
+  --va-c-bg: transparent !important;
+  --va-c-bg-alt: transparent !important;
+  --yun-bg-color: transparent !important;
+}
