@@ -26,10 +26,25 @@ onMounted(() => {
 </script>
 
 <template>
+  <video v-if="route.path === '/'" autoplay loop muted playsinline class="custom-bg">
+    <source src="/bg.mp4" type="video/mp4" />
+  </video>
+
   <div id="sakana-widget" class="sakana-container"></div>
 </template>
 
 <style>
+.custom-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -999;
+  pointer-events: none;
+}
+
 .sakana-container {
   position: fixed;
   right: 10px;
