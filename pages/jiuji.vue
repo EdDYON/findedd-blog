@@ -6,7 +6,6 @@ let mapInstance = null
 let timer = null
 let markerCache = {}
 
-// 你的 35 家昆明真实门店数据
 const rawStores = [
     {"name": "昆明佰腾店", "loc": [25.0458, 102.7135], "address": "五华区圆通北路120号", "phone": "0871-65141852", "url": "https://www.9ji.com/stores/26", "type": "core"},
     {"name": "昆明关上汇溪大厦店", "loc": [25.0196, 102.7452], "address": "官渡区关上中路63号", "phone": "0871-67012140", "url": "https://www.9ji.com/stores/28", "type": "core"},
@@ -103,11 +102,9 @@ onMounted(() => {
   const script = document.createElement('script')
   script.src = 'https://fastly.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'
   script.onload = () => {
-    // 定位昆明市中心
     mapInstance = window.L.map(mapContainer.value, { zoomControl: false }).setView([25.042, 102.714], 12)
     window.L.control.zoom({ position: 'bottomright' }).addTo(mapInstance)
 
-    // 【绝杀核心】：调用国内秒开的高德地图，极度清晰！
     window.L.tileLayer('https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
         maxZoom: 18,
         attribution: '© 高德地图 | 九机运营数据分析系统 (模拟)'
@@ -166,12 +163,7 @@ onUnmounted(() => {
   width: 100vw;
   height: 100vh;
   z-index: 99999;
-  background: #010816;
-}
-
-/* 滤镜魔法：一键让高德常规街道图变成深色 BI 科技大屏 */
-.leaflet-tile {
-  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+  background: #f8f9fa;
 }
 
 .back-btn {
@@ -179,22 +171,26 @@ onUnmounted(() => {
   top: 20px;
   left: 20px;
   z-index: 100000;
-  background: #00f2fe;
-  color: #010816 !important;
+  background: #2f3640;
+  color: #fff !important;
   padding: 8px 16px;
   border-radius: 20px;
   text-decoration: none;
   font-weight: bold;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
 }
+
+.back-btn:hover {
+  background: #353b48;
+}
+
 .map-container {
   width: 100%;
   height: 100%;
 }
 
-/* 弹窗核心美化 */
-.leaflet-popup-content-wrapper { border-radius: 8px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); padding: 0; overflow: hidden; background: #fff;}
-.leaflet-popup-tip-container { display: none; /* 隐藏底部小箭头，更像悬浮面板 */ } 
+.leaflet-popup-content-wrapper { border-radius: 8px; box-shadow: 0 8px 25px rgba(0,0,0,0.3); padding: 0; overflow: hidden; background: #fff;}
+.leaflet-popup-tip-container { display: none; } 
 .leaflet-popup-content { margin: 0; width: 450px !important; }
 .popup-header { background: #00f2fe; color: #fff; padding: 12px 16px; font-size: 16px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
 .badge { background: #ff4757; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: normal; letter-spacing: 1px;}
