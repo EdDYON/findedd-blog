@@ -18,7 +18,6 @@ export default defineValaxyConfig<UserThemeConfig>({
       api: '',
       content: [
         '分享日常与开发记录 ヾ(≧▽≦*)o',
-
       ],
     },
     notice: {
@@ -29,6 +28,12 @@ export default defineValaxyConfig<UserThemeConfig>({
       colors: ['#66CCFF', '#FFB3CC', '#99FF99', '#FFCC99', '#CCCCFF']
     },
     pages: [
+      {
+        name: '九机数据大屏',
+        url: '/jiuji',
+        icon: 'i-ri-bar-chart-box-line',
+        color: '#00f2fe',
+      },
       {
         name: 'Mods (中/En)',
         url: '/docs/',
