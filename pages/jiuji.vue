@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, computed } from 'vue'
 
 const mapContainer = ref(null)
 let mapInstance = null
@@ -44,7 +44,26 @@ const rawStores = [
     {"name": "昆明瑞鼎城购物公园店", "loc": [25.0632, 102.7315], "address": "盘龙区白云路168号", "phone": "0871-63187039", "url": "https://www.9ji.com/stores/1410", "type": "core"}
 ]
 
-let storeData = []
+const storeData = ref([])
+
+const initStoreData = () => {
+    storeData.value = rawStores.map((s, idx) => {
+        const isCore = s.type === 'core'
+        return {
+            id: idx, ...s,
+            avgSales: isCore ? '800-1200' : '400-700',
+            category: isCore ? '手机/平板/配件/维修' : '手机/配件/维修',
+            techs: isCore ? '6-8' : '3-5',
+            traffic: isCore ? Math.floor(Math.random()*11 + 30) : Math.floor(Math.random()*11 + 10),
+            todaySales: isCore ? Math.floor(Math.random()*11 + 40) : Math.floor(Math.random()*11 + 15),
+            health: isCore ? Math.floor(Math.random()*3 + 96) : Math.floor(Math.random()*4 + 92)
+        }
+    })
+}
+
+const totalTraffic = computed(() => storeData.value.reduce((sum, s) => sum + s.traffic, 0))
+const totalSales = computed(() => storeData.value.reduce((sum, s) => sum + s.todaySales, 0))
+const avgHealth = computed(() => (storeData.value.reduce((sum, s) => sum + s.health, 0) / storeData.value.length).toFixed(1))
 
 const generateHTML = (store) => {
     const isCore = store.type === 'core'
@@ -52,40 +71,43 @@ const generateHTML = (store) => {
     const timeNow = new Date().toLocaleTimeString('zh-CN', {hour12: false})
     
     return `
-        <div class="popup-header">
+        <div class="popup-header ${isCore ? 'core-header' : 'standard-header'}">
             <div>${store.name} <br/><a href="${store.url}" target="_blank" class="store-link" style="margin-top:5px;">官网详情 ↗</a></div>
-            <span class="badge ${isCore ? '' : 'standard'}">${isCore ? '★ 核心店' : '标准店'}</span>
+            <span class="badge ${isCore ? 'badge-core' : 'badge-standard'}">${isCore ? '★ Core Store' : 'Standard'}</span>
         </div>
         <div class="popup-body">
             <div class="col">
-                <div class="col-title">基础信息</div>
-                <div class="info-item"><span>详细地址</span>${store.address}</div>
-                <div class="info-item"><span>营业时间</span>09:00 - 22:00</div>
-                <div class="info-item"><span>销售热线</span>${store.phone}</div>
+                <div class="col-title">Info / 基础</div>
+                <div class="info-item"><span>Address</span>${store.address}</div>
+                <div class="info-item"><span>Hours</span>09:00 - 22:00</div>
+                <div class="info-item"><span>Phone</span>${store.phone}</div>
             </div>
             <div class="col">
-                <div class="col-title">静态月度画像</div>
-                <div class="info-item"><span>月均销量估算</span><b>${store.avgSales} 台</b></div>
-                <div class="info-item"><span>主营业务线</span>${store.category}</div>
-                <div class="info-item"><span>驻店技师配置</span>${store.techs} 人</div>
+                <div class="col-title">Profile / 画像</div>
+                <div class="info-item"><span>Est. Monthly Sales</span><b>${store.avgSales}</b></div>
+                <div class="info-item"><span>Category</span>${store.category}</div>
+                <div class="info-item"><span>Technicians</span>${store.techs}</div>
             </div>
             <div class="col">
-                <div class="col-title">实时状态追踪</div>
-                <div class="info-item"><span>当前客流量</span><div class="data-value text-blue">${store.traffic} <small style="font-size:12px;font-weight:normal;color:#a4b0be">人</small></div></div>
-                <div class="info-item"><span>今日累计成单</span><div class="data-value">${store.todaySales} <small style="font-size:12px;font-weight:normal;color:#a4b0be">台</small></div></div>
-                <div class="info-item"><span>库存健康度</span><div class="data-value ${healthClass}">${store.health}%</div></div>
+                <div class="col-title">Live / 实时</div>
+                <div class="info-item"><span>Current Traffic</span><div class="data-value text-blue">${store.traffic} <small style="font-size:12px;font-weight:normal;color:#a4b0be">人</small></div></div>
+                <div class="info-item"><span>Today's Sales</span><div class="data-value">${store.todaySales} <small style="font-size:12px;font-weight:normal;color:#a4b0be">台</small></div></div>
+                <div class="info-item"><span>Health Index</span><div class="data-value ${healthClass}">${store.health}%</div></div>
             </div>
         </div>
-        <div class="update-time">实时引流引擎活跃中 | 数据最后拉取：${timeNow}</div>
+        <div class="update-time">System Active | Last Sync: ${timeNow}</div>
     `
 }
 
 const triggerRealTimeUpdate = () => {
-    storeData.forEach(store => {
-        store.traffic = Math.max(0, store.traffic + (Math.floor(Math.random() * 21) - 10))
-        store.todaySales = Math.max(0, store.todaySales + (Math.floor(Math.random() * 11) - 5))
-        store.health = Math.max(90, Math.min(100, store.health + (Math.floor(Math.random() * 3) - 1)))
+    storeData.value = storeData.value.map(store => ({
+        ...store,
+        traffic: Math.max(0, store.traffic + (Math.floor(Math.random() * 21) - 10)),
+        todaySales: Math.max(0, store.todaySales + (Math.floor(Math.random() * 11) - 5)),
+        health: Math.max(90, Math.min(100, store.health + (Math.floor(Math.random() * 3) - 1)))
+    }))
 
+    storeData.value.forEach(store => {
         const marker = markerCache[store.id]
         if (marker && marker.isPopupOpen()) {
             marker.setPopupContent(generateHTML(store))
@@ -94,6 +116,7 @@ const triggerRealTimeUpdate = () => {
 }
 
 onMounted(() => {
+  initStoreData()
   const link = document.createElement('link')
   link.rel = 'stylesheet'
   link.href = 'https://fastly.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css'
@@ -107,35 +130,34 @@ onMounted(() => {
 
     window.L.tileLayer('https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
         maxZoom: 18,
-        attribution: '© 高德地图 | 九机运营数据分析系统 (模拟)'
+        attribution: '© AutoNavi | Data Ops Dashboard'
     }).addTo(mapInstance)
 
-    storeData = rawStores.map((s, idx) => {
-        const isCore = s.type === 'core'
-        return {
-            id: idx, ...s,
-            avgSales: isCore ? '800-1200' : '400-700',
-            category: isCore ? '手机/平板/配件/维修' : '手机/配件/维修',
-            techs: isCore ? '6-8' : '3-5',
-            traffic: isCore ? Math.floor(Math.random()*11 + 30) : Math.floor(Math.random()*11 + 10),
-            todaySales: isCore ? Math.floor(Math.random()*11 + 40) : Math.floor(Math.random()*11 + 15),
-            health: isCore ? Math.floor(Math.random()*3 + 96) : Math.floor(Math.random()*4 + 92)
-        }
+    const coreIcon = window.L.divIcon({
+        className: 'custom-icon-wrapper',
+        html: `<div class="pulse-marker core-pulse"></div>`,
+        iconSize: [20, 20], iconAnchor: [10, 10], popupAnchor: [0, -10]
+    })
+    
+    const standardIcon = window.L.divIcon({
+        className: 'custom-icon-wrapper',
+        html: `<div class="pulse-marker standard-pulse"></div>`,
+        iconSize: [16, 16], iconAnchor: [8, 8], popupAnchor: [0, -8]
     })
 
-    const dotIcon = window.L.divIcon({
-        className: 'custom-icon',
-        html: `<div style="background:#ff4757; width:12px; height:12px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 10px rgba(255,71,87,1);"></div>`,
-        iconSize: [16, 16], iconAnchor: [8, 8], popupAnchor: [0, -10]
-    })
-
-    storeData.forEach(store => {
-        const marker = window.L.marker(store.loc, { icon: dotIcon, title: store.name }).addTo(mapInstance)
+    storeData.value.forEach(store => {
+        const iconToUse = store.type === 'core' ? coreIcon : standardIcon
+        const marker = window.L.marker(store.loc, { icon: iconToUse, title: store.name }).addTo(mapInstance)
         marker.bindPopup(generateHTML(store))
+        
+        marker.on('click', () => {
+            mapInstance.flyTo([store.loc[0] + 0.015, store.loc[1]], 14, { duration: 1.5 })
+        })
+        
         markerCache[store.id] = marker
     })
 
-    timer = setInterval(triggerRealTimeUpdate, 30000)
+    timer = setInterval(triggerRealTimeUpdate, 5000)
   }
   document.body.appendChild(script)
 })
@@ -150,62 +172,107 @@ onUnmounted(() => {
 
 <template>
   <div class="map-page-wrapper">
-    <a href="/" class="back-btn">← 返回主页</a>
+    <a href="/" class="back-btn">← Home / 主页</a>
     <div ref="mapContainer" class="map-container"></div>
+
+    <div class="glass-dashboard">
+        <h2 class="dash-title">Kunming Operations <span>昆明市大盘监控</span></h2>
+        <div class="dash-metric">
+            <div class="metric-label">Total Traffic / 实时客流总量</div>
+            <div class="metric-value text-blue">{{ totalTraffic }} <span class="unit">Users</span></div>
+        </div>
+        <div class="dash-metric">
+            <div class="metric-label">Total Est. Sales / 今日营收预估</div>
+            <div class="metric-value text-orange">{{ totalSales }} <span class="unit">Devices</span></div>
+        </div>
+        <div class="dash-metric">
+            <div class="metric-label">Avg Health / 整体健康度指数</div>
+            <div class="metric-value text-green">{{ avgHealth }} <span class="unit">%</span></div>
+        </div>
+        <div class="dash-footer">
+            Data refreshes every 5s / 数据每5秒自动同步
+        </div>
+    </div>
   </div>
 </template>
 
 <style>
 .map-page-wrapper {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 99999;
-  background: #f8f9fa;
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 99999; background: #f8f9fa;
 }
 
 .back-btn {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  z-index: 100000;
-  background: #2f3640;
-  color: #fff !important;
-  padding: 8px 16px;
-  border-radius: 20px;
-  text-decoration: none;
-  font-weight: bold;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  position: absolute; top: 20px; left: 20px; z-index: 100000;
+  background: rgba(255, 255, 255, 0.9); color: #2f3542 !important;
+  padding: 8px 18px; border-radius: 8px; text-decoration: none;
+  font-weight: 600; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  backdrop-filter: blur(10px); transition: 0.3s; border: 1px solid rgba(0,0,0,0.05);
+}
+.back-btn:hover { background: #fff; transform: translateY(-2px); }
+
+.map-container { width: 100%; height: 100%; }
+
+.pulse-marker {
+  width: 100%; height: 100%; border-radius: 50%; border: 2px solid #fff;
+}
+.core-pulse {
+  background: #fbc531;
+  animation: pulse-core 2s infinite cubic-bezier(0.66, 0, 0, 1);
+  box-shadow: 0 0 10px rgba(251, 197, 49, 0.8);
+}
+.standard-pulse {
+  background: #00a8ff;
+  animation: pulse-standard 2.5s infinite cubic-bezier(0.66, 0, 0, 1);
+  box-shadow: 0 0 8px rgba(0, 168, 255, 0.8);
 }
 
-.back-btn:hover {
-  background: #353b48;
+@keyframes pulse-core {
+  0% { box-shadow: 0 0 0 0 rgba(251, 197, 49, 0.6); }
+  70% { box-shadow: 0 0 0 15px rgba(251, 197, 49, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(251, 197, 49, 0); }
+}
+@keyframes pulse-standard {
+  0% { box-shadow: 0 0 0 0 rgba(0, 168, 255, 0.5); }
+  70% { box-shadow: 0 0 0 10px rgba(0, 168, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 168, 255, 0); }
 }
 
-.map-container {
-  width: 100%;
-  height: 100%;
+.glass-dashboard {
+  position: absolute; top: 20px; right: 20px; z-index: 100000;
+  width: 320px; padding: 24px; border-radius: 16px;
+  background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.5);
 }
+.dash-title {
+  margin: 0 0 20px 0; font-size: 18px; color: #2f3542; font-weight: 800; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px;
+}
+.dash-title span { display: block; font-size: 12px; color: #747d8c; font-weight: normal; margin-top: 4px; }
+.dash-metric { margin-bottom: 16px; }
+.metric-label { font-size: 12px; color: #747d8c; margin-bottom: 4px; font-weight: 600; }
+.metric-value { font-size: 32px; font-weight: 900; font-family: monospace; line-height: 1; }
+.metric-value .unit { font-size: 14px; color: #a4b0be; font-weight: normal; margin-left: 4px; }
+.dash-footer { margin-top: 20px; font-size: 11px; color: #a4b0be; text-align: center; }
 
-.leaflet-popup-content-wrapper { border-radius: 8px; box-shadow: 0 8px 25px rgba(0,0,0,0.3); padding: 0; overflow: hidden; background: #fff;}
+.leaflet-popup-content-wrapper { border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); padding: 0; overflow: hidden; background: #fff;}
 .leaflet-popup-tip-container { display: none; } 
-.leaflet-popup-content { margin: 0; width: 450px !important; }
-.popup-header { background: #00f2fe; color: #fff; padding: 12px 16px; font-size: 16px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-.badge { background: #ff4757; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: normal; letter-spacing: 1px;}
-.badge.standard { background: #2ed573; }
+.leaflet-popup-content { margin: 0; width: 480px !important; }
+.popup-header { padding: 14px 18px; font-size: 16px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; color: #fff;}
+.core-header { background: linear-gradient(135deg, #fbc531, #e1b12c); }
+.standard-header { background: linear-gradient(135deg, #00a8ff, #0097e6); }
+.badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+.badge-core { background: #fff; color: #e1b12c; }
+.badge-standard { background: #fff; color: #0097e6; }
 .popup-body { display: flex; padding: 16px; background: #fff; }
 .col { flex: 1; padding: 0 12px; border-right: 1px solid #f1f2f6; }
 .col:last-child { border-right: none; }
-.col-title { font-size: 13px; color: #747d8c; margin-bottom: 10px; border-bottom: 2px solid #f1f2f6; padding-bottom: 4px; font-weight: bold;}
-.info-item { font-size: 12px; color: #2f3542; margin-bottom: 8px; line-height: 1.5; }
-.info-item span { color: #a4b0be; display: block; font-size: 11px; margin-bottom: 2px;}
-.data-value { font-size: 20px; font-weight: 900; color: #2f3542; margin: 4px 0; font-family: monospace;}
+.col-title { font-size: 12px; color: #747d8c; margin-bottom: 12px; border-bottom: 2px solid #f1f2f6; padding-bottom: 4px; font-weight: 800; text-transform: uppercase;}
+.info-item { font-size: 13px; color: #2f3542; margin-bottom: 10px; line-height: 1.4; font-weight: 500;}
+.info-item span { color: #a4b0be; display: block; font-size: 11px; margin-bottom: 2px; font-weight: normal;}
+.data-value { font-size: 22px; font-weight: 900; color: #2f3542; margin: 4px 0; font-family: monospace;}
 .text-green { color: #2ed573 !important; }
 .text-orange { color: #ffa502 !important; }
 .text-blue { color: #1e90ff !important; }
-.update-time { text-align: right; padding: 8px 16px; background: #f8f9fa; font-size: 11px; color: #a4b0be; border-top: 1px solid #f1f2f6;}
-a.store-link { display: inline-block; color: #fff !important; text-decoration: none; font-size: 12px; background: rgba(0,0,0,0.2); padding: 4px 10px; border-radius: 4px; transition: 0.3s;}
-a.store-link:hover { background: rgba(0,0,0,0.4); }
+.update-time { text-align: right; padding: 10px 18px; background: #f8f9fa; font-size: 11px; color: #a4b0be; border-top: 1px solid #f1f2f6;}
+a.store-link { display: inline-block; color: #fff !important; text-decoration: none; font-size: 11px; background: rgba(0,0,0,0.2); padding: 4px 10px; border-radius: 4px; transition: 0.3s; backdrop-filter: blur(4px);}
+a.store-link:hover { background: rgba(0,0,0,0.4); transform: translateY(-1px);}
 </style>
