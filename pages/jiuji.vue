@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, ref, computed } from 'vue'
 
 const mapContainer = ref(null)
+const isCollapsed = ref(false)
 let mapInstance = null
 let timer = null
 let markerCache = {}
@@ -65,6 +66,10 @@ const totalTraffic = computed(() => storeData.value.reduce((sum, s) => sum + s.t
 const totalSales = computed(() => storeData.value.reduce((sum, s) => sum + s.todaySales, 0))
 const avgHealth = computed(() => (storeData.value.reduce((sum, s) => sum + s.health, 0) / storeData.value.length).toFixed(1))
 
+const toggleDash = () => {
+    isCollapsed.value = !isCollapsed.value
+}
+
 const generateHTML = (store) => {
     const isCore = store.type === 'core'
     const healthClass = store.health >= 95 ? 'text-green' : 'text-orange'
@@ -117,6 +122,11 @@ const triggerRealTimeUpdate = () => {
 
 onMounted(() => {
   initStoreData()
+  
+  if (window.innerWidth <= 768) {
+      isCollapsed.value = true
+  }
+
   const link = document.createElement('link')
   link.rel = 'stylesheet'
   link.href = 'https://fastly.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css'
@@ -151,7 +161,9 @@ onMounted(() => {
         marker.bindPopup(generateHTML(store))
         
         marker.on('click', () => {
-            mapInstance.flyTo([store.loc[0] + 0.015, store.loc[1]], 14, { duration: 1.5 })
+            const latOffset = window.innerWidth <= 768 ? -0.015 : 0.015
+            const lngOffset = window.innerWidth <= 768 ? 0 : 0
+            mapInstance.flyTo([store.loc[0] + latOffset, store.loc[1] + lngOffset], 14, { duration: 1.5 })
         })
         
         markerCache[store.id] = marker
@@ -175,22 +187,29 @@ onUnmounted(() => {
     <a href="/" class="back-btn">← Home / 主页</a>
     <div ref="mapContainer" class="map-container"></div>
 
-    <div class="glass-dashboard">
-        <h2 class="dash-title">Kunming Operations <span>昆明市大盘监控</span></h2>
-        <div class="dash-metric">
-            <div class="metric-label">Total Traffic / 实时客流总量</div>
-            <div class="metric-value text-blue">{{ totalTraffic }} <span class="unit">Users</span></div>
+    <div class="glass-dashboard" :class="{ 'collapsed': isCollapsed }">
+        <div class="dash-toggle" @click="toggleDash">
+            <span v-if="isCollapsed">📊 View Data Dashboard</span>
+            <span v-else>▼ Fold Panel / 折叠面板</span>
         </div>
-        <div class="dash-metric">
-            <div class="metric-label">Total Est. Sales / 今日营收预估</div>
-            <div class="metric-value text-orange">{{ totalSales }} <span class="unit">Devices</span></div>
-        </div>
-        <div class="dash-metric">
-            <div class="metric-label">Avg Health / 整体健康度指数</div>
-            <div class="metric-value text-green">{{ avgHealth }} <span class="unit">%</span></div>
-        </div>
-        <div class="dash-footer">
-            Data refreshes every 5s / 数据每5秒自动同步
+        
+        <div class="dash-content" v-show="!isCollapsed">
+            <h2 class="dash-title">Kunming Operations <span>昆明市大盘监控</span></h2>
+            <div class="dash-metric">
+                <div class="metric-label">Total Traffic / 实时客流总量</div>
+                <div class="metric-value text-blue">{{ totalTraffic }} <span class="unit">Users</span></div>
+            </div>
+            <div class="dash-metric">
+                <div class="metric-label">Total Est. Sales / 今日营收预估</div>
+                <div class="metric-value text-orange">{{ totalSales }} <span class="unit">Devices</span></div>
+            </div>
+            <div class="dash-metric">
+                <div class="metric-label">Avg Health / 整体健康度指数</div>
+                <div class="metric-value text-green">{{ avgHealth }} <span class="unit">%</span></div>
+            </div>
+            <div class="dash-footer">
+                Data refreshes every 5s / 数据每5秒自动同步
+            </div>
         </div>
     </div>
   </div>
@@ -239,10 +258,17 @@ onUnmounted(() => {
 
 .glass-dashboard {
   position: absolute; top: 20px; right: 20px; z-index: 100000;
-  width: 320px; padding: 24px; border-radius: 16px;
+  width: 320px; border-radius: 16px;
   background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px);
   box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.5);
+  transition: all 0.3s ease;
 }
+.dash-toggle {
+  padding: 16px 24px; font-size: 14px; font-weight: 800; color: #2f3542;
+  cursor: pointer; text-align: center; border-radius: 16px;
+}
+.dash-toggle:hover { background: rgba(0,0,0,0.02); }
+.dash-content { padding: 0 24px 24px 24px; }
 .dash-title {
   margin: 0 0 20px 0; font-size: 18px; color: #2f3542; font-weight: 800; border-bottom: 2px solid #f1f2f6; padding-bottom: 10px;
 }
@@ -275,4 +301,15 @@ onUnmounted(() => {
 .update-time { text-align: right; padding: 10px 18px; background: #f8f9fa; font-size: 11px; color: #a4b0be; border-top: 1px solid #f1f2f6;}
 a.store-link { display: inline-block; color: #fff !important; text-decoration: none; font-size: 11px; background: rgba(0,0,0,0.2); padding: 4px 10px; border-radius: 4px; transition: 0.3s; backdrop-filter: blur(4px);}
 a.store-link:hover { background: rgba(0,0,0,0.4); transform: translateY(-1px);}
+
+@media (max-width: 768px) {
+  .glass-dashboard {
+    top: auto; bottom: 20px; right: 50%; transform: translateX(50%); width: 90%;
+  }
+  .leaflet-popup-content { width: 300px !important; }
+  .popup-body { flex-direction: column; }
+  .col { border-right: none; border-bottom: 1px solid #f1f2f6; padding: 10px 0; }
+  .col:last-child { border-bottom: none; }
+  .dash-toggle { padding: 12px; }
+}
 </style>
