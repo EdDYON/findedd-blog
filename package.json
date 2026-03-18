@@ -14,8 +14,9 @@
   "dependencies": {
     "echarts": "^6.0.0",
     "valaxy": "0.28.0-beta.3",
+    "valaxy-addon-waline": "latest",
     "valaxy-theme-yun": "0.28.0-beta.3",
-    "valaxy-addon-waline": "latest"
+    "vite": "^8.0.0"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
