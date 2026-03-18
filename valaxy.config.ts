@@ -29,6 +29,12 @@ export default defineValaxyConfig<UserThemeConfig>({
     },
     pages: [
       {
+        name: '后台撰稿',
+        url: 'https://admin.findedd.cn',
+        icon: 'i-ri-quill-pen-line',
+        color: '#8e44ad',
+      },
+      {
         name: '九机数据大屏',
         url: '/jiuji',
         icon: 'i-ri-bar-chart-box-line',
