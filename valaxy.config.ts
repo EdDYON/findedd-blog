@@ -4,7 +4,13 @@ import { addonWaline } from 'valaxy-addon-waline'
 
 export default defineValaxyConfig<UserThemeConfig>({
   devtools: false,
-  
+
+  siteConfig: {
+    comment: {
+      enable: true
+    }
+  },
+
   addons: [
     addonWaline({
       serverURL: 'https://findedd-waline.vercel.app',
