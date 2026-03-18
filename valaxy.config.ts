@@ -13,7 +13,7 @@ export default defineValaxyConfig<UserThemeConfig>({
 
   addons: [
     addonWaline({
-      serverURL: 'https://findedd-waline.vercel.app',
+      serverURL: 'https://waline.findedd.cn',
     }),
   ],
 
