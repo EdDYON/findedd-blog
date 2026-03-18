@@ -7,7 +7,7 @@ export default defineValaxyConfig<UserThemeConfig>({
   
   addons: [
     addonWaline({
-      serverURL: 'https://把你刚复制的Waline域名粘贴在这里',
+      serverURL: 'https://findedd-waline.vercel.app',
     }),
   ],
 
@@ -25,8 +25,7 @@ export default defineValaxyConfig<UserThemeConfig>({
       api: '',
       content: [
         '分享日常与开发记录 ヾ(≧▽≦*)o',
-        'Easy Adventure & Ocular Nexus 持续更新中！',
-        '既然决定了，就要像逢坂大河一样勇往直前！',
+        '既然决定了，就一直前进吧',
       ],
     },
     notice: {
