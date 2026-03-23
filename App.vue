@@ -153,7 +153,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="site-chrome">
+  <div class="site-chrome" :class="{ 'site-chrome-home': isHome, 'site-chrome-inner': !isHome }">
     <video v-if="isHome" autoplay loop muted playsinline class="site-video">
       <source src="/bg.mp4" type="video/mp4" />
     </video>
@@ -200,13 +200,13 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: saturate(0.92) contrast(1.05) brightness(0.45);
+  filter: saturate(1.02) contrast(1.06) brightness(0.72);
 }
 
 .site-overlay {
   background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.12), transparent 42%),
-    linear-gradient(180deg, rgba(8, 12, 23, 0.2), rgba(8, 12, 23, 0.92));
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.14), transparent 42%),
+    linear-gradient(180deg, rgba(8, 12, 23, 0.06), rgba(8, 12, 23, 0.48));
 }
 
 .site-grid {
@@ -216,6 +216,31 @@ onBeforeUnmount(() => {
   background-size: 44px 44px;
   mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.65), transparent 88%);
   opacity: 0.4;
+}
+
+.site-chrome-home .site-grid {
+  opacity: 0.18;
+}
+
+.site-chrome-home .site-overlay {
+  background:
+    linear-gradient(180deg, rgba(5, 8, 18, 0.08), rgba(5, 8, 18, 0.18) 42%, rgba(5, 8, 18, 0.5));
+}
+
+.site-chrome-home .orb-a,
+.site-chrome-home .orb-b,
+.site-chrome-home .orb-c {
+  opacity: 0.34;
+}
+
+.site-chrome-inner .site-overlay {
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 36%),
+    linear-gradient(180deg, rgba(8, 12, 23, 0.18), rgba(8, 12, 23, 0.92));
+}
+
+.site-chrome-inner .site-grid {
+  opacity: 0.34;
 }
 
 .sakura-layer {
@@ -342,7 +367,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 960px) {
   .site-video {
-    filter: saturate(0.85) contrast(1) brightness(0.32);
+    filter: saturate(0.94) contrast(1.02) brightness(0.62);
   }
 
   .site-grid {
