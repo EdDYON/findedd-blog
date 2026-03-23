@@ -37,7 +37,7 @@ const metrics = computed(() => {
 const quickLinks = [
   {
     title: '九机展示屏',
-    copy: '昆明门店运营展示页面，明天需要用的话可以直接从这里进入。',
+    copy: '我自己做的门店运营展示页面，放在这里顺手就能打开。',
     to: '/jiuji',
   },
   {
