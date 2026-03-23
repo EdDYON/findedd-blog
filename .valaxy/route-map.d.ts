@@ -82,6 +82,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/jiuji': RouteRecordInfo<
+      '/jiuji',
+      '/jiuji',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/life/': RouteRecordInfo<
       '/life/',
       '/life',
@@ -196,6 +203,12 @@ declare module 'vue-router/auto-routes' {
     'pages/hobbies/index.md': {
       routes:
         | '/hobbies/'
+      views:
+        | never
+    }
+    'pages/jiuji.vue': {
+      routes:
+        | '/jiuji'
       views:
         | never
     }

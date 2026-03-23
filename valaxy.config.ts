@@ -67,6 +67,12 @@ export default defineValaxyConfig<UserThemeConfig>({
     ],
     pages: [
       {
+        name: '九机展示屏',
+        url: '/jiuji',
+        icon: 'i-ri-bar-chart-box-line',
+        color: '#54d2ff',
+      },
+      {
         name: '关于我',
         url: '/about/',
         icon: 'i-ri-user-smile-line',
