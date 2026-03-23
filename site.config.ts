@@ -4,16 +4,16 @@ export default defineSiteConfig({
   url: 'https://findedd.cn',
   lang: 'zh-CN',
   title: 'EdDYON 和朋友们',
-  subtitle: '日常、开发、ACG 与认真生活的记录',
+  subtitle: '日常、折腾、ACG，还有一些不想忘掉的东西',
   author: {
     name: 'EdDYON & Friends',
     avatar: '/avatar.jpg',
     status: {
       emoji: '✨',
-      message: '今天也在认真搭站'
+      message: '还在慢慢建设中'
     }
   },
-  description: '这里会慢慢收集开发记录、生活碎片、猫、ACG 和一些值得反复回看的瞬间。',
+  description: '想把喜欢的东西、写过的代码和普通日子都放进来，慢慢搭成一个更像自己的站。',
   social: [],
   search: {
     enable: false,

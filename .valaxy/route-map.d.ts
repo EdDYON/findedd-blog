@@ -110,6 +110,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/posts/6': RouteRecordInfo<
+      '/posts/6',
+      '/posts/6',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/posts/first begin': RouteRecordInfo<
       '/posts/first begin',
       '/posts/first%20begin',
@@ -213,6 +220,12 @@ declare module 'vue-router/auto-routes' {
     'node_modules/valaxy-theme-yun/pages/posts/index.vue': {
       routes:
         | '/posts/'
+      views:
+        | never
+    }
+    'pages/posts/6.md': {
+      routes:
+        | '/posts/6'
       views:
         | never
     }

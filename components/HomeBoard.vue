@@ -6,9 +6,9 @@ const posts = usePostList()
 const pages = usePageList()
 
 const notes = [
-  '布局先舒服，内容才更愿意慢慢长出来。',
-  '别急着一次把所有页面写满，先让每一页都像同一座站。',
-  '保留一点有趣的东西，这样网站才会有人味。',
+  '先把站搭顺眼，再慢慢把想写的东西放进来。',
+  '我不想把这里做成模板样板间，所以会一直改。',
+  '最近想补的是日常、ACG 和记一点开发折腾。',
 ]
 const noteIndex = ref(0)
 
@@ -19,17 +19,17 @@ const metrics = computed(() => {
     {
       label: '文章',
       value: String(posts.value.length).padStart(2, '0'),
-      note: '已经能开始形成首页内容流了',
+      note: '先从零散记录开始攒',
     },
     {
       label: '页面',
       value: String(pages.value.length).padStart(2, '0'),
-      note: '把站点结构先搭稳定，再慢慢补厚',
+      note: '还在慢慢收拾成自己喜欢的样子',
     },
     {
       label: '标签',
       value: String(tagCount).padStart(2, '0'),
-      note: '先有分类意识，后面整理会轻松很多',
+      note: '想到什么写什么，但还是想分清楚',
     },
   ]
 })
@@ -59,16 +59,16 @@ const quickLinks = [
 
 const plans = [
   {
-    title: '首页更像入口，不只是海报',
-    copy: '先告诉来访的人这里会写什么、现在在更新什么，再把他们自然带到文章区。',
+    title: '这站不是一次改完的',
+    copy: '我会一点点收拾它，今天改布局，明天改配色，后天也可能突然删掉一个我不喜欢的区块。',
   },
   {
-    title: '每个栏目都有自己的语气',
-    copy: '开发页偏整理和归档，生活页偏轻松和碎片，兴趣页偏收藏和分享。',
+    title: '想写的东西其实挺杂',
+    copy: '代码、日常、猫、ACG 都会有，不想把自己拆成很标准的几块。',
   },
   {
-    title: '移动端不再是附带品',
-    copy: '卡片、浮层和排版都按手机尺寸重新压过，让阅读和浏览都更轻一点。',
+    title: '手机端我也在认真看',
+    copy: '不想再出现电脑上能看、手机上就乱掉的情况，所以这轮会优先把阅读体验压顺。',
   },
 ]
 
@@ -81,26 +81,26 @@ function nextNote() {
   <section class="home-board">
     <div class="home-board-grid">
       <article class="home-panel">
-        <p class="home-eyebrow">Now Building</p>
-        <h2 class="home-title">一个会继续长大的私人栖息地</h2>
+        <p class="home-eyebrow">EdDYON の小站</p>
+        <h2 class="home-title">这里就是我最近慢慢搭起来的地方</h2>
         <p class="home-copy">
-          这里会慢慢收集开发记录、生活碎片和兴趣角落。先把气质和结构打磨顺，再让内容自己一点点长出来。
+          现在还在建设中，但我希望它最后看起来像一个真正属于我的小站，不是套了模板就放着不动的那种。
         </p>
 
         <div class="home-actions">
           <AppLink class="action-pill" to="/posts/">
-            <span>最近文章</span>
-            <strong>Start Here</strong>
+            <span>先随便逛逛</span>
+            <strong>看看最近写了什么</strong>
           </AppLink>
           <button type="button" class="action-pill" @click="nextNote">
-            <span>今日便签</span>
+            <span>碎碎念</span>
             <strong>{{ notes[noteIndex] }}</strong>
           </button>
         </div>
       </article>
 
       <article class="home-panel">
-        <p class="mini-label">Quick Notes</p>
+        <p class="mini-label">最近在想</p>
         <div class="plan-grid">
           <div v-for="plan in plans" :key="plan.title" class="plan-item">
             <h3>{{ plan.title }}</h3>

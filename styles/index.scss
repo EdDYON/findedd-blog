@@ -100,6 +100,12 @@ a {
   font-family: 'Noto Serif SC', 'Songti SC', serif;
 }
 
+.site-name {
+  background: var(--yun-home-hero-name-background);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .site-subtitle,
 .description,
 .site-description {
@@ -146,8 +152,8 @@ a {
 .yun-card,
 .link-item,
 .va-card {
-  background: var(--site-surface);
-  border: 1px solid var(--site-border);
+  background: var(--site-surface) !important;
+  border: 1px solid var(--site-border) !important;
   box-shadow: var(--site-shadow);
 }
 
@@ -216,6 +222,10 @@ a {
   color: #fff;
   padding: 0.82rem 1rem;
   text-decoration: none;
+}
+
+button.action-pill {
+  text-align: left;
 }
 
 .action-pill:hover,
@@ -334,6 +344,54 @@ a {
   border-radius: 28px !important;
 }
 
+.content > .yun-card,
+.yun-layout-left .yun-card,
+.yun-aside .yun-card,
+.yun-comment,
+.waline-wrapper,
+.wl-container,
+.yun-post-nav,
+.yun-ad-board {
+  background: rgba(10, 16, 28, 0.82) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: rgba(244, 247, 255, 0.86) !important;
+}
+
+.content > .yun-card .yun-card-body,
+.content > .yun-card .yun-card-content,
+.content > .yun-card .post-title,
+.content > .yun-card .post-header,
+.content > .yun-card .post-meta,
+.content > .yun-card .markdown-body,
+.yun-layout-left,
+.yun-aside,
+.yun-aside *,
+.yun-comment,
+.yun-comment *,
+.wl-container,
+.wl-container * {
+  color: rgba(244, 247, 255, 0.86);
+}
+
+.post-header .post-title,
+.post-meta,
+.post-meta a,
+.yun-post-meta,
+.yun-post-meta a,
+.yun-page-header,
+.yun-page-header a {
+  color: rgba(249, 250, 255, 0.88) !important;
+}
+
+.yun-post-actions,
+.yun-post-actions button,
+.yun-post-actions a,
+.toc-btn,
+.yun-outline-item,
+.yun-outline-item a {
+  color: rgba(244, 247, 255, 0.82) !important;
+}
+
 .sidebar-panel hr {
   border-color: rgba(255, 255, 255, 0.08);
 }
@@ -362,6 +420,22 @@ a {
   border-left: 3px solid rgba(255, 210, 125, 0.8);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.04);
+}
+
+.markdown-body a,
+.post-meta a,
+.yun-post-meta a,
+.wl-meta a {
+  color: #ffcfdd;
+}
+
+.markdown-body code,
+.markdown-body pre,
+.wl-editor,
+.wl-input,
+.wl-card {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: rgba(244, 247, 255, 0.9) !important;
 }
 
 .page-intro {
@@ -396,6 +470,11 @@ a {
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
+.link-item span,
+.link-item .icon {
+  color: inherit !important;
+}
+
 .yun-footer {
   margin-top: 2rem !important;
   border-radius: 28px 28px 0 0;
@@ -406,6 +485,12 @@ a {
 
 .yun-footer-gradient {
   opacity: 0.4;
+}
+
+.yun-pagination .page-number,
+.yun-pagination a,
+.yun-pagination button {
+  color: rgba(244, 247, 255, 0.88) !important;
 }
 
 @media (max-width: 1100px) {

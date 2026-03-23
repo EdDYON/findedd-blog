@@ -30,14 +30,14 @@ export default defineValaxyConfig<UserThemeConfig>({
       enable: true,
       api: '',
       content: [
-        '站点改版中，但会越变越像自己。',
-        '慢慢写，认真写，也认真生活。',
-        '开发、日常、猫、ACG，都准备留在这里。',
+        '这站我还会继续改，今天和明天看见的可能都不一样。',
+        '代码会写，日常也会记，喜欢的东西也不想藏着。',
+        '如果你刚好点进来了，那就当作一起围观我慢慢施工。',
       ],
     },
     notice: {
-      enable: true,
-      content: '这座小站刚完成一轮改版，移动端和桌面端都在继续打磨中。',
+      enable: false,
+      content: '',
     },
     fireworks: {
       enable: false,
