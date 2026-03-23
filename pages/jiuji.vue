@@ -308,7 +308,7 @@ onUnmounted(() => {
       <div class="brand-block">
         <div class="brand-kicker">9JI / OPS BOARD</div>
         <h1>昆明门店运营展示屏</h1>
-        <p>实时模拟数据面板，适合明天直接展示使用</p>
+        <p>实时模拟数据面板</p>
       </div>
 
       <div class="toolbar-actions">
