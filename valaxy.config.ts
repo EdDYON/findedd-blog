@@ -21,7 +21,7 @@ export default defineValaxyConfig<UserThemeConfig>({
   themeConfig: {
     banner: {
       enable: true,
-      title: 'EdDYON和他的朋友们',
+      title: 'EdDYON 和朋友们',
     },
     bg_image: {
       enable: false,
@@ -30,58 +30,90 @@ export default defineValaxyConfig<UserThemeConfig>({
       enable: true,
       api: '',
       content: [
-        '分享日常与开发记录 ヾ(≧▽≦*)o',
-        '既然决定了，就一直前进吧',
+        '站点改版中，但会越变越像自己。',
+        '慢慢写，认真写，也认真生活。',
+        '开发、日常、猫、ACG，都准备留在这里。',
       ],
     },
     notice: {
-      enable: false,
+      enable: true,
+      content: '这座小站刚完成一轮改版，移动端和桌面端都在继续打磨中。',
     },
     fireworks: {
-      enable: true,
+      enable: false,
       colors: ['#66CCFF', '#FFB3CC', '#99FF99', '#FFCC99', '#CCCCFF']
     },
+    nav: [
+      {
+        text: '文章',
+        link: '/posts/',
+        icon: 'i-ri-article-line',
+      },
+      {
+        text: '关于',
+        link: '/about/',
+        icon: 'i-ri-user-heart-line',
+      },
+      {
+        text: '友邻',
+        link: '/links/',
+        icon: 'i-ri-links-line',
+      },
+      {
+        text: '站点',
+        link: '/about/site/',
+        icon: 'i-ri-layout-masonry-line',
+      },
+    ],
     pages: [
       {
-        name: '后台撰稿',
-        url: 'https://admin.findedd.cn',
-        icon: 'i-ri-quill-pen-line',
-        color: '#8e44ad',
+        name: '关于我',
+        url: '/about/',
+        icon: 'i-ri-user-smile-line',
+        color: '#ff8a65',
       },
       {
-        name: '九机数据大屏',
-        url: '/jiuji',
-        icon: 'i-ri-bar-chart-box-line',
-        color: '#00f2fe',
-      },
-      {
-        name: 'Mods (中/En)',
-        url: '/docs/',
-        icon: 'i-ri-gamepad-line',
-        color: '#10b981',
+        name: '关于站点',
+        url: '/about/site/',
+        icon: 'i-ri-layout-grid-line',
+        color: '#f7b731',
       },
       {
         name: 'Data & Dev',
         url: '/tech/',
         icon: 'i-ri-database-2-line',
-        color: '#3b82f6',
+        color: '#4facfe',
       },
       {
         name: 'Life & Cat',
         url: '/life/',
         icon: 'i-ri-cat-line',
-        color: '#f59e0b',
+        color: '#ffb347',
       },
       {
         name: 'Japan & ACG',
         url: '/hobbies/',
         icon: 'i-ri-flight-takeoff-line',
-        color: '#ec4899',
+        color: '#ff6f91',
+      },
+      {
+        name: '友邻收藏',
+        url: '/links/',
+        icon: 'i-ri-links-line',
+        color: '#7ed6df',
       },
     ],
     footer: {
       since: 2026,
       powered: false,
+      icon: {
+        enable: true,
+        name: 'i-ri-sparkling-2-line',
+        animated: false,
+        color: '#ff8a65',
+        url: 'https://findedd.cn',
+        title: 'Back Home',
+      },
       beian: {
         enable: false,
       },

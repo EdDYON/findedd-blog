@@ -1,15 +1,39 @@
 ---
 title: 关于我
+description: 一份比简历更像生活地图的自我介绍
 ---
 
-I am developing [Valaxy](https://github.com/YunYouJun/valaxy) - Next Generation Static Blog Framework.
+<div class="page-intro">
+  <p class="eyebrow">About Me</p>
+  <h2>一个把兴趣、生活和代码慢慢缝在一起的人</h2>
+  <p>这里不会只放“成果”，也会放过程。会有开发记录、生活碎片、猫、ACG、偶尔认真写下来的感受，还有一些并不急着证明什么的日常。</p>
+</div>
 
-If you like it, you can sponsor me in [GitHub](https://github.com/sponsors/YunYouJun) or [www.yunyoujun.cn/sponsors/](https://www.yunyoujun.cn/sponsors/).
+<div class="feature-grid">
+  <div class="feature-card">
+    <h3>Data & Dev</h3>
+    <p>把折腾过的工具、项目记录、踩坑过程和一点点方法论，慢慢整理成能回看的东西。</p>
+  </div>
+  <div class="feature-card">
+    <h3>Life & Cat</h3>
+    <p>生活不只是效率和产出。这里也会留给日常、空间感、陪伴感，还有那些柔软但重要的小事。</p>
+  </div>
+  <div class="feature-card">
+    <h3>Japan & ACG</h3>
+    <p>喜欢的作品、音乐、设定和旅途想象，都会在这里有自己的位置，不需要假装它们不重要。</p>
+  </div>
+</div>
 
----
+## 这里大概会写什么
 
-我正在开发 [Valaxy](https://github.com/YunYouJun/valaxy) - 下一代静态博客框架。
+- 开发记录：主题折腾、页面设计、交互细节、踩坑修复。
+- 数据和工具流：平时会用到的一些思路、流程和“怎么把东西做顺手”。
+- 生活存档：普通日子的照片感、情绪感和一些没必要太用力解释的时刻。
+- 兴趣角落：猫、ACG、音乐、旅途、想收藏的页面灵感。
 
-如果你喜欢它，你可以在 [GitHub](https://github.com/sponsors/YunYouJun) 或 [www.yunyoujun.cn/sponsors/](https://www.yunyoujun.cn/sponsors/) 赞助我。
+## 这页比“个人简介”更真实一点
 
-Check out the [Valaxy | GitHub](https://github.com/YunYouJun/valaxy) for more details.
+我想把这个站做成一个长期更新的私人空间，而不是一次性装修好的展示页。  
+所以你现在看到的不一定是最终版，但会是越来越像我的版本。
+
+> 如果是第一次来到这里，可以先去看看 [关于站点](/about/site/) 和 [最近的文章](/posts/)。

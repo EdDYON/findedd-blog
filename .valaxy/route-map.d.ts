@@ -75,6 +75,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/hobbies/': RouteRecordInfo<
+      '/hobbies/',
+      '/hobbies',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/life/': RouteRecordInfo<
+      '/life/',
+      '/life',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/links/': RouteRecordInfo<
       '/links/',
       '/links',
@@ -96,9 +110,9 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/posts/hello-valaxy': RouteRecordInfo<
-      '/posts/hello-valaxy',
-      '/posts/hello-valaxy',
+    '/posts/first begin': RouteRecordInfo<
+      '/posts/first begin',
+      '/posts/first%20begin',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -106,6 +120,13 @@ declare module 'vue-router/auto-routes' {
     '/tags/': RouteRecordInfo<
       '/tags/',
       '/tags',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/tech/': RouteRecordInfo<
+      '/tech/',
+      '/tech',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -165,6 +186,18 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'pages/hobbies/index.md': {
+      routes:
+        | '/hobbies/'
+      views:
+        | never
+    }
+    'pages/life/index.md': {
+      routes:
+        | '/life/'
+      views:
+        | never
+    }
     'pages/links/index.md': {
       routes:
         | '/links/'
@@ -183,15 +216,21 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'pages/posts/hello-valaxy.md': {
+    'pages/posts/first begin.md': {
       routes:
-        | '/posts/hello-valaxy'
+        | '/posts/first begin'
       views:
         | never
     }
     'pages/tags/index.md': {
       routes:
         | '/tags/'
+      views:
+        | never
+    }
+    'pages/tech/index.md': {
+      routes:
+        | '/tech/'
       views:
         | never
     }

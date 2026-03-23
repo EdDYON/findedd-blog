@@ -1,7 +1,42 @@
 ---
 title: 关于站点
+description: 这座博客为什么长这样，以及它接下来会变成什么样
 ---
 
-Valaxy + valaxy-theme-yun Demo Site
+<div class="page-intro">
+  <p class="eyebrow">Site Notes</p>
+  <h2>这不是模板演示页，而是一座会继续生长的小站</h2>
+  <p>这次改版的目标不是做得更花，而是让首页、文章页和信息页都更统一，手机和电脑看起来都舒服一点，同时保留一点有趣和轻松。</p>
+</div>
 
-- Default Theme: [valaxy-theme-yun](https://github.com/YunYouJun/valaxy/blob/main/packages/valaxy-theme-yun/)
+<div class="story-grid">
+  <div class="story-card">
+    <h3>视觉方向</h3>
+    <p>深色玻璃感、暖橙和冷蓝作为点缀、首页保留视频氛围，但把信息层级做得更清楚，减少“只有特效”的感觉。</p>
+  </div>
+  <div class="story-card">
+    <h3>响应式优先</h3>
+    <p>不再只顾桌面端展示感。首页卡片、浮层小组件、页面区块和文章卡片都按手机尺寸重新整理过。</p>
+  </div>
+  <div class="story-card">
+    <h3>趣味但不过量</h3>
+    <p>保留了能让站点更有个性的互动元素，比如浮动信息面板和 Sakana 挂件，但避免把内容本身压下去。</p>
+  </div>
+  <div class="story-card">
+    <h3>内容结构</h3>
+    <p>站内现在分成开发、生活、兴趣几个清晰入口，首页会负责“先把人留下来”，再把阅读引到文章和专题页。</p>
+  </div>
+</div>
+
+## 现在用到的东西
+
+- 框架：Valaxy
+- 主题：`valaxy-theme-yun`
+- 评论：Waline
+- 自定义层：首页板块、全局氛围背景、浮动组件、内容页排版样式
+
+## 接下来还会继续补的部分
+
+- 真正成体系的文章内容，而不是只有骨架。
+- 更完整的友情链接或收藏页。
+- 针对栏目页做更细的专题整理，让每个入口都不只是“占一个坑位”。

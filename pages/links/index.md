@@ -1,9 +1,34 @@
 ---
-title: 我的小伙伴们
-keywords: 链接
-description: 云游的小伙伴们
-links: https://friends.yunyoujun.cn/links.json
-random: true
+title: 友邻与收藏
+keywords: 友链
+description: 这里以后会慢慢放进真正想长期互相拜访的网站
 ---
 
-<YunLinks :links="frontmatter.links" :random="frontmatter.random" />
+<div class="page-intro">
+  <p class="eyebrow">Links</p>
+  <h2>这页先留给认真交流的人和网站</h2>
+  <p>我不想把友链页做成模板占位，所以现在先放一份说明。等内容慢慢丰富起来，这里会整理成真正会反复点开的收藏夹和友邻页。</p>
+</div>
+
+<div class="feature-grid">
+  <div class="feature-card">
+    <h3>我偏爱的站点</h3>
+    <p>有明确个人气质、有稳定更新节奏、有自己的审美和表达，不需要特别大，但最好足够真诚。</p>
+  </div>
+  <div class="feature-card">
+    <h3>希望交换到的内容</h3>
+    <p>个人博客、生活记录、开发日志、摄影、插画、ACG、旅行、设计灵感站，都很欢迎。</p>
+  </div>
+  <div class="feature-card">
+    <h3>这页会怎么补</h3>
+    <p>后面会逐步整理成两个部分：友邻和收藏。一个是互相拜访的人，一个是我想长期回看的站。</p>
+  </div>
+</div>
+
+## 暂时的申请偏好
+
+- 页面能正常访问，手机端可读。
+- 有持续更新痕迹，不是纯空壳。
+- 内容本身比站点包装更重要，但有自己的风格会很加分。
+
+> 等这座站的内容再厚一点，这里会换成真正的友链列表，而不是示意页。

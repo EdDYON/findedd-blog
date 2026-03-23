@@ -1,1 +1,24 @@
-// you can custom css vars here
+:root {
+  --va-c-primary: #ff8a65;
+  --va-c-primary-lighter: #ffd27d;
+  --va-c-primary-darker: #f06747;
+  --va-c-bg: #09111f;
+  --va-c-bg-alt: #101a2c;
+  --va-c-bg-soft: rgba(15, 23, 42, 0.78);
+  --va-c-divider: rgba(255, 255, 255, 0.08);
+  --va-c-text: #f7f8fb;
+  --va-c-text-light: rgba(240, 244, 255, 0.74);
+  --va-card-border-radius: 24px;
+  --site-surface: rgba(8, 14, 25, 0.72);
+  --site-surface-strong: rgba(10, 16, 28, 0.9);
+  --site-border: rgba(255, 255, 255, 0.12);
+  --site-shadow: 0 24px 60px rgba(5, 10, 20, 0.28);
+  --site-accent-blue: #4facfe;
+  --site-accent-gold: #ffd27d;
+}
+
+html.dark {
+  --va-c-bg: #070d18;
+  --va-c-bg-alt: #0d1626;
+  --va-c-bg-soft: rgba(9, 15, 27, 0.88);
+}
