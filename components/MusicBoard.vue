@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { monthlyFavorites, musicConfig, type MusicTrack } from '../data/music'
 
@@ -15,6 +15,7 @@ const recentTracks = ref<MusicTrack[]>([])
 const recentLimit = computed(() => props.expanded ? Math.max(musicConfig.recentLimit, 8) : musicConfig.recentLimit)
 const visibleRecentTracks = computed(() => recentTracks.value.slice(0, recentLimit.value))
 const visibleMonthlyFavorites = computed(() => props.expanded ? monthlyFavorites : monthlyFavorites.slice(0, 3))
+const showMonthlyFavorites = computed(() => visibleMonthlyFavorites.value.length > 0)
 const apiReady = computed(() => Boolean(musicConfig.endpoint.trim()))
 
 function pickString(...values: Array<unknown>) {
@@ -134,7 +135,7 @@ onMounted(() => {
 
 <template>
   <section class="music-board" :class="{ 'music-board-expanded': expanded }">
-    <div class="music-board-grid">
+    <div class="music-board-grid" :class="{ 'music-board-grid-single': !showMonthlyFavorites }">
       <article class="music-panel">
         <div class="music-panel-head">
           <div>
@@ -190,7 +191,7 @@ onMounted(() => {
         <p v-if="errorMessage" class="music-tip">{{ errorMessage }}</p>
       </article>
 
-      <article class="music-panel">
+      <article v-if="showMonthlyFavorites" class="music-panel">
         <div class="music-panel-head">
           <div>
             <p class="mini-label">每月最爱</p>
@@ -230,6 +231,10 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+}
+
+.music-board-grid-single {
+  grid-template-columns: 1fr;
 }
 
 .music-panel {
@@ -384,3 +389,8 @@ onMounted(() => {
   }
 }
 </style>
+
+
+
+
+

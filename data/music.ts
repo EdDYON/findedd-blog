@@ -1,4 +1,4 @@
-export type MusicTrack = {
+﻿export type MusicTrack = {
   title: string
   artist: string
   album?: string
@@ -16,8 +16,10 @@ export type MonthlyFavorite = {
 
 export const musicConfig = {
   endpoint: import.meta.env.VITE_NETEASE_RECENT_API || '',
-  profileUrl: '',
+  profileUrl: 'https://music.163.com/#/user/home?id=1542825640',
   recentLimit: 6,
 }
 
 export const monthlyFavorites: MonthlyFavorite[] = []
+
+
