@@ -1,4 +1,18 @@
 :root {
+  --waline-white: #f7f8fb;
+  --waline-color: rgba(244, 247, 255, 0.86);
+  --waline-bg-color: rgba(255, 255, 255, 0.03);
+  --waline-bg-color-light: rgba(255, 255, 255, 0.06);
+  --waline-bg-color-hover: rgba(255, 255, 255, 0.08);
+  --waline-border-color: rgba(255, 255, 255, 0.1);
+  --waline-disable-bg-color: rgba(255, 255, 255, 0.05);
+  --waline-disable-color: rgba(244, 247, 255, 0.4);
+  --waline-info-bg-color: rgba(255, 255, 255, 0.06);
+  --waline-info-color: rgba(240, 244, 255, 0.62);
+  --waline-dark-grey: rgba(244, 247, 255, 0.72);
+  --waline-light-grey: rgba(240, 244, 255, 0.56);
+  --waline-bq-color: rgba(255, 210, 125, 0.32);
+  --waline-box-shadow: none;
   --va-c-primary: #ff8fbc;
   --va-c-primary-lighter: #ffd6ec;
   --va-c-primary-darker: #f06c9b;

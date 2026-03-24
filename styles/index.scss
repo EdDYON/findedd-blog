@@ -588,6 +588,78 @@ button.action-pill {
   color: rgba(244, 247, 255, 0.9) !important;
 }
 
+[data-waline],
+.wl-panel,
+.wl-preview,
+.wl-footer,
+.wl-meta-head,
+.wl-card .wl-meta > span,
+.wl-emoji-popup,
+.wl-gif-popup {
+  background: transparent !important;
+}
+
+.wl-panel,
+.wl-emoji-popup,
+.wl-gif-popup {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
+}
+
+.wl-header {
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.wl-header label,
+.wl-sort li,
+.wl-count,
+.wl-empty,
+.wl-login-nick,
+.wl-card .wl-time,
+.wl-card .wl-meta > span,
+.wl-info .wl-text-number {
+  color: rgba(240, 244, 255, 0.7) !important;
+}
+
+.wl-header input,
+.wl-editor,
+.wl-input,
+.wl-card .wl-content,
+.wl-card span.wl-nick,
+.wl-card .wl-delete,
+.wl-card .wl-like,
+.wl-card .wl-reply,
+.wl-card .wl-edit {
+  color: rgba(244, 247, 255, 0.88) !important;
+}
+
+.wl-header input::placeholder,
+.wl-editor::placeholder,
+.wl-input::placeholder {
+  color: rgba(240, 244, 255, 0.44) !important;
+}
+
+.wl-editor:focus,
+.wl-input:focus,
+.wl-header input:focus {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.wl-card {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-radius: 18px;
+}
+
+.wl-card .wl-content.expand::before {
+  background: linear-gradient(180deg, rgba(8, 14, 25, 0), rgba(8, 14, 25, 0.92)) !important;
+}
+
+.wl-card .wl-content.expand::after {
+  background: rgba(8, 14, 25, 0.92) !important;
+  color: rgba(240, 244, 255, 0.62) !important;
+}
+
 .page-intro {
   margin-bottom: 1.35rem;
 }

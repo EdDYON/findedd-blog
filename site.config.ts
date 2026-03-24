@@ -6,7 +6,7 @@ export default defineSiteConfig({
   title: 'EdDYON 和朋友们',
   subtitle: '日常、开发、ACG，还有一点慢慢搭站的执念',
   author: {
-    name: 'EdDYON & Friends',
+    name: 'EdDYON',
     avatar: '/avatar.jpg',
     status: {
       emoji: '✨',
