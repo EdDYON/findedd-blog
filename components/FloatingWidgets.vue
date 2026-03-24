@@ -8,11 +8,11 @@ defineProps<{
 
 <template>
   <aside class="floating-widgets">
-    <div v-if="showMascot" class="mascot-note">
-      <span>施工中</span>
-      <small>慢慢变成我想要的样子</small>
+    <div v-if="showMascot && isHome" class="mascot-note">
+      <span>今日施工</span>
+      <small>首页还在继续收边角</small>
     </div>
-    <div v-if="showMascot" id="sakana-widget" class="sakana-shell" />
+    <div v-if="showMascot && isHome" id="sakana-widget" class="sakana-shell" />
   </aside>
 </template>
 

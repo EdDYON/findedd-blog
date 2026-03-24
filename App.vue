@@ -1,6 +1,16 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+
+type IdleWindow = Window & {
+  requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number
+  cancelIdleCallback?: (handle: number) => void
+}
+
+type NetworkInfo = {
+  saveData?: boolean
+  effectiveType?: string
+}
 
 const route = useRoute()
 const isHome = computed(() => route.path === '/')
@@ -10,7 +20,9 @@ const cursorY = ref(0)
 const showCursorGlow = ref(false)
 const showMascot = ref(false)
 const showLive2d = ref(false)
-const petalCount = 12
+const showVideo = ref(false)
+const videoReady = ref(false)
+const petalCount = 10
 
 const sakanaState = {
   scriptLoaded: false,
@@ -23,6 +35,11 @@ const live2dState = {
 let cleanupPointer = () => {}
 let cleanupResize = () => {}
 let cleanupClick = () => {}
+let stopRouteWatch = () => {}
+let videoTimer = 0
+let sakanaTimer = 0
+let live2dTimer = 0
+let videoIdleHandle = 0
 
 function mountSakana() {
   const win = window as Window & {
@@ -41,7 +58,7 @@ function mountSakana() {
 }
 
 function loadSakana() {
-  if (!showMascot.value)
+  if (!showMascot.value || !isHome.value)
     return
 
   const existingStyle = document.querySelector('link[data-sakana-style="true"]')
@@ -77,7 +94,7 @@ function loadSakana() {
 }
 
 function loadLive2d() {
-  if (!showLive2d.value)
+  if (!showLive2d.value || !isHome.value)
     return
 
   const existingScript = document.querySelector('script[data-live2d-script="true"]')
@@ -97,7 +114,7 @@ function loadLive2d() {
 function spawnStar(event: MouseEvent) {
   const star = document.createElement('span')
   star.className = 'click-star'
-  star.textContent = ['✦', '✧', '✶'][Math.floor(Math.random() * 3)]
+  star.textContent = ['✦', '✧', '⋆'][Math.floor(Math.random() * 3)]
   star.style.left = `${event.clientX}px`
   star.style.top = `${event.clientY}px`
   document.body.appendChild(star)
@@ -107,20 +124,99 @@ function spawnStar(event: MouseEvent) {
   }, 900)
 }
 
+function clearAmbientTimers() {
+  if (videoTimer) {
+    window.clearTimeout(videoTimer)
+    videoTimer = 0
+  }
+
+  if (sakanaTimer) {
+    window.clearTimeout(sakanaTimer)
+    sakanaTimer = 0
+  }
+
+  if (live2dTimer) {
+    window.clearTimeout(live2dTimer)
+    live2dTimer = 0
+  }
+
+  if (videoIdleHandle) {
+    const idleWindow = window as IdleWindow
+    idleWindow.cancelIdleCallback?.(videoIdleHandle)
+    videoIdleHandle = 0
+  }
+}
+
+function shouldUseHomeVideo() {
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const largeScreen = window.matchMedia('(min-width: 860px)').matches
+  const network = (navigator as Navigator & { connection?: NetworkInfo }).connection
+  const slowNetwork = Boolean(network?.saveData)
+    || ['slow-2g', '2g', '3g'].includes(network?.effectiveType || '')
+
+  return isHome.value && largeScreen && !reducedMotion && !slowNetwork
+}
+
+function scheduleHomeVideo() {
+  showVideo.value = false
+  videoReady.value = false
+
+  if (!shouldUseHomeVideo())
+    return
+
+  const startVideo = () => {
+    showVideo.value = true
+  }
+
+  const idleWindow = window as IdleWindow
+  if (typeof idleWindow.requestIdleCallback === 'function') {
+    videoIdleHandle = idleWindow.requestIdleCallback(() => {
+      startVideo()
+      videoIdleHandle = 0
+    }, { timeout: 1400 })
+    return
+  }
+
+  videoTimer = window.setTimeout(() => {
+    startVideo()
+    videoTimer = 0
+  }, 420)
+}
+
+function scheduleAmbientAddons() {
+  if (showMascot.value) {
+    sakanaTimer = window.setTimeout(() => {
+      requestAnimationFrame(loadSakana)
+      sakanaTimer = 0
+    }, 850)
+  }
+
+  if (showLive2d.value) {
+    live2dTimer = window.setTimeout(() => {
+      requestAnimationFrame(loadLive2d)
+      live2dTimer = 0
+    }, 1500)
+  }
+}
+
+function syncRouteState() {
+  document.body.classList.toggle('home-route', isHome.value)
+  document.body.classList.toggle('inner-route', !isHome.value)
+}
+
 function updateExperience() {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const largeScreen = window.matchMedia('(min-width: 1080px)').matches
+  const extraWide = window.matchMedia('(min-width: 1320px)').matches
   const finePointer = window.matchMedia('(pointer: fine)').matches
 
-  showMascot.value = largeScreen && !reducedMotion
-  showLive2d.value = largeScreen && !reducedMotion
-  showCursorGlow.value = finePointer && !reducedMotion
+  showMascot.value = isHome.value && largeScreen && !reducedMotion
+  showLive2d.value = isHome.value && extraWide && !reducedMotion
+  showCursorGlow.value = isHome.value && finePointer && !reducedMotion
 
-  if (showMascot.value)
-    requestAnimationFrame(loadSakana)
-
-  if (showLive2d.value)
-    requestAnimationFrame(loadLive2d)
+  clearAmbientTimers()
+  scheduleHomeVideo()
+  scheduleAmbientAddons()
 }
 
 onMounted(() => {
@@ -134,11 +230,17 @@ onMounted(() => {
     spawnStar(event)
   }
 
+  syncRouteState()
   updateExperience()
 
   window.addEventListener('pointermove', handlePointerMove, { passive: true })
   window.addEventListener('resize', updateExperience, { passive: true })
   window.addEventListener('click', handleClick, { passive: true })
+
+  stopRouteWatch = watch(isHome, () => {
+    syncRouteState()
+    updateExperience()
+  })
 
   cleanupPointer = () => window.removeEventListener('pointermove', handlePointerMove)
   cleanupResize = () => window.removeEventListener('resize', updateExperience)
@@ -146,21 +248,38 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  clearAmbientTimers()
+  document.body.classList.remove('home-route', 'inner-route')
   cleanupPointer()
   cleanupResize()
   cleanupClick()
+  stopRouteWatch()
 })
 </script>
 
 <template>
   <div class="site-chrome" :class="{ 'site-chrome-home': isHome, 'site-chrome-inner': !isHome }">
-    <video v-if="isHome" autoplay loop muted playsinline class="site-video">
+    <div v-if="isHome" class="site-poster" :class="{ 'site-poster-faded': showVideo && videoReady }" />
+
+    <video
+      v-if="showVideo"
+      autoplay
+      loop
+      muted
+      playsinline
+      preload="none"
+      poster="/bg-poster.svg"
+      disablepictureinpicture
+      class="site-video"
+      :class="{ 'site-video-ready': videoReady }"
+      @canplay="videoReady = true"
+    >
       <source src="/bg.mp4" type="video/mp4" />
     </video>
 
     <div class="site-overlay" />
     <div class="site-grid" />
-    <div class="sakura-layer">
+    <div v-if="isHome" class="sakura-layer">
       <span v-for="index in petalCount" :key="index" class="petal" :style="{ '--petal-index': index }" />
     </div>
     <div class="site-orb orb-a" />
@@ -187,6 +306,7 @@ onBeforeUnmount(() => {
 }
 
 .site-video,
+.site-poster,
 .site-overlay,
 .site-grid,
 .sakura-layer,
@@ -200,7 +320,25 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: saturate(1.02) contrast(1.06) brightness(0.72);
+  opacity: 0;
+  filter: saturate(1.02) contrast(1.05) brightness(0.78);
+  transition: opacity 500ms ease;
+}
+
+.site-video-ready {
+  opacity: 1;
+}
+
+.site-poster {
+  background:
+    linear-gradient(180deg, rgba(5, 8, 18, 0.12), rgba(5, 8, 18, 0.5)),
+    url('/bg-poster.svg') center / cover no-repeat;
+  opacity: 0.82;
+  transition: opacity 420ms ease;
+}
+
+.site-poster-faded {
+  opacity: 0.16;
 }
 
 .site-overlay {
@@ -224,7 +362,7 @@ onBeforeUnmount(() => {
 
 .site-chrome-home .site-overlay {
   background:
-    linear-gradient(180deg, rgba(5, 8, 18, 0.08), rgba(5, 8, 18, 0.18) 42%, rgba(5, 8, 18, 0.5));
+    linear-gradient(180deg, rgba(5, 8, 18, 0.08), rgba(5, 8, 18, 0.16) 42%, rgba(5, 8, 18, 0.46));
 }
 
 .site-chrome-home .orb-a,
@@ -243,6 +381,11 @@ onBeforeUnmount(() => {
   opacity: 0.34;
 }
 
+.site-chrome-inner .site-poster,
+.site-chrome-inner .site-video {
+  display: none;
+}
+
 .sakura-layer {
   overflow: hidden;
 }
@@ -253,7 +396,7 @@ onBeforeUnmount(() => {
 
   position: absolute;
   top: -8%;
-  left: calc((var(--petal-index) - 1) * 9%);
+  left: calc((var(--petal-index) - 1) * 10%);
   width: var(--size);
   height: calc(var(--size) * 0.72);
   border-radius: 100% 0 100% 0;
@@ -324,6 +467,10 @@ onBeforeUnmount(() => {
   opacity: 0.94;
 }
 
+:global(body:not(.home-route) #live2d-widget) {
+  display: none !important;
+}
+
 :global(#live2d-widget-bar),
 :global(.sakana-widget-ctrl) {
   display: none !important;
@@ -367,7 +514,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 960px) {
   .site-video {
-    filter: saturate(0.94) contrast(1.02) brightness(0.62);
+    filter: saturate(0.94) contrast(1.02) brightness(0.66);
   }
 
   .site-grid {

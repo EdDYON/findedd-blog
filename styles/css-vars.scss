@@ -1,8 +1,8 @@
 :root {
-  --va-c-primary: #ff8a65;
-  --va-c-primary-lighter: #ffd27d;
-  --va-c-primary-darker: #f06747;
-  --va-c-primary-rgb: 255 138 101;
+  --va-c-primary: #ff8fbc;
+  --va-c-primary-lighter: #ffd6ec;
+  --va-c-primary-darker: #f06c9b;
+  --va-c-primary-rgb: 255 143 188;
   --va-c-bg: #09111f;
   --va-c-bg-alt: #101a2c;
   --va-c-bg-light: rgba(11, 18, 31, 0.92);
@@ -17,9 +17,10 @@
   --site-surface-strong: rgba(10, 16, 28, 0.9);
   --site-border: rgba(255, 255, 255, 0.12);
   --site-shadow: 0 24px 60px rgba(5, 10, 20, 0.28);
-  --site-accent-blue: #4facfe;
+  --site-accent-blue: #66d7ff;
   --site-accent-gold: #ffd27d;
-  --yun-home-hero-name-background: linear-gradient(120deg, #fff7fd 24%, #ffb7d8 54%, #91d7ff 100%);
+  --site-accent-pink: #ff9dc7;
+  --yun-home-hero-name-background: linear-gradient(120deg, #fff7fd 18%, #ffc1e3 50%, #94e2ff 100%);
 }
 
 html.dark {
