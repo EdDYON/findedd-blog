@@ -14,6 +14,9 @@ export default defineValaxyConfig<UserThemeConfig>({
   addons: [
     addonWaline({
       serverURL: 'https://waline.findedd.cn',
+      login: 'disable',
+      meta: ['nick'],
+      requiredMeta: ['nick'],
     }),
   ],
 
@@ -30,9 +33,9 @@ export default defineValaxyConfig<UserThemeConfig>({
       enable: true,
       api: '',
       content: [
-        '这站我还会继续改，隔两天回来看可能又不一样。',
-        '代码会记，日常会放，喜欢的东西也会慢慢补上。',
-        '先把它搭成我愿意一直打开的样子，再慢慢把内容塞满。',
+        '这站还在收，过阵子再来看大概又会多点东西。',
+        '想记的都先记下来，技术也好，日常也好。',
+        '先把人味留住，再慢慢补内容。',
       ],
     },
     notice: {
@@ -137,3 +140,4 @@ export default defineValaxyConfig<UserThemeConfig>({
     },
   },
 })
+

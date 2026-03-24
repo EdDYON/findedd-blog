@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -100,7 +100,7 @@ function loadLive2d() {
 function spawnStar(event: MouseEvent) {
   const star = document.createElement('span')
   star.className = 'click-star'
-  star.textContent = ['✦', '✧', '⋆'][Math.floor(Math.random() * 3)]
+  star.textContent = ['*', '+', '.'][Math.floor(Math.random() * 3)]
   star.style.left = `${event.clientX}px`
   star.style.top = `${event.clientY}px`
   document.body.appendChild(star)
@@ -218,6 +218,7 @@ onBeforeUnmount(() => {
   </div>
 
   <FloatingWidgets :is-home="isHome" :show-mascot="showMascot" />
+  <VisitorWalineBridge />
 </template>
 
 <style scoped>
@@ -441,3 +442,5 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+
+

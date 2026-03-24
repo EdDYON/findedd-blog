@@ -16,6 +16,9 @@ const addon = useAddonWaline()
 const commentOptions = computed(() => ({
   ...addon.value.options,
   pageview: false,
+  login: 'disable',
+  meta: ['nick'],
+  requiredMeta: ['nick'],
 }))
 </script>
 

@@ -6,17 +6,17 @@ const posts = usePostList()
 const pages = usePageList()
 
 const notes = [
-  '先把首页住舒服，再慢慢往里放内容。',
-  '这里会写代码，也会记普通日子。',
-  '比起模板站，我更想把它搭成真的会反复打开的小地方。',
+  '先把想写的东西摆上来，样子再慢慢收。',
+  '有些页还空着，但我确实在一点点填。',
+  '这个站对我来说，不是摆着看的，是会一直住下去的。',
 ]
 const noteIndex = ref(0)
 
 const heroChips = [
   '二次元风格',
   '动态壁纸保留',
-  '移动端重排',
-  '继续施工中',
+  '手机端继续收',
+  '还在慢慢补',
 ]
 
 const metrics = computed(() => {
@@ -26,33 +26,33 @@ const metrics = computed(() => {
     {
       label: '文章',
       value: String(posts.value.length).padStart(2, '0'),
-      note: '先把想记的东西一点点攒起来',
+      note: '先把想记的慢慢攒起来',
     },
     {
       label: '页面',
       value: String(pages.value.length).padStart(2, '0'),
-      note: '页面也在慢慢收成同一种气质',
+      note: '能用的先做出来，细节后面再收',
     },
     {
       label: '标签',
       value: String(tagCount).padStart(2, '0'),
-      note: '现在先别分太死，写着写着再整理',
+      note: '暂时先别分太细，写多了再整理',
     },
   ]
 })
 
 const plans = [
   {
-    title: '首页先顺眼',
-    copy: '这一轮先把第一眼做舒服，别再像很多区块简单叠起来。',
+    title: '互动区继续补',
+    copy: '先让人能顺手留话，再慢慢把最近来过、最近留言这些东西接进来。',
   },
   {
-    title: '内容不想太正经',
-    copy: '技术会写，日常也会放，喜欢的东西也不准备藏着。',
+    title: '旧东西慢慢搬',
+    copy: '想留下来的记录会一点点挪进来，不急着一次塞满。',
   },
   {
-    title: '手机端别凑合',
-    copy: '希望在手机上打开也顺手，不是只能电脑上看着还行。',
+    title: '手机端再细收',
+    copy: '希望随手拿手机打开的时候，也不会觉得哪块挤或者乱。',
   },
 ]
 
@@ -60,37 +60,37 @@ const quickLinks = [
   {
     title: '互动区',
     badge: '来玩一下',
-    copy: '纸条墙、话题墙、许愿池、签到墙和几种小互动都丢在这边了。',
+    copy: '纸条、话题、签到、许愿都在这边，想说一句的时候可以直接进去。',
     to: '/interact/',
   },
   {
     title: '九机展示屏',
     badge: '展示入口',
-    copy: '我自己做的门店运营展示页，临时放在首页这边，打开会更顺手。',
+    copy: '我自己做的门店展示页，明天要用，所以先放在这里方便打开。',
     to: '/jiuji',
   },
   {
     title: 'Data & Dev',
     badge: '开发记录',
-    copy: '代码、工具流、建站过程，还有那些值得以后复用的办法。',
+    copy: '写代码、改站、工具流，还有那些以后自己也会回来翻的东西。',
     to: '/tech/',
   },
   {
     title: 'Life & Cat',
     badge: '生活区',
-    copy: '普通日子、陪伴感和想留下来的碎片，不想只剩技术内容。',
+    copy: '普通日子、猫、碎碎念和一些不想就这么过去的小事。',
     to: '/life/',
   },
   {
     title: 'Japan & ACG',
     badge: '兴趣区',
-    copy: 'ACG、音乐、旅途想象，还有会让我反复回头看的东西。',
+    copy: '喜欢的作品、音乐和一些会让我反复回头看的东西。',
     to: '/hobbies/',
   },
   {
     title: '关于站点',
-    badge: '施工记录',
-    copy: '这里会慢慢记下这次改版到底想做成什么样。',
+    badge: '站点说明',
+    copy: '这站为什么会长成现在这样，还有我后面还想怎么改。',
     to: '/about/site/',
   },
 ]
@@ -105,9 +105,9 @@ function nextNote() {
     <div class="hero-grid">
       <article class="home-panel hero-panel hero-panel-main">
         <p class="home-eyebrow">EdDYON の小站</p>
-        <h2 class="home-title">把喜欢的东西、普通日子和折腾记录都放在这里</h2>
+        <h2 class="home-title">喜欢的东西、普通日子，还有折腾过的痕迹，都想放在这里</h2>
         <p class="home-copy">
-          这里还在慢慢施工，但不是那种只把模板架起来就放着的站。我想一边写，一边把它改成自己真的会反复打开的样子。
+          这站还在收拾，但我不想把它做成那种只剩模板味的博客。先把想记的东西放进来，再慢慢让它长成自己的样子。
         </p>
 
         <div class="hero-chip-row">
@@ -121,7 +121,7 @@ function nextNote() {
           </AppLink>
           <AppLink class="action-pill" to="/interact/">
             <span>和我互动</span>
-            <strong>留言、许愿、签到或者顺手玩一下</strong>
+            <strong>想留言、许愿、签到的话，从这里进</strong>
           </AppLink>
         </div>
       </article>
@@ -130,7 +130,7 @@ function nextNote() {
         <div class="home-section-head compact">
           <div>
             <p class="mini-label">站点状态</p>
-            <h3>最近在收的几个地方</h3>
+            <h3>最近在收的几块</h3>
           </div>
           <button type="button" class="note-switch" @click="nextNote">
             换一句
@@ -153,10 +153,10 @@ function nextNote() {
       <article class="home-panel">
         <div class="home-section-head">
           <div>
-            <p class="mini-label">目前进度</p>
-            <h3>最近在折腾什么</h3>
+            <p class="mini-label">最近在弄</p>
+            <h3>这几天主要在收什么</h3>
           </div>
-          <p class="section-copy">这轮主要先把首页、观感和加载速度理顺。</p>
+          <p class="section-copy">先把互动、观感和手机端这些最容易被看到的地方收顺。</p>
         </div>
 
         <div class="plan-grid">
@@ -171,9 +171,9 @@ function nextNote() {
         <div class="home-section-head">
           <div>
             <p class="mini-label">快速入口</p>
-            <h3>从这里进会更顺手</h3>
+            <h3>从这里进会省事一点</h3>
           </div>
-          <p class="section-copy">常用页面先放前面，临时展示入口也先留着。</p>
+          <p class="section-copy">常用页面先放前面，临时要展示的也先留着。</p>
         </div>
 
         <div class="quick-links">

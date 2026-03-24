@@ -1,14 +1,6 @@
 ﻿<script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-
-interface VisitorProfile {
-  provider: string
-  openid: string
-  nickname: string
-  avatar?: string
-  city?: string
-  province?: string
-}
+import { computed, onMounted } from 'vue'
+import { useVisitorAuth } from '../composables/useVisitorAuth'
 
 const props = withDefaults(defineProps<{
   compact?: boolean
@@ -16,89 +8,39 @@ const props = withDefaults(defineProps<{
   compact: false,
 })
 
-const apiBase = (import.meta.env.VITE_VISITOR_API_BASE || '').replace(/\/$/, '')
-const loading = ref(true)
-const authenticated = ref(false)
-const user = ref<VisitorProfile | null>(null)
-const error = ref('')
-
-const loginStatus = computed(() => {
-  if (typeof window === 'undefined')
-    return ''
-
-  return new URLSearchParams(window.location.search).get('visitor_login') || ''
-})
+const {
+  authenticated,
+  error,
+  hasVisitorApi,
+  loading,
+  loginStatus,
+  loginWithQQ,
+  loadVisitor,
+  logoutVisitor,
+  user,
+} = useVisitorAuth()
 
 const statusCopy = computed(() => {
   if (loginStatus.value === 'success')
-    return 'QQ 登录已经接上了，现在这边会记住你的访客身份。'
+    return 'QQ 登录已经接上了，下面留言会直接用这个昵称。'
 
-  if (loginStatus.value === 'failed')
-    return '这次 QQ 登录没有成功，可以再试一次。'
+  if (loginStatus.value.startsWith('failed'))
+    return '这次 QQ 登录没走通，过一会儿再试就行。'
 
   if (error.value)
     return error.value
 
-  if (!apiBase)
-    return '还没填访客接口地址，先把 Qexo 的公开域名配上就能用。'
+  if (!hasVisitorApi.value)
+    return '访客接口还没填，等 Qexo 域名配好之后这里就能直接用。'
 
   if (authenticated.value && user.value)
-    return `当前访客：${user.value.nickname}`
+    return `现在会用 ${user.value.nickname} 这个名字在互动区留言。`
 
-  return '用 QQ 一键登录，后面互动区会更容易把你认出来。'
+  return '想留个 QQ 身份的话，点一下就行。不登也能写，只是不会记住你。'
 })
 
-async function loadVisitor() {
-  if (!apiBase) {
-    loading.value = false
-    return
-  }
-
-  loading.value = true
-  error.value = ''
-
-  try {
-    const response = await fetch(`${apiBase}/pub/visitor/me/`, {
-      credentials: 'include',
-    })
-    const data = await response.json()
-
-    authenticated.value = Boolean(data?.authenticated)
-    user.value = data?.user || null
-  }
-  catch {
-    authenticated.value = false
-    user.value = null
-    error.value = '访客状态暂时没取到，可能是接口域名或跨域配置还没填完。'
-  }
-  finally {
-    loading.value = false
-  }
-}
-
-function loginWithQQ() {
-  if (!apiBase || typeof window === 'undefined')
-    return
-
-  const url = new URL(`${apiBase}/auth/qq/start/`)
-  url.searchParams.set('return_to', window.location.href)
-  window.location.href = url.toString()
-}
-
-async function logoutVisitor() {
-  if (!apiBase)
-    return
-
-  try {
-    await fetch(`${apiBase}/pub/visitor/logout/`, {
-      method: 'POST',
-      credentials: 'include',
-    })
-  }
-  catch {}
-
-  authenticated.value = false
-  user.value = null
+function handleLogin() {
+  loginWithQQ()
 }
 
 onMounted(() => {
@@ -111,13 +53,13 @@ onMounted(() => {
     <div class="visitor-card-head">
       <div>
         <p class="mini-label">QQ 访客</p>
-        <h3>{{ compact ? '先登录再互动' : '互动区现在可以挂 QQ 身份了' }}</h3>
+        <h3>{{ compact ? '登录后会直接带上昵称' : '想留个 QQ 身份的话，从这里进就行' }}</h3>
       </div>
       <button
-        v-if="!loading && apiBase && !authenticated"
+        v-if="!loading && hasVisitorApi && !authenticated"
         type="button"
         class="visitor-action"
-        @click="loginWithQQ"
+        @click="handleLogin"
       >
         QQ 登录
       </button>
@@ -144,7 +86,7 @@ onMounted(() => {
     </p>
 
     <p v-if="!compact" class="visitor-note">
-      这一步先把互动页的访客身份接好，评论区还是 Waline 现在这套，后面再决定要不要一起并掉。
+      互动区现在只留昵称这一项。你如果先用 QQ 登录，后面几面墙都会直接带上这个名字。
     </p>
   </article>
 </template>
