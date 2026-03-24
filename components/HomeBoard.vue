@@ -58,6 +58,12 @@ const plans = [
 
 const quickLinks = [
   {
+    title: '最近在听',
+    badge: '音乐角落',
+    copy: '准备把网易云最近循环和每个月最喜欢的歌都留在这里。',
+    to: '/music/',
+  },
+  {
     title: '九机展示屏',
     badge: '展示入口',
     copy: '我自己做的门店运营展示页，临时放在首页这边，打开会更顺手。',
@@ -179,5 +185,7 @@ function nextNote() {
         </div>
       </article>
     </div>
+
+    <MusicBoard />
   </section>
 </template>

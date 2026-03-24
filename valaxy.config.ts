@@ -50,6 +50,11 @@ export default defineValaxyConfig<UserThemeConfig>({
         icon: 'i-ri-article-line',
       },
       {
+        text: '音乐',
+        link: '/music/',
+        icon: 'i-ri-disc-line',
+      },
+      {
         text: '关于',
         link: '/about/',
         icon: 'i-ri-user-heart-line',
@@ -66,6 +71,12 @@ export default defineValaxyConfig<UserThemeConfig>({
       },
     ],
     pages: [
+      {
+        name: '最近在听',
+        url: '/music/',
+        icon: 'i-ri-music-2-line',
+        color: '#ff9dc7',
+      },
       {
         name: '九机展示屏',
         url: '/jiuji',
