@@ -32,6 +32,8 @@ const commentOptions = computed(() => ({
       </div>
     </article>
 
+    <VisitorLoginCard compact />
+
     <article class="wall-panel">
       <ClientOnly>
         <WalineClient w="full" :options="commentOptions" />

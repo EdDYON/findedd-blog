@@ -1,4 +1,4 @@
-<route lang="yaml">
+﻿<route lang="yaml">
 meta:
   frontmatter:
     title: 互动区
@@ -72,6 +72,8 @@ const walls = [
         <span class="inline-chip">许愿池</span>
       </div>
     </article>
+
+    <VisitorLoginCard />
 
     <div class="hub-top-grid">
       <article class="hub-highlight-card">
