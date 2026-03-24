@@ -61,7 +61,7 @@ const walls = [
         <p class="eyebrow">Interaction Hub</p>
         <h2>这里更像站里专门留出来的会客厅</h2>
         <p>
-          不想把互动做成很重的社区，所以这里更偏“可以顺手开口”的感觉。你可以留纸条、接话题、签到、许愿，也可以先玩一下再走。
+          现在它已经不只是摆几个入口了。你可以直接登录、签到、丢愿望，也能看到最近是谁来过这里。
         </p>
       </div>
 
@@ -89,6 +89,11 @@ const walls = [
         <p>{{ weeklyTopic.prompt }}</p>
         <AppLink class="inline-chip" to="/interact/topic">去接话</AppLink>
       </article>
+    </div>
+
+    <div class="hub-live-grid">
+      <RecentVisitorsBoard compact />
+      <WishPoolCard compact />
     </div>
 
     <div class="hub-play-grid">
@@ -161,6 +166,7 @@ const walls = [
 }
 
 .hub-top-grid,
+.hub-live-grid,
 .hub-play-grid,
 .hub-wall-grid {
   display: grid;
@@ -168,6 +174,7 @@ const walls = [
 }
 
 .hub-top-grid,
+.hub-live-grid,
 .hub-play-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -237,6 +244,7 @@ const walls = [
 @media (max-width: 720px) {
   .hub-hero,
   .hub-top-grid,
+  .hub-live-grid,
   .hub-play-grid,
   .hub-wall-grid {
     grid-template-columns: 1fr;
