@@ -1,4 +1,4 @@
-import { defineValaxyConfig } from 'valaxy'
+﻿import { defineValaxyConfig } from 'valaxy'
 import type { UserThemeConfig } from 'valaxy-theme-yun'
 import { addonWaline } from 'valaxy-addon-waline'
 
@@ -7,8 +7,8 @@ export default defineValaxyConfig<UserThemeConfig>({
 
   siteConfig: {
     comment: {
-      enable: true
-    }
+      enable: true,
+    },
   },
 
   addons: [
@@ -41,13 +41,18 @@ export default defineValaxyConfig<UserThemeConfig>({
     },
     fireworks: {
       enable: false,
-      colors: ['#66CCFF', '#FFB3CC', '#99FF99', '#FFCC99', '#CCCCFF']
+      colors: ['#66CCFF', '#FFB3CC', '#99FF99', '#FFCC99', '#CCCCFF'],
     },
     nav: [
       {
         text: '文章',
         link: '/posts/',
         icon: 'i-ri-article-line',
+      },
+      {
+        text: '互动',
+        link: '/interact/',
+        icon: 'i-ri-chat-smile-3-line',
       },
       {
         text: '关于',
@@ -66,6 +71,12 @@ export default defineValaxyConfig<UserThemeConfig>({
       },
     ],
     pages: [
+      {
+        name: '互动区',
+        url: '/interact/',
+        icon: 'i-ri-chat-heart-line',
+        color: '#ff9dc7',
+      },
       {
         name: '九机展示屏',
         url: '/jiuji',

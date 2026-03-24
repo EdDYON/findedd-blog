@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, ref } from 'vue'
 import { usePageList, usePostList } from 'valaxy'
 
@@ -58,6 +58,12 @@ const plans = [
 
 const quickLinks = [
   {
+    title: '互动区',
+    badge: '来玩一下',
+    copy: '纸条墙、话题墙、许愿池、签到墙和几种小互动都丢在这边了。',
+    to: '/interact/',
+  },
+  {
     title: '九机展示屏',
     badge: '展示入口',
     copy: '我自己做的门店运营展示页，临时放在首页这边，打开会更顺手。',
@@ -113,9 +119,9 @@ function nextNote() {
             <span>先随便逛逛</span>
             <strong>看看最近写了什么</strong>
           </AppLink>
-          <AppLink class="action-pill" to="/about/">
-            <span>认识一下我</span>
-            <strong>顺便看看这站为什么会长这样</strong>
+          <AppLink class="action-pill" to="/interact/">
+            <span>和我互动</span>
+            <strong>留言、许愿、签到或者顺手玩一下</strong>
           </AppLink>
         </div>
       </article>
