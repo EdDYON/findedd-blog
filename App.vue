@@ -2,16 +2,6 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
-type IdleWindow = Window & {
-  requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number
-  cancelIdleCallback?: (handle: number) => void
-}
-
-type NetworkInfo = {
-  saveData?: boolean
-  effectiveType?: string
-}
-
 const route = useRoute()
 const isHome = computed(() => route.path === '/')
 
@@ -20,8 +10,6 @@ const cursorY = ref(0)
 const showCursorGlow = ref(false)
 const showMascot = ref(false)
 const showLive2d = ref(false)
-const showVideo = ref(false)
-const videoReady = ref(false)
 const petalCount = 10
 
 const sakanaState = {
@@ -36,10 +24,8 @@ let cleanupPointer = () => {}
 let cleanupResize = () => {}
 let cleanupClick = () => {}
 let stopRouteWatch = () => {}
-let videoTimer = 0
 let sakanaTimer = 0
 let live2dTimer = 0
-let videoIdleHandle = 0
 
 function mountSakana() {
   const win = window as Window & {
@@ -125,11 +111,6 @@ function spawnStar(event: MouseEvent) {
 }
 
 function clearAmbientTimers() {
-  if (videoTimer) {
-    window.clearTimeout(videoTimer)
-    videoTimer = 0
-  }
-
   if (sakanaTimer) {
     window.clearTimeout(sakanaTimer)
     sakanaTimer = 0
@@ -139,48 +120,6 @@ function clearAmbientTimers() {
     window.clearTimeout(live2dTimer)
     live2dTimer = 0
   }
-
-  if (videoIdleHandle) {
-    const idleWindow = window as IdleWindow
-    idleWindow.cancelIdleCallback?.(videoIdleHandle)
-    videoIdleHandle = 0
-  }
-}
-
-function shouldUseHomeVideo() {
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  const largeScreen = window.matchMedia('(min-width: 860px)').matches
-  const network = (navigator as Navigator & { connection?: NetworkInfo }).connection
-  const slowNetwork = Boolean(network?.saveData)
-    || ['slow-2g', '2g', '3g'].includes(network?.effectiveType || '')
-
-  return isHome.value && largeScreen && !reducedMotion && !slowNetwork
-}
-
-function scheduleHomeVideo() {
-  showVideo.value = false
-  videoReady.value = false
-
-  if (!shouldUseHomeVideo())
-    return
-
-  const startVideo = () => {
-    showVideo.value = true
-  }
-
-  const idleWindow = window as IdleWindow
-  if (typeof idleWindow.requestIdleCallback === 'function') {
-    videoIdleHandle = idleWindow.requestIdleCallback(() => {
-      startVideo()
-      videoIdleHandle = 0
-    }, { timeout: 1400 })
-    return
-  }
-
-  videoTimer = window.setTimeout(() => {
-    startVideo()
-    videoTimer = 0
-  }, 420)
 }
 
 function scheduleAmbientAddons() {
@@ -215,7 +154,6 @@ function updateExperience() {
   showCursorGlow.value = isHome.value && finePointer && !reducedMotion
 
   clearAmbientTimers()
-  scheduleHomeVideo()
   scheduleAmbientAddons()
 }
 
@@ -259,21 +197,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="site-chrome" :class="{ 'site-chrome-home': isHome, 'site-chrome-inner': !isHome }">
-    <div v-if="isHome" class="site-poster" :class="{ 'site-poster-faded': showVideo && videoReady }" />
-
-    <video
-      v-if="showVideo"
-      autoplay
-      loop
-      muted
-      playsinline
-      preload="none"
-      poster="/bg-poster.svg"
-      disablepictureinpicture
-      class="site-video"
-      :class="{ 'site-video-ready': videoReady }"
-      @canplay="videoReady = true"
-    >
+    <video v-if="isHome" autoplay loop muted playsinline class="site-video">
       <source src="/bg.mp4" type="video/mp4" />
     </video>
 
@@ -306,7 +230,6 @@ onBeforeUnmount(() => {
 }
 
 .site-video,
-.site-poster,
 .site-overlay,
 .site-grid,
 .sakura-layer,
@@ -320,25 +243,7 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0;
   filter: saturate(1.02) contrast(1.05) brightness(0.78);
-  transition: opacity 500ms ease;
-}
-
-.site-video-ready {
-  opacity: 1;
-}
-
-.site-poster {
-  background:
-    linear-gradient(180deg, rgba(5, 8, 18, 0.12), rgba(5, 8, 18, 0.5)),
-    url('/bg-poster.svg') center / cover no-repeat;
-  opacity: 0.82;
-  transition: opacity 420ms ease;
-}
-
-.site-poster-faded {
-  opacity: 0.16;
 }
 
 .site-overlay {
@@ -381,7 +286,6 @@ onBeforeUnmount(() => {
   opacity: 0.34;
 }
 
-.site-chrome-inner .site-poster,
 .site-chrome-inner .site-video {
   display: none;
 }

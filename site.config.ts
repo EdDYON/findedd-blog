@@ -21,7 +21,5 @@ export default defineSiteConfig({
   sponsor: {
     enable: false,
   },
-  head: [
-    ['link', { rel: 'preload', as: 'image', href: '/bg-poster.svg' }],
-  ]
+  head: []
 })
