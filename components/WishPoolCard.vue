@@ -43,13 +43,13 @@ onMounted(async () => {
     <div class="panel-head">
       <div>
         <p class="mini-label">许愿池</p>
-        <h3>{{ compact ? '最近丢进来的愿望' : '愿望会按访客身份慢慢积起来' }}</h3>
+        <h3>{{ compact ? '最近丢进来的愿望' : '愿望会按访客身份归在一起' }}</h3>
       </div>
       <span v-if="authenticated && user" class="inline-chip">{{ user.nickname }}</span>
     </div>
 
     <p class="panel-copy">
-      {{ compact ? '每个人丢过的愿望会慢慢攒在一起。' : '登录后丢进去的愿望，会按你自己的访客身份聚在一起。现在你也可以把自己想删的那条捞出来。' }}
+      {{ compact ? '每个人丢过的愿望都会归在一起。' : '登录后丢进去的愿望，会按你自己的访客身份聚在一起。现在你也可以把自己想删的那条捞出来。' }}
     </p>
 
     <div v-if="!compact" class="wish-form">
@@ -59,7 +59,7 @@ onMounted(async () => {
         rows="3"
         maxlength="120"
         :disabled="!authenticated || actionPending"
-        placeholder="比如：希望这站越改越顺眼。"
+        placeholder="比如：希望接下来的日子都顺一点。"
       />
       <div class="wish-actions">
         <button type="button" class="wish-button" :disabled="!authenticated || actionPending || !wish.trim()" @click="handleWish">

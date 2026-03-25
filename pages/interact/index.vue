@@ -19,7 +19,7 @@ const walls = [
   {
     title: '本周话题墙',
     badge: '一起聊',
-    copy: '这周的问题已经挂上去了，大家可以围着同一个题目慢慢聊。',
+    copy: '这周的问题已经挂上去了，大家可以围着同一个题目聊聊。',
     to: '/interact/topic',
     icon: 'i-ri-chat-1-line',
   },

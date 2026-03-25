@@ -1,17 +1,12 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 defineProps<{
   isHome: boolean
   showMascot: boolean
 }>()
-
 </script>
 
 <template>
   <aside class="floating-widgets">
-    <div v-if="showMascot && isHome" class="mascot-note">
-      <span>今日施工</span>
-      <small>首页还在继续收边角</small>
-    </div>
     <div v-if="showMascot && isHome" id="sakana-widget" class="sakana-shell" />
   </aside>
 </template>
@@ -38,32 +33,8 @@ defineProps<{
   overflow: hidden;
 }
 
-.mascot-note {
-  display: inline-flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  padding: 0.55rem 0.9rem;
-  border-radius: 999px;
-  background: rgba(16, 21, 38, 0.72);
-  border: 1px solid rgba(255, 201, 226, 0.18);
-  color: #fff3fb;
-  text-align: right;
-  backdrop-filter: blur(12px);
-}
-
-.mascot-note span {
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-}
-
-.mascot-note small {
-  color: rgba(255, 234, 244, 0.74);
-}
-
 @media (max-width: 900px) {
   .floating-widgets,
-  .mascot-note,
   .sakana-shell {
     display: none;
   }
