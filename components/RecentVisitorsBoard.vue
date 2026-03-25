@@ -45,17 +45,25 @@ onMounted(async () => {
 
     <div v-if="featuredVisitors.length" class="avatar-wall">
       <div
-        v-for="item in featuredVisitors"
+        v-for="(item, index) in featuredVisitors"
         :key="`${item.visitor.openid}-${item.updated_at}`"
         class="avatar-card"
         :class="{ 'is-me': isCurrentVisitor(item.visitor.openid) }"
+        :style="{ '--card-index': index }"
       >
         <div class="avatar-shell">
+          <span class="avatar-ring avatar-ring-a" />
+          <span class="avatar-ring avatar-ring-b" />
+          <span class="avatar-glow" />
           <img v-if="item.visitor.avatar" :src="item.visitor.avatar" :alt="item.visitor.nickname" class="visitor-avatar" />
           <span v-else class="visitor-avatar visitor-fallback">{{ nicknameInitial(item.visitor.nickname) }}</span>
+          <span class="avatar-spark" />
         </div>
-        <strong>{{ item.visitor.nickname }}</strong>
-        <span class="avatar-time">{{ formatRelativeTime(item.updated_at) }}</span>
+        <div class="avatar-copy">
+          <strong>{{ item.visitor.nickname }}</strong>
+          <span class="avatar-time">{{ formatRelativeTime(item.updated_at) }}</span>
+        </div>
+        <span v-if="isCurrentVisitor(item.visitor.openid)" class="avatar-chip">就是你</span>
       </div>
     </div>
 
@@ -125,9 +133,11 @@ onMounted(async () => {
   grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
   gap: 0.85rem;
   margin-top: 1rem;
+  align-items: stretch;
 }
 
 .avatar-card {
+  --card-delay: calc(var(--card-index) * 0.12s);
   display: grid;
   gap: 0.35rem;
   justify-items: center;
@@ -136,6 +146,40 @@ onMounted(async () => {
   background: rgba(255, 255, 255, 0.045);
   border: 1px solid rgba(255, 255, 255, 0.08);
   text-align: center;
+  isolation: isolate;
+  transform: translateY(0);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.avatar-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255, 196, 230, 0.12), transparent 38%),
+    linear-gradient(200deg, transparent 52%, rgba(145, 215, 255, 0.1));
+  opacity: 0.8;
+  z-index: -1;
+}
+
+.avatar-card::after {
+  content: '';
+  position: absolute;
+  inset: auto 14% -28% 14%;
+  height: 1.2rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(118, 213, 255, 0.32), transparent 72%);
+  filter: blur(12px);
+  opacity: 0.8;
+  z-index: -1;
+}
+
+.avatar-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  border-color: rgba(255, 196, 230, 0.28);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 18px 36px rgba(4, 10, 20, 0.28);
 }
 
 .avatar-card.is-me,
@@ -146,6 +190,63 @@ onMounted(async () => {
 
 .avatar-shell {
   position: relative;
+  display: grid;
+  place-items: center;
+  width: 4.4rem;
+  height: 4.4rem;
+  animation: avatar-card-float 5.8s ease-in-out infinite;
+  animation-delay: var(--card-delay);
+}
+
+.avatar-copy {
+  display: grid;
+  gap: 0.2rem;
+  width: 100%;
+}
+
+.avatar-ring,
+.avatar-glow,
+.avatar-spark {
+  position: absolute;
+  pointer-events: none;
+}
+
+.avatar-ring {
+  inset: 0.15rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  opacity: 0.7;
+}
+
+.avatar-ring-a {
+  animation: avatar-ring-spin 9s linear infinite;
+}
+
+.avatar-ring-b {
+  inset: 0.42rem;
+  border-style: dashed;
+  border-color: rgba(145, 215, 255, 0.22);
+  animation: avatar-ring-spin-reverse 12s linear infinite;
+}
+
+.avatar-glow {
+  inset: 0.55rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 196, 230, 0.26), transparent 70%);
+  filter: blur(8px);
+  opacity: 0.85;
+}
+
+.avatar-spark {
+  top: 0.15rem;
+  right: 0.25rem;
+  width: 0.62rem;
+  height: 0.62rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, #fff, rgba(255, 255, 255, 0.2) 70%, transparent 72%);
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.45);
+  animation: avatar-sparkle 2.8s ease-in-out infinite;
+  animation-delay: var(--card-delay);
 }
 
 .visitor-avatar,
@@ -181,6 +282,16 @@ onMounted(async () => {
 
 .avatar-time {
   font-size: 0.82rem;
+}
+
+.avatar-chip {
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(255, 196, 230, 0.14);
+  border: 1px solid rgba(255, 196, 230, 0.22);
+  color: rgba(255, 238, 247, 0.92);
+  font-size: 0.74rem;
+  line-height: 1.2;
 }
 
 .visitor-feed {
@@ -227,6 +338,46 @@ onMounted(async () => {
   .visitor-meta {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+@keyframes avatar-card-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes avatar-ring-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes avatar-ring-spin-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes avatar-sparkle {
+  0%,
+  100% {
+    transform: scale(0.92);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 1;
   }
 }
 </style>
