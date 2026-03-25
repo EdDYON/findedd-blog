@@ -8,7 +8,6 @@ const pages = usePageList()
 const heroChips = [
   '个人小站',
   '日常记录',
-  '开发和兴趣',
 ]
 
 const metrics = computed(() => {
@@ -18,17 +17,14 @@ const metrics = computed(() => {
     {
       label: '文章',
       value: String(posts.value.length).padStart(2, '0'),
-      note: '文章和日志都在这里',
     },
     {
       label: '页面',
       value: String(pages.value.length).padStart(2, '0'),
-      note: '常用入口已经分开摆好',
     },
     {
       label: '标签',
       value: String(tagCount).padStart(2, '0'),
-      note: '写得多了自然会更清楚',
     },
   ]
 })
@@ -57,12 +53,6 @@ const quickLinks = [
     badge: '生活区',
     copy: '普通日子、猫和想记住的小事。',
     to: '/life/',
-  },
-  {
-    title: 'Japan & ACG',
-    badge: '兴趣区',
-    copy: '作品、音乐和会反复回头看的东西。',
-    to: '/hobbies/',
   },
 ]
 </script>
@@ -97,19 +87,18 @@ const quickLinks = [
         <div class="home-section-head compact">
           <div>
             <p class="mini-label">站点概览</p>
-            <h3>先看这里就够了</h3>
+            <h3>轻一点就够了</h3>
           </div>
         </div>
 
-        <p class="note-quote">
-          这里不再把所有东西都堆在首页，而是把常用入口和最近会看的内容先留出来，剩下的交给文章和栏目页慢慢展开。
+        <p class="home-overview-copy">
+          首页先留一句话和几个数字，剩下的交给文章、栏目页和导航慢慢展开。
         </p>
 
-        <div class="metric-grid metric-grid-side">
-          <div v-for="metric in metrics" :key="metric.label" class="metric-card">
+        <div class="metric-strip">
+          <div v-for="metric in metrics" :key="metric.label" class="metric-inline">
             <span class="metric-label">{{ metric.label }}</span>
             <strong class="metric-value">{{ metric.value }}</strong>
-            <span class="metric-note">{{ metric.note }}</span>
           </div>
         </div>
       </article>
@@ -121,7 +110,7 @@ const quickLinks = [
           <p class="mini-label">快速入口</p>
           <h3>先从常用的几个地方进去</h3>
         </div>
-        <p class="section-copy">只留最常点开的几个，首页不再铺太满。</p>
+        <p class="section-copy">只留 4 个最常点开的入口，其他的交给导航。</p>
       </div>
 
       <div class="quick-links quick-links-compact">

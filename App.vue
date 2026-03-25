@@ -5,9 +5,6 @@ import { useRoute } from 'vue-router'
 const route = useRoute()
 const isHome = computed(() => route.path === '/')
 
-const cursorX = ref(0)
-const cursorY = ref(0)
-const showCursorGlow = ref(false)
 const showMascot = ref(false)
 const showLive2d = ref(false)
 
@@ -19,7 +16,6 @@ const live2dState = {
   scriptLoaded: false,
 }
 
-let cleanupPointer = () => {}
 let cleanupResize = () => {}
 let stopRouteWatch = () => {}
 let sakanaTimer = 0
@@ -132,26 +128,18 @@ function updateExperience() {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const largeScreen = window.matchMedia('(min-width: 1080px)').matches
   const extraWide = window.matchMedia('(min-width: 1320px)').matches
-  const finePointer = window.matchMedia('(pointer: fine)').matches
 
   showMascot.value = isHome.value && largeScreen && !reducedMotion
   showLive2d.value = isHome.value && extraWide && !reducedMotion
-  showCursorGlow.value = isHome.value && finePointer && !reducedMotion
 
   clearAmbientTimers()
   scheduleAmbientAddons()
 }
 
 onMounted(() => {
-  const handlePointerMove = (event: PointerEvent) => {
-    cursorX.value = event.clientX
-    cursorY.value = event.clientY
-  }
-
   syncRouteState()
   updateExperience()
 
-  window.addEventListener('pointermove', handlePointerMove, { passive: true })
   window.addEventListener('resize', updateExperience, { passive: true })
 
   stopRouteWatch = watch(isHome, () => {
@@ -159,14 +147,12 @@ onMounted(() => {
     updateExperience()
   })
 
-  cleanupPointer = () => window.removeEventListener('pointermove', handlePointerMove)
   cleanupResize = () => window.removeEventListener('resize', updateExperience)
 })
 
 onBeforeUnmount(() => {
   clearAmbientTimers()
   document.body.classList.remove('home-route', 'inner-route')
-  cleanupPointer()
   cleanupResize()
   stopRouteWatch()
 })
@@ -180,14 +166,7 @@ onBeforeUnmount(() => {
 
     <div class="site-overlay" />
     <div class="site-grid" />
-    <div class="site-orb orb-a" />
     <div class="site-orb orb-b" />
-
-    <div
-      v-if="showCursorGlow"
-      class="cursor-glow"
-      :style="{ transform: `translate(${cursorX - 180}px, ${cursorY - 180}px)` }"
-    />
   </div>
 
   <FloatingWidgets :is-home="isHome" :show-mascot="showMascot" />
@@ -206,8 +185,7 @@ onBeforeUnmount(() => {
 .site-video,
 .site-overlay,
 .site-grid,
-.site-orb,
-.cursor-glow {
+.site-orb {
   position: absolute;
   inset: 0;
 }
@@ -216,27 +194,27 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: saturate(1.01) contrast(1.04) brightness(0.8);
+  filter: saturate(1) contrast(1.03) brightness(0.82);
 }
 
 .site-overlay {
   background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.12), transparent 40%),
-    linear-gradient(180deg, rgba(8, 12, 23, 0.08), rgba(8, 12, 23, 0.46));
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.1), transparent 40%),
+    linear-gradient(180deg, rgba(8, 12, 23, 0.06), rgba(8, 12, 23, 0.4));
 }
 
 .site-grid {
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 52px 52px;
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.58), transparent 88%);
-  opacity: 0.24;
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.48), transparent 88%);
+  opacity: 0.14;
 }
 
 .site-chrome-home .site-overlay {
   background:
-    linear-gradient(180deg, rgba(5, 8, 18, 0.06), rgba(5, 8, 18, 0.14) 42%, rgba(5, 8, 18, 0.42));
+    linear-gradient(180deg, rgba(5, 8, 18, 0.04), rgba(5, 8, 18, 0.12) 42%, rgba(5, 8, 18, 0.34));
 }
 
 .site-chrome-inner .site-overlay {
@@ -246,7 +224,7 @@ onBeforeUnmount(() => {
 }
 
 .site-chrome-inner .site-grid {
-  opacity: 0.3;
+  opacity: 0.24;
 }
 
 .site-chrome-inner .site-video {
@@ -256,33 +234,16 @@ onBeforeUnmount(() => {
 .site-orb {
   inset: auto;
   border-radius: 999px;
-  filter: blur(72px);
-  opacity: 0.46;
-}
-
-.orb-a {
-  top: 10%;
-  left: 6%;
-  width: 24rem;
-  height: 24rem;
-  background: rgba(246, 135, 90, 0.32);
+  filter: blur(78px);
+  opacity: 0.32;
 }
 
 .orb-b {
-  right: -8rem;
-  top: 18%;
-  width: 24rem;
-  height: 24rem;
-  background: rgba(79, 172, 254, 0.24);
-}
-
-.cursor-glow {
-  width: 360px;
-  height: 360px;
-  border-radius: 999px;
-  background: radial-gradient(circle, rgba(255, 164, 206, 0.14), transparent 68%);
-  filter: blur(24px);
-  transition: transform 120ms ease-out;
+  right: -10rem;
+  top: 20%;
+  width: 22rem;
+  height: 22rem;
+  background: rgba(79, 172, 254, 0.18);
 }
 
 :global(#live2d-widget) {
@@ -304,17 +265,16 @@ onBeforeUnmount(() => {
 
 @media (max-width: 960px) {
   .site-video {
-    filter: saturate(0.95) contrast(1.02) brightness(0.68);
+    filter: saturate(0.97) contrast(1.02) brightness(0.7);
   }
 
   .site-grid {
-    opacity: 0.16;
-    background-size: 36px 36px;
+    opacity: 0.1;
+    background-size: 42px 42px;
   }
 
-  .orb-a,
   .orb-b {
-    filter: blur(58px);
+    filter: blur(62px);
   }
 
   :global(#live2d-widget) {
@@ -322,3 +282,5 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+
+
