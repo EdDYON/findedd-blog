@@ -1,5 +1,5 @@
-﻿<script setup lang="ts">
-import { computed, onMounted } from 'vue'
+<script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
 import { useVisitorAuth } from '../composables/useVisitorAuth'
 import { formatAbsoluteTime, formatRelativeTime, useVisitorHub } from '../composables/useVisitorHub'
 
@@ -11,6 +11,7 @@ const props = withDefaults(defineProps<{
 
 const { loadSummary, loadingSummary, recentVisitors } = useVisitorHub()
 const { loadVisitor, user } = useVisitorAuth()
+const wallReady = ref(false)
 
 const featuredVisitors = computed(() => recentVisitors.value.slice(0, props.compact ? 6 : 8))
 const feedVisitors = computed(() => props.compact ? [] : recentVisitors.value.slice(0, 8))
@@ -26,6 +27,9 @@ function nicknameInitial(name: string) {
 onMounted(async () => {
   await loadVisitor()
   await loadSummary()
+  requestAnimationFrame(() => {
+    wallReady.value = true
+  })
 })
 </script>
 
@@ -43,7 +47,7 @@ onMounted(async () => {
       {{ loadingSummary ? '正在看最近谁来过...' : '来过的人会先挂在上面，像一面慢慢亮起来的头像墙。' }}
     </p>
 
-    <div v-if="featuredVisitors.length" class="avatar-wall">
+    <div v-if="featuredVisitors.length" class="avatar-wall" :class="{ 'is-ready': wallReady }">
       <div
         v-for="(item, index) in featuredVisitors"
         :key="`${item.visitor.openid}-${item.updated_at}`"
@@ -147,8 +151,12 @@ onMounted(async () => {
   border: 1px solid rgba(255, 255, 255, 0.08);
   text-align: center;
   isolation: isolate;
-  transform: translateY(0);
+  opacity: 0;
+  transform: translateY(22px) scale(0.94);
+  filter: saturate(0.82) blur(6px);
   transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+  animation: avatar-card-enter 0.88s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: var(--card-delay);
 }
 
 .avatar-card::before {
@@ -194,8 +202,11 @@ onMounted(async () => {
   place-items: center;
   width: 4.4rem;
   height: 4.4rem;
+}
+
+.avatar-wall.is-ready .avatar-shell {
   animation: avatar-card-float 5.8s ease-in-out infinite;
-  animation-delay: var(--card-delay);
+  animation-delay: calc(var(--card-delay) + 0.72s);
 }
 
 .avatar-copy {
@@ -215,18 +226,24 @@ onMounted(async () => {
   inset: 0.15rem;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  opacity: 0.7;
+  opacity: 0.18;
 }
 
-.avatar-ring-a {
+.avatar-wall.is-ready .avatar-ring-a {
   animation: avatar-ring-spin 9s linear infinite;
+  animation-delay: calc(var(--card-delay) + 0.6s);
 }
 
 .avatar-ring-b {
   inset: 0.42rem;
   border-style: dashed;
   border-color: rgba(145, 215, 255, 0.22);
+  opacity: 0.12;
+}
+
+.avatar-wall.is-ready .avatar-ring-b {
   animation: avatar-ring-spin-reverse 12s linear infinite;
+  animation-delay: calc(var(--card-delay) + 0.6s);
 }
 
 .avatar-glow {
@@ -234,7 +251,9 @@ onMounted(async () => {
   border-radius: 999px;
   background: radial-gradient(circle, rgba(255, 196, 230, 0.26), transparent 70%);
   filter: blur(8px);
-  opacity: 0.85;
+  opacity: 0;
+  animation: avatar-glow-enter 0.85s ease forwards;
+  animation-delay: calc(var(--card-delay) + 0.18s);
 }
 
 .avatar-spark {
@@ -245,8 +264,12 @@ onMounted(async () => {
   border-radius: 999px;
   background: radial-gradient(circle, #fff, rgba(255, 255, 255, 0.2) 70%, transparent 72%);
   box-shadow: 0 0 14px rgba(255, 255, 255, 0.45);
+  opacity: 0;
+}
+
+.avatar-wall.is-ready .avatar-spark {
   animation: avatar-sparkle 2.8s ease-in-out infinite;
-  animation-delay: var(--card-delay);
+  animation-delay: calc(var(--card-delay) + 1s);
 }
 
 .visitor-avatar,
@@ -292,6 +315,9 @@ onMounted(async () => {
   color: rgba(255, 238, 247, 0.92);
   font-size: 0.74rem;
   line-height: 1.2;
+  opacity: 0;
+  animation: avatar-chip-enter 0.55s ease forwards;
+  animation-delay: calc(var(--card-delay) + 0.45s);
 }
 
 .visitor-feed {
@@ -351,6 +377,22 @@ onMounted(async () => {
   }
 }
 
+@keyframes avatar-card-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.94);
+    filter: saturate(0.82) blur(6px);
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: saturate(1) blur(0);
+  }
+}
+
 @keyframes avatar-ring-spin {
   from {
     transform: rotate(0deg);
@@ -369,15 +411,40 @@ onMounted(async () => {
   }
 }
 
+@keyframes avatar-glow-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+}
+
 @keyframes avatar-sparkle {
   0%,
   100% {
     transform: scale(0.92);
-    opacity: 0.45;
+    opacity: 0.35;
+  }
+  20% {
+    opacity: 1;
   }
   50% {
     transform: scale(1.18);
     opacity: 1;
+  }
+}
+
+@keyframes avatar-chip-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>
