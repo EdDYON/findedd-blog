@@ -783,4 +783,98 @@ button.action-pill {
     right: 0.5rem;
     border-radius: 28px;
   }
+
+  .sidebar-panel,
+  .yun-card,
+  .yun-fullscreen-menu {
+    border-radius: 22px !important;
+  }
+
+  .sidebar-panel .site-info,
+  .yun-card .site-info,
+  .yun-fullscreen-menu .site-info {
+    padding-top: 0.8rem !important;
+    gap: 0.25rem !important;
+  }
+
+  .sidebar-panel .site-author-avatar,
+  .yun-card .site-author-avatar,
+  .yun-fullscreen-menu .site-author-avatar {
+    transform: scale(0.82);
+    transform-origin: center top;
+  }
+
+  .sidebar-panel .site-author-name,
+  .sidebar-panel .site-name,
+  .yun-card .site-author-name,
+  .yun-card .site-name,
+  .yun-fullscreen-menu .site-author-name,
+  .yun-fullscreen-menu .site-name {
+    font-size: 1rem !important;
+    line-height: 1.2;
+  }
+
+  .sidebar-panel .site-subtitle,
+  .yun-card .site-subtitle,
+  .yun-fullscreen-menu .site-subtitle {
+    font-size: 0.8rem !important;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-width: 22rem;
+    margin-inline: auto;
+  }
+
+  .sidebar-panel .site-description,
+  .yun-card .site-description,
+  .yun-fullscreen-menu .site-description {
+    display: none !important;
+  }
+
+  .sidebar-panel .site-nav,
+  .yun-card .site-nav,
+  .yun-fullscreen-menu .site-nav {
+    margin-top: 0.25rem !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .sidebar-panel .site-nav > a,
+  .yun-card .site-nav > a,
+  .yun-fullscreen-menu .site-nav > a {
+    min-width: 0;
+    padding-inline: 0.2rem;
+  }
+
+  .sidebar-panel .site-nav .title,
+  .yun-card .site-nav .title,
+  .yun-fullscreen-menu .site-nav .title {
+    font-size: 0.72rem !important;
+  }
+
+  .sidebar-panel .site-nav .total,
+  .yun-card .site-nav .total,
+  .yun-fullscreen-menu .site-nav .total {
+    font-size: 0.9rem !important;
+  }
+
+  .sidebar-panel .yun-social-links,
+  .sidebar-panel .sidebar-links,
+  .yun-card .yun-social-links,
+  .yun-card .sidebar-links,
+  .yun-fullscreen-menu .yun-social-links,
+  .yun-fullscreen-menu .sidebar-links,
+  .sidebar-panel hr,
+  .yun-card hr,
+  .yun-fullscreen-menu hr {
+    display: none !important;
+  }
+
+  .yun-fullscreen-menu {
+    padding-top: 4rem !important;
+    padding-inline: 0.9rem !important;
+  }
 }
