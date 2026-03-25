@@ -784,16 +784,17 @@ button.action-pill {
     border-radius: 28px;
   }
 
-  .sidebar-panel:has(.site-info),
-  .yun-card:has(> .site-info) {
-    display: none !important;
-  }
-
+  #yun-left-sidebar,
   .yun-fullscreen-menu > .site-info,
   .yun-fullscreen-menu > .site-nav,
   .yun-fullscreen-menu > .yun-social-links,
   .yun-fullscreen-menu > .sidebar-links,
   .yun-fullscreen-menu > hr {
+    display: none !important;
+  }
+
+  .yun-nav-menu .sidebar-toggle,
+  .yun-nav-menu .menu-btn.sidebar-toggle {
     display: none !important;
   }
 
