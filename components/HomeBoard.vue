@@ -88,6 +88,12 @@ const quickLinks = [
     to: '/hobbies/',
   },
   {
+    title: '收藏与清单',
+    badge: '固定内容',
+    copy: '放我会反复打开的东西、长期偏爱的气质和想留下来的清单。',
+    to: '/collection/',
+  },
+  {
     title: '关于站点',
     badge: '站点说明',
     copy: '这里会讲清楚这个站现在的样子、分区和整体气质。',

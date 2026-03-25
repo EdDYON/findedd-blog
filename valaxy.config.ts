@@ -117,6 +117,12 @@ export default defineValaxyConfig<UserThemeConfig>({
         color: '#ff6f91',
       },
       {
+        name: '收藏与清单',
+        url: '/collection/',
+        icon: 'i-ri-bookmark-3-line',
+        color: '#9ad0f5',
+      },
+      {
         name: '友邻收藏',
         url: '/links/',
         icon: 'i-ri-links-line',
