@@ -10,7 +10,6 @@ const cursorY = ref(0)
 const showCursorGlow = ref(false)
 const showMascot = ref(false)
 const showLive2d = ref(false)
-const petalCount = 10
 
 const sakanaState = {
   scriptLoaded: false,
@@ -22,7 +21,6 @@ const live2dState = {
 
 let cleanupPointer = () => {}
 let cleanupResize = () => {}
-let cleanupClick = () => {}
 let stopRouteWatch = () => {}
 let sakanaTimer = 0
 let live2dTimer = 0
@@ -97,19 +95,6 @@ function loadLive2d() {
   document.body.appendChild(script)
 }
 
-function spawnStar(event: MouseEvent) {
-  const star = document.createElement('span')
-  star.className = 'click-star'
-  star.textContent = ['*', '+', '.'][Math.floor(Math.random() * 3)]
-  star.style.left = `${event.clientX}px`
-  star.style.top = `${event.clientY}px`
-  document.body.appendChild(star)
-
-  window.setTimeout(() => {
-    star.remove()
-  }, 900)
-}
-
 function clearAmbientTimers() {
   if (sakanaTimer) {
     window.clearTimeout(sakanaTimer)
@@ -162,18 +147,12 @@ onMounted(() => {
     cursorX.value = event.clientX
     cursorY.value = event.clientY
   }
-  const handleClick = (event: MouseEvent) => {
-    if (!showCursorGlow.value)
-      return
-    spawnStar(event)
-  }
 
   syncRouteState()
   updateExperience()
 
   window.addEventListener('pointermove', handlePointerMove, { passive: true })
   window.addEventListener('resize', updateExperience, { passive: true })
-  window.addEventListener('click', handleClick, { passive: true })
 
   stopRouteWatch = watch(isHome, () => {
     syncRouteState()
@@ -182,7 +161,6 @@ onMounted(() => {
 
   cleanupPointer = () => window.removeEventListener('pointermove', handlePointerMove)
   cleanupResize = () => window.removeEventListener('resize', updateExperience)
-  cleanupClick = () => window.removeEventListener('click', handleClick)
 })
 
 onBeforeUnmount(() => {
@@ -190,7 +168,6 @@ onBeforeUnmount(() => {
   document.body.classList.remove('home-route', 'inner-route')
   cleanupPointer()
   cleanupResize()
-  cleanupClick()
   stopRouteWatch()
 })
 </script>
@@ -203,12 +180,8 @@ onBeforeUnmount(() => {
 
     <div class="site-overlay" />
     <div class="site-grid" />
-    <div v-if="isHome" class="sakura-layer">
-      <span v-for="index in petalCount" :key="index" class="petal" :style="{ '--petal-index': index }" />
-    </div>
     <div class="site-orb orb-a" />
     <div class="site-orb orb-b" />
-    <div class="site-orb orb-c" />
 
     <div
       v-if="showCursorGlow"
@@ -233,7 +206,6 @@ onBeforeUnmount(() => {
 .site-video,
 .site-overlay,
 .site-grid,
-.sakura-layer,
 .site-orb,
 .cursor-glow {
   position: absolute;
@@ -244,37 +216,27 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: saturate(1.02) contrast(1.05) brightness(0.78);
+  filter: saturate(1.01) contrast(1.04) brightness(0.8);
 }
 
 .site-overlay {
   background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.14), transparent 42%),
-    linear-gradient(180deg, rgba(8, 12, 23, 0.06), rgba(8, 12, 23, 0.48));
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.12), transparent 40%),
+    linear-gradient(180deg, rgba(8, 12, 23, 0.08), rgba(8, 12, 23, 0.46));
 }
 
 .site-grid {
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.65), transparent 88%);
-  opacity: 0.4;
-}
-
-.site-chrome-home .site-grid {
-  opacity: 0.18;
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.58), transparent 88%);
+  opacity: 0.24;
 }
 
 .site-chrome-home .site-overlay {
   background:
-    linear-gradient(180deg, rgba(5, 8, 18, 0.08), rgba(5, 8, 18, 0.16) 42%, rgba(5, 8, 18, 0.46));
-}
-
-.site-chrome-home .orb-a,
-.site-chrome-home .orb-b,
-.site-chrome-home .orb-c {
-  opacity: 0.34;
+    linear-gradient(180deg, rgba(5, 8, 18, 0.06), rgba(5, 8, 18, 0.14) 42%, rgba(5, 8, 18, 0.42));
 }
 
 .site-chrome-inner .site-overlay {
@@ -284,49 +246,26 @@ onBeforeUnmount(() => {
 }
 
 .site-chrome-inner .site-grid {
-  opacity: 0.34;
+  opacity: 0.3;
 }
 
 .site-chrome-inner .site-video {
   display: none;
 }
 
-.sakura-layer {
-  overflow: hidden;
-}
-
-.petal {
-  --size: 14px;
-  --duration: 15s;
-
-  position: absolute;
-  top: -8%;
-  left: calc((var(--petal-index) - 1) * 10%);
-  width: var(--size);
-  height: calc(var(--size) * 0.72);
-  border-radius: 100% 0 100% 0;
-  background: linear-gradient(135deg, rgba(255, 214, 236, 0.95), rgba(255, 162, 202, 0.7));
-  box-shadow: 0 0 12px rgba(255, 181, 213, 0.28);
-  opacity: 0.72;
-  animation:
-    petal-fall calc(var(--duration) + var(--petal-index) * 0.7s) linear infinite,
-    petal-sway calc(3s + var(--petal-index) * 0.18s) ease-in-out infinite alternate;
-  animation-delay: calc(var(--petal-index) * -1.5s);
-}
-
 .site-orb {
   inset: auto;
   border-radius: 999px;
-  filter: blur(70px);
-  opacity: 0.58;
+  filter: blur(72px);
+  opacity: 0.46;
 }
 
 .orb-a {
   top: 10%;
   left: 6%;
-  width: 26rem;
-  height: 26rem;
-  background: rgba(246, 135, 90, 0.38);
+  width: 24rem;
+  height: 24rem;
+  background: rgba(246, 135, 90, 0.32);
 }
 
 .orb-b {
@@ -334,34 +273,16 @@ onBeforeUnmount(() => {
   top: 18%;
   width: 24rem;
   height: 24rem;
-  background: rgba(79, 172, 254, 0.26);
-}
-
-.orb-c {
-  left: 25%;
-  bottom: -10rem;
-  width: 28rem;
-  height: 28rem;
-  background: rgba(255, 220, 110, 0.24);
+  background: rgba(79, 172, 254, 0.24);
 }
 
 .cursor-glow {
   width: 360px;
   height: 360px;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(255, 164, 206, 0.16), transparent 68%);
-  filter: blur(22px);
+  background: radial-gradient(circle, rgba(255, 164, 206, 0.14), transparent 68%);
+  filter: blur(24px);
   transition: transform 120ms ease-out;
-}
-
-:global(.click-star) {
-  position: fixed;
-  z-index: 80;
-  pointer-events: none;
-  color: #ffd6ec;
-  text-shadow: 0 0 12px rgba(255, 208, 230, 0.9);
-  transform: translate(-50%, -50%);
-  animation: star-burst 900ms ease-out forwards;
 }
 
 :global(#live2d-widget) {
@@ -381,66 +302,23 @@ onBeforeUnmount(() => {
   display: none !important;
 }
 
-@keyframes petal-fall {
-  0% {
-    transform: translate3d(0, -10vh, 0) rotate(0deg);
-  }
-
-  100% {
-    transform: translate3d(10vw, 110vh, 0) rotate(320deg);
-  }
-}
-
-@keyframes petal-sway {
-  0% {
-    margin-left: -1rem;
-  }
-
-  100% {
-    margin-left: 1rem;
-  }
-}
-
-@keyframes star-burst {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.5);
-  }
-
-  20% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -150%) scale(1.6);
-  }
-}
-
 @media (max-width: 960px) {
   .site-video {
-    filter: saturate(0.94) contrast(1.02) brightness(0.66);
+    filter: saturate(0.95) contrast(1.02) brightness(0.68);
   }
 
   .site-grid {
-    opacity: 0.24;
-    background-size: 32px 32px;
+    opacity: 0.16;
+    background-size: 36px 36px;
   }
 
   .orb-a,
-  .orb-b,
-  .orb-c {
+  .orb-b {
     filter: blur(58px);
   }
 
   :global(#live2d-widget) {
     display: none !important;
   }
-
-  .petal {
-    opacity: 0.42;
-  }
 }
 </style>
-
-

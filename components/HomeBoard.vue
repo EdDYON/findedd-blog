@@ -1,22 +1,14 @@
 ﻿<script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { usePageList, usePostList } from 'valaxy'
 
 const posts = usePostList()
 const pages = usePageList()
 
-const notes = [
-  '这个站对我来说，不是摆着看的，是会一直住下去的。',
-  '想留住的东西都可以往这里放，不用非得分得那么开。',
-  '比起像模板，我更希望它像一个会让我反复打开的小站。',
-]
-const noteIndex = ref(0)
-
 const heroChips = [
   '个人小站',
-  '夜色氛围',
-  '互动已经上线',
-  '日常和记录',
+  '日常记录',
+  '开发和兴趣',
 ]
 
 const metrics = computed(() => {
@@ -26,84 +18,53 @@ const metrics = computed(() => {
     {
       label: '文章',
       value: String(posts.value.length).padStart(2, '0'),
-      note: '想留下来的东西都会往这里放',
+      note: '文章和日志都在这里',
     },
     {
       label: '页面',
       value: String(pages.value.length).padStart(2, '0'),
-      note: '常用入口和栏目已经分开了',
+      note: '常用入口已经分开摆好',
     },
     {
       label: '标签',
       value: String(tagCount).padStart(2, '0'),
-      note: '写得多了自然就会分得更清楚',
+      note: '写得多了自然会更清楚',
     },
   ]
 })
-
-const plans = [
-  {
-    title: '互动区',
-    copy: '纸条、话题、签到、许愿和最近访客都已经接进来了，这边现在就是站里的会客厅。',
-  },
-  {
-    title: '栏目内容',
-    copy: '开发、生活和兴趣这几块已经分开，各自都有明确的位置和内容方向。',
-  },
-  {
-    title: '整体观感',
-    copy: '动态背景、夜色氛围和互动感都保留着，整体已经更像一个完整的小站。',
-  },
-]
 
 const quickLinks = [
   {
     title: '互动区',
     badge: '来玩一下',
-    copy: '纸条、话题、签到、许愿都在这边，想说一句的时候可以直接进去。',
+    copy: '纸条、话题、签到和许愿都在这边。',
     to: '/interact/',
   },
   {
     title: '九机展示屏',
     badge: '展示入口',
-    copy: '我自己做的门店展示页，明天要用，所以先放在这里方便打开。',
+    copy: '门店展示页，临时先放在首页方便打开。',
     to: '/jiuji',
   },
   {
     title: 'Data & Dev',
     badge: '开发记录',
-    copy: '写代码、改站、工具流，还有那些以后自己也会回来翻的东西。',
+    copy: '写代码、改站和一些会回头翻的记录。',
     to: '/tech/',
   },
   {
     title: 'Life & Cat',
     badge: '生活区',
-    copy: '普通日子、猫、碎碎念和一些不想就这么过去的小事。',
+    copy: '普通日子、猫和想记住的小事。',
     to: '/life/',
   },
   {
     title: 'Japan & ACG',
     badge: '兴趣区',
-    copy: '喜欢的作品、音乐和一些会让我反复回头看的东西。',
+    copy: '作品、音乐和会反复回头看的东西。',
     to: '/hobbies/',
   },
-  {
-    title: '收藏与清单',
-    badge: '固定内容',
-    copy: '放我会反复打开的东西、长期偏爱的气质和想留下来的清单。',
-    to: '/collection/',
-  },
-  {
-    title: '关于站点',
-    badge: '站点说明',
-    copy: '这里会讲清楚这个站现在的样子、分区和整体气质。',
-    to: '/about/site/',
-  },
 ]
-
-function nextNote() {
-  noteIndex.value = (noteIndex.value + 1) % notes.length
-}
 </script>
 
 <template>
@@ -113,7 +74,7 @@ function nextNote() {
         <p class="home-eyebrow">EdDYON の小站</p>
         <h2 class="home-title">喜欢的东西、普通日子，还有折腾过的痕迹，都想放在这里</h2>
         <p class="home-copy">
-          这里会放日常、开发记录、ACG，还有那些我以后自己也会回来翻的东西。比起做成一个标准博客，我更想把它留成一个真的会反复打开的小站。
+          这里会放日常、开发记录、ACG，还有那些以后自己也会回来翻的东西。页面先尽量收轻一点，让文章和内容本身站到前面。
         </p>
 
         <div class="hero-chip-row">
@@ -135,17 +96,16 @@ function nextNote() {
       <article class="home-panel hero-panel hero-panel-side">
         <div class="home-section-head compact">
           <div>
-            <p class="mini-label">站点侧写</p>
-            <h3>现在它更像什么</h3>
+            <p class="mini-label">站点概览</p>
+            <h3>先看这里就够了</h3>
           </div>
-          <button type="button" class="note-switch" @click="nextNote">
-            换一句
-          </button>
         </div>
 
-        <p class="note-quote">{{ notes[noteIndex] }}</p>
+        <p class="note-quote">
+          这里不再把所有东西都堆在首页，而是把常用入口和最近会看的内容先留出来，剩下的交给文章和栏目页慢慢展开。
+        </p>
 
-        <div class="metric-grid metric-grid-compact">
+        <div class="metric-grid metric-grid-side">
           <div v-for="metric in metrics" :key="metric.label" class="metric-card">
             <span class="metric-label">{{ metric.label }}</span>
             <strong class="metric-value">{{ metric.value }}</strong>
@@ -155,41 +115,22 @@ function nextNote() {
       </article>
     </div>
 
-    <div class="home-section-grid">
-      <article class="home-panel">
-        <div class="home-section-head">
-          <div>
-            <p class="mini-label">站点内容</p>
-            <h3>现在这边主要能看到什么</h3>
-          </div>
-          <p class="section-copy">把内容、互动和观感都分开摆好之后，整个站终于开始像自己的地方了。</p>
+    <article class="home-panel">
+      <div class="home-section-head">
+        <div>
+          <p class="mini-label">快速入口</p>
+          <h3>先从常用的几个地方进去</h3>
         </div>
+        <p class="section-copy">只留最常点开的几个，首页不再铺太满。</p>
+      </div>
 
-        <div class="plan-grid">
-          <div v-for="plan in plans" :key="plan.title" class="plan-item">
-            <h3>{{ plan.title }}</h3>
-            <p>{{ plan.copy }}</p>
-          </div>
-        </div>
-      </article>
-
-      <article class="home-panel">
-        <div class="home-section-head">
-          <div>
-            <p class="mini-label">快速入口</p>
-            <h3>从这里进会省事一点</h3>
-          </div>
-          <p class="section-copy">常用页面先放前面，临时要展示的也先留着。</p>
-        </div>
-
-        <div class="quick-links">
-          <AppLink v-for="link in quickLinks" :key="link.to" class="quick-link-card" :to="link.to">
-            <span class="quick-link-badge">{{ link.badge }}</span>
-            <strong>{{ link.title }}</strong>
-            <span class="mini-copy">{{ link.copy }}</span>
-          </AppLink>
-        </div>
-      </article>
-    </div>
+      <div class="quick-links quick-links-compact">
+        <AppLink v-for="link in quickLinks" :key="link.to" class="quick-link-card" :to="link.to">
+          <span class="quick-link-badge">{{ link.badge }}</span>
+          <strong>{{ link.title }}</strong>
+          <span class="mini-copy">{{ link.copy }}</span>
+        </AppLink>
+      </div>
+    </article>
   </section>
 </template>
