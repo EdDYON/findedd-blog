@@ -6,17 +6,17 @@ const posts = usePostList()
 const pages = usePageList()
 
 const notes = [
-  '先把想写的东西摆上来，样子再慢慢收。',
-  '有些页还空着，但我确实在一点点填。',
   '这个站对我来说，不是摆着看的，是会一直住下去的。',
+  '想留住的东西都可以慢慢往这里放，不用非得分得那么开。',
+  '比起像模板，我更希望它像一个会让我反复打开的小站。',
 ]
 const noteIndex = ref(0)
 
 const heroChips = [
-  '二次元风格',
-  '动态壁纸保留',
-  '手机端继续收',
-  '还在慢慢补',
+  '个人小站',
+  '夜色氛围',
+  '互动已经上线',
+  '日常和记录',
 ]
 
 const metrics = computed(() => {
@@ -26,33 +26,33 @@ const metrics = computed(() => {
     {
       label: '文章',
       value: String(posts.value.length).padStart(2, '0'),
-      note: '先把想记的慢慢攒起来',
+      note: '想留下来的东西都会往这里放',
     },
     {
       label: '页面',
       value: String(pages.value.length).padStart(2, '0'),
-      note: '能用的先做出来，细节后面再收',
+      note: '常用入口和栏目已经分开了',
     },
     {
       label: '标签',
       value: String(tagCount).padStart(2, '0'),
-      note: '暂时先别分太细，写多了再整理',
+      note: '以后写得更多了再慢慢细分',
     },
   ]
 })
 
 const plans = [
   {
-    title: '互动区继续补',
-    copy: '先让人能顺手留话，再慢慢把最近来过、最近留言这些东西接进来。',
+    title: '互动区',
+    copy: '纸条、话题、签到、许愿和最近访客都已经接进来了，这边会继续长成真正的会客厅。',
   },
   {
-    title: '旧东西慢慢搬',
-    copy: '想留下来的记录会一点点挪进来，不急着一次塞满。',
+    title: '栏目内容',
+    copy: '开发、生活和兴趣这几块已经分开，后面会继续把真正想留住的内容补进去。',
   },
   {
-    title: '手机端再细收',
-    copy: '希望随手拿手机打开的时候，也不会觉得哪块挤或者乱。',
+    title: '整体观感',
+    copy: '动态背景、夜色氛围和互动感会继续保留，但首页本身不再故意挂出施工中的感觉。',
   },
 ]
 
@@ -107,7 +107,7 @@ function nextNote() {
         <p class="home-eyebrow">EdDYON の小站</p>
         <h2 class="home-title">喜欢的东西、普通日子，还有折腾过的痕迹，都想放在这里</h2>
         <p class="home-copy">
-          这站还在收拾，但我不想把它做成那种只剩模板味的博客。先把想记的东西放进来，再慢慢让它长成自己的样子。
+          这里会放日常、开发记录、ACG，还有那些我以后自己也会回来翻的东西。比起做成一个标准博客，我更想把它留成一个真的会反复打开的小站。
         </p>
 
         <div class="hero-chip-row">
@@ -129,8 +129,8 @@ function nextNote() {
       <article class="home-panel hero-panel hero-panel-side">
         <div class="home-section-head compact">
           <div>
-            <p class="mini-label">站点状态</p>
-            <h3>最近在收的几块</h3>
+            <p class="mini-label">站点侧写</p>
+            <h3>现在它更像什么</h3>
           </div>
           <button type="button" class="note-switch" @click="nextNote">
             换一句
@@ -153,10 +153,10 @@ function nextNote() {
       <article class="home-panel">
         <div class="home-section-head">
           <div>
-            <p class="mini-label">最近在弄</p>
-            <h3>这几天主要在收什么</h3>
+            <p class="mini-label">站点内容</p>
+            <h3>现在这边主要能看到什么</h3>
           </div>
-          <p class="section-copy">先把互动、观感和手机端这些最容易被看到的地方收顺。</p>
+          <p class="section-copy">把内容、互动和观感都分开摆好之后，整个站终于开始像自己的地方了。</p>
         </div>
 
         <div class="plan-grid">

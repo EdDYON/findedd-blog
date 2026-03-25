@@ -33,9 +33,9 @@ export default defineValaxyConfig<UserThemeConfig>({
       enable: true,
       api: '',
       content: [
-        '这站还在收，过阵子再来看大概又会多点东西。',
         '想记的都先记下来，技术也好，日常也好。',
-        '先把人味留住，再慢慢补内容。',
+        '比起像模板，我更希望它像一个真的有人住的小站。',
+        '喜欢的东西、普通日子和写过的代码，都能在这里找到位置。',
       ],
     },
     notice: {

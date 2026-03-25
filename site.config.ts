@@ -10,8 +10,8 @@ export default defineSiteConfig({
     avatar: '/avatar.jpg',
     status: {
       emoji: '✨',
-      message: '今天也在慢慢改'
-    }
+      message: '今天也在这里留下点什么',
+    },
   },
   description: '想把喜欢的东西、写过的代码和普通日子都放进来，慢慢搭成一个真的会让我反复打开的站。',
   social: [],
@@ -21,5 +21,5 @@ export default defineSiteConfig({
   sponsor: {
     enable: false,
   },
-  head: []
+  head: [],
 })
