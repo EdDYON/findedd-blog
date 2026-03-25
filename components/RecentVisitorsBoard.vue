@@ -1,6 +1,7 @@
 ﻿<script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { useVisitorHub } from '../composables/useVisitorHub'
+import { useVisitorAuth } from '../composables/useVisitorAuth'
+import { formatAbsoluteTime, formatRelativeTime, useVisitorHub } from '../composables/useVisitorHub'
 
 const props = withDefaults(defineProps<{
   compact?: boolean
@@ -9,11 +10,22 @@ const props = withDefaults(defineProps<{
 })
 
 const { loadSummary, loadingSummary, recentVisitors } = useVisitorHub()
+const { loadVisitor, user } = useVisitorAuth()
 
-const visibleVisitors = computed(() => props.compact ? recentVisitors.value.slice(0, 6) : recentVisitors.value)
+const featuredVisitors = computed(() => recentVisitors.value.slice(0, props.compact ? 6 : 8))
+const feedVisitors = computed(() => props.compact ? [] : recentVisitors.value.slice(0, 8))
 
-onMounted(() => {
-  loadSummary()
+function isCurrentVisitor(openid: string) {
+  return Boolean(user.value?.openid) && user.value?.openid === openid
+}
+
+function nicknameInitial(name: string) {
+  return (name || '路').slice(0, 1)
+}
+
+onMounted(async () => {
+  await loadVisitor()
+  await loadSummary()
 })
 </script>
 
@@ -22,26 +34,52 @@ onMounted(() => {
     <div class="panel-head">
       <div>
         <p class="mini-label">最近访客</p>
-        <h3>{{ compact ? '最近来过的人' : '这几天路过这里的人' }}</h3>
+        <h3>{{ compact ? '最近来过的人' : '最近在这里留下脚印的人' }}</h3>
       </div>
       <span class="inline-chip">{{ recentVisitors.length }} 人</span>
     </div>
 
     <p class="panel-copy">
-      {{ loadingSummary ? '正在看最近谁来过...' : '来过就会在这里留下一点痕迹。' }}
+      {{ loadingSummary ? '正在看最近谁来过...' : '来过的人会先挂在上面，像一面慢慢亮起来的头像墙。' }}
     </p>
 
-    <div v-if="visibleVisitors.length" class="visitor-list">
-      <div v-for="item in visibleVisitors" :key="`${item.visitor.openid}-${item.updated_at}`" class="visitor-item">
-        <img v-if="item.visitor.avatar" :src="item.visitor.avatar" :alt="item.visitor.nickname" class="visitor-avatar" />
-        <div>
-          <strong>{{ item.visitor.nickname }}</strong>
+    <div v-if="featuredVisitors.length" class="avatar-wall">
+      <div
+        v-for="item in featuredVisitors"
+        :key="`${item.visitor.openid}-${item.updated_at}`"
+        class="avatar-card"
+        :class="{ 'is-me': isCurrentVisitor(item.visitor.openid) }"
+      >
+        <div class="avatar-shell">
+          <img v-if="item.visitor.avatar" :src="item.visitor.avatar" :alt="item.visitor.nickname" class="visitor-avatar" />
+          <span v-else class="visitor-avatar visitor-fallback">{{ nicknameInitial(item.visitor.nickname) }}</span>
+        </div>
+        <strong>{{ item.visitor.nickname }}</strong>
+        <span class="avatar-time">{{ formatRelativeTime(item.updated_at) }}</span>
+      </div>
+    </div>
+
+    <div v-if="feedVisitors.length" class="visitor-feed">
+      <div
+        v-for="item in feedVisitors"
+        :key="`${item.visitor.openid}-${item.updated_at}-feed`"
+        class="visitor-item"
+        :class="{ 'is-me': isCurrentVisitor(item.visitor.openid) }"
+      >
+        <img v-if="item.visitor.avatar" :src="item.visitor.avatar" :alt="item.visitor.nickname" class="feed-avatar" />
+        <span v-else class="feed-avatar visitor-fallback">{{ nicknameInitial(item.visitor.nickname) }}</span>
+
+        <div class="visitor-body">
+          <div class="visitor-meta">
+            <strong>{{ item.visitor.nickname }}</strong>
+            <span>{{ formatAbsoluteTime(item.updated_at) }}</span>
+          </div>
           <p>{{ item.message }}</p>
         </div>
       </div>
     </div>
 
-    <p v-else class="panel-empty">这里还空着，等第一个人来按一下签到。</p>
+    <p v-else-if="!featuredVisitors.length" class="panel-empty">这里还空着，等第一个人来按一下签到。</p>
   </article>
 </template>
 
@@ -50,6 +88,7 @@ onMounted(() => {
   border-radius: 26px;
   padding: 1.1rem;
   background:
+    radial-gradient(circle at top right, rgba(145, 215, 255, 0.12), transparent 32%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03)),
     rgba(8, 14, 25, 0.74);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -63,11 +102,14 @@ onMounted(() => {
 }
 
 .panel-head h3,
-.visitor-item strong {
+.avatar-card strong,
+.visitor-meta strong {
   color: #fff;
 }
 
 .panel-copy,
+.avatar-time,
+.visitor-meta span,
 .visitor-item p,
 .panel-empty {
   color: rgba(240, 244, 255, 0.72);
@@ -78,27 +120,113 @@ onMounted(() => {
   margin: 0.7rem 0 0;
 }
 
-.visitor-list {
+.avatar-wall {
   display: grid;
-  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.avatar-card {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: center;
+  padding: 0.9rem 0.55rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.avatar-card.is-me,
+.visitor-item.is-me {
+  border-color: rgba(255, 196, 230, 0.38);
+  box-shadow: 0 0 0 1px rgba(255, 196, 230, 0.12), 0 18px 32px rgba(4, 10, 20, 0.22);
+}
+
+.avatar-shell {
+  position: relative;
+}
+
+.visitor-avatar,
+.feed-avatar {
+  width: 3.7rem;
+  height: 3.7rem;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.feed-avatar {
+  width: 2.9rem;
+  height: 2.9rem;
+  flex: 0 0 auto;
+}
+
+.visitor-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+}
+
+.avatar-card strong {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.avatar-time {
+  font-size: 0.82rem;
+}
+
+.visitor-feed {
+  display: grid;
+  gap: 0.85rem;
   margin-top: 1rem;
 }
 
 .visitor-item {
   display: flex;
   gap: 0.8rem;
+  align-items: flex-start;
+  padding: 0.85rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.visitor-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.visitor-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
   align-items: center;
 }
 
-.visitor-avatar {
-  width: 2.8rem;
-  height: 2.8rem;
-  border-radius: 999px;
-  object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+.visitor-item p {
+  margin: 0.3rem 0 0;
 }
 
 .panel-empty {
   margin: 1rem 0 0;
+}
+
+@media (max-width: 720px) {
+  .avatar-wall {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .visitor-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 </style>

@@ -1,24 +1,40 @@
 ﻿<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useVisitorAuth } from '../composables/useVisitorAuth'
-import { useVisitorHub } from '../composables/useVisitorHub'
+import { formatAbsoluteTime, formatRelativeTime, useVisitorHub } from '../composables/useVisitorHub'
 
 const note = ref('')
 const { authenticated, loadVisitor, user } = useVisitorAuth()
-const { actionMessage, actionPending, loadSummary, submitCheckin, todayCheckin } = useVisitorHub()
+const { actionMessage, actionPending, deleteCheckin, loadSummary, submitCheckin, todayCheckin } = useVisitorHub()
 
 const currentCopy = computed(() => {
   if (!authenticated.value)
     return '先用 QQ 登录一下，再把今天的脚印留在这里。'
 
   if (todayCheckin.value)
-    return `今天已经记过一次了：${todayCheckin.value.message}`
+    return '今天已经留过脚印了。想换一句也行，或者直接把今天这条收起来。'
 
   return '来过的话按一下就行，顺手留一句今天的状态也可以。'
 })
 
+const canSubmit = computed(() => {
+  if (!authenticated.value || actionPending.value)
+    return false
+
+  if (!todayCheckin.value)
+    return true
+
+  return Boolean(note.value.trim())
+})
+
 async function handleCheckin() {
   const ok = await submitCheckin(note.value)
+  if (ok)
+    note.value = ''
+}
+
+async function handleDelete() {
+  const ok = await deleteCheckin()
   if (ok)
     note.value = ''
 }
@@ -41,20 +57,32 @@ onMounted(async () => {
 
     <p class="panel-copy">{{ currentCopy }}</p>
 
+    <div v-if="todayCheckin" class="checkin-preview">
+      <div class="preview-head">
+        <strong>今天这条脚印</strong>
+        <span>{{ formatRelativeTime(todayCheckin.updated_at) }}</span>
+      </div>
+      <p>{{ todayCheckin.message }}</p>
+      <small>{{ formatAbsoluteTime(todayCheckin.updated_at) }}</small>
+    </div>
+
     <textarea
       v-model="note"
       class="action-input"
       rows="3"
       maxlength="80"
       :disabled="!authenticated || actionPending"
-      placeholder="比如：今天也来了，顺手留个脚印。"
+      :placeholder="todayCheckin ? '想换一句的话，写在这里再更新。' : '比如：今天也来了，顺手留个脚印。'"
     />
 
     <div class="panel-actions">
-      <button type="button" class="panel-button" :disabled="!authenticated || actionPending" @click="handleCheckin">
-        {{ actionPending ? '记一下...' : '今天来过' }}
+      <button type="button" class="panel-button" :disabled="!canSubmit" @click="handleCheckin">
+        {{ actionPending ? '记一下...' : todayCheckin ? '改一下今天的话' : '今天来过' }}
       </button>
-      <span class="panel-tip">{{ actionMessage || '一天只记一次，后面会出现在最近访客里。' }}</span>
+      <button v-if="todayCheckin" type="button" class="panel-button ghost" :disabled="actionPending" @click="handleDelete">
+        {{ actionPending ? '收起来...' : '删掉今天这条' }}
+      </button>
+      <span class="panel-tip">{{ actionMessage || '一天只记一次，但你可以改一句，或者把今天这条删掉。' }}</span>
     </div>
   </article>
 </template>
@@ -78,14 +106,45 @@ onMounted(async () => {
 }
 
 .panel-head h3,
-.panel-tip {
+.checkin-preview strong {
   color: #fff;
+}
+
+.panel-copy,
+.panel-tip,
+.checkin-preview p,
+.checkin-preview small,
+.preview-head span {
+  color: rgba(240, 244, 255, 0.72);
+  line-height: 1.75;
 }
 
 .panel-copy {
   margin: 0.7rem 0 0;
-  color: rgba(240, 244, 255, 0.72);
-  line-height: 1.75;
+}
+
+.checkin-preview {
+  margin-top: 0.95rem;
+  padding: 0.95rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.preview-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.checkin-preview p {
+  margin: 0.4rem 0 0;
+}
+
+.checkin-preview small {
+  display: block;
+  margin-top: 0.4rem;
 }
 
 .action-input {
@@ -115,12 +174,19 @@ onMounted(async () => {
   padding: 0.7rem 1.1rem;
 }
 
+.panel-button.ghost {
+  border-color: rgba(145, 215, 255, 0.18);
+}
+
 .panel-button:disabled,
 .action-input:disabled {
   opacity: 0.55;
 }
 
-.panel-tip {
-  color: rgba(240, 244, 255, 0.72);
+@media (max-width: 720px) {
+  .preview-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 </style>

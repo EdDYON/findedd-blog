@@ -1,7 +1,7 @@
 ﻿<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useVisitorAuth } from '../composables/useVisitorAuth'
-import { useVisitorHub } from '../composables/useVisitorHub'
+import { formatAbsoluteTime, formatRelativeTime, useVisitorHub, type WishGroup, type WishItem } from '../composables/useVisitorHub'
 
 const props = withDefaults(defineProps<{
   compact?: boolean
@@ -11,9 +11,13 @@ const props = withDefaults(defineProps<{
 
 const wish = ref('')
 const { authenticated, loadVisitor, user } = useVisitorAuth()
-const { actionMessage, actionPending, loadSummary, submitWish, wishGroups } = useVisitorHub()
+const { actionMessage, actionPending, loadSummary, removeWish, submitWish, wishGroups } = useVisitorHub()
 
 const visibleGroups = computed(() => props.compact ? wishGroups.value.slice(0, 4) : wishGroups.value)
+
+function isOwnGroup(group: WishGroup) {
+  return Boolean(user.value?.openid) && user.value?.openid === group.visitor.openid
+}
 
 async function handleWish() {
   if (!wish.value.trim())
@@ -22,6 +26,10 @@ async function handleWish() {
   const ok = await submitWish(wish.value)
   if (ok)
     wish.value = ''
+}
+
+async function handleDeleteWish(item: WishItem) {
+  await removeWish(item.id)
 }
 
 onMounted(async () => {
@@ -41,7 +49,7 @@ onMounted(async () => {
     </div>
 
     <p class="panel-copy">
-      {{ compact ? '每个人丢过的愿望会慢慢攒在一起。' : '登录后丢进去的愿望，会按你自己的访客身份聚在一起。' }}
+      {{ compact ? '每个人丢过的愿望会慢慢攒在一起。' : '登录后丢进去的愿望，会按你自己的访客身份聚在一起。现在你也可以把自己想删的那条捞出来。' }}
     </p>
 
     <div v-if="!compact" class="wish-form">
@@ -57,20 +65,42 @@ onMounted(async () => {
         <button type="button" class="wish-button" :disabled="!authenticated || actionPending || !wish.trim()" @click="handleWish">
           {{ actionPending ? '丢进去...' : '丢个愿望' }}
         </button>
-        <span class="wish-tip">{{ actionMessage || '可以认真一点，也可以随口一点。' }}</span>
+        <span class="wish-tip">{{ actionMessage || '愿望会按人归在一起，自己的那几条也能再捞出来。' }}</span>
       </div>
     </div>
 
     <div v-if="visibleGroups.length" class="wish-list">
-      <div v-for="group in visibleGroups" :key="group.visitor.openid" class="wish-item">
+      <div v-for="group in visibleGroups" :key="group.visitor.openid" class="wish-item" :class="{ 'is-me': isOwnGroup(group) }">
         <div class="wish-item-head">
           <div class="wish-user">
             <img v-if="group.visitor.avatar" :src="group.visitor.avatar" :alt="group.visitor.nickname" class="wish-avatar" />
-            <strong>{{ group.visitor.nickname }}</strong>
+            <div>
+              <strong>{{ group.visitor.nickname }}</strong>
+              <p class="wish-meta">最近一条 {{ formatRelativeTime(group.latest_at) }}</p>
+            </div>
           </div>
           <span class="inline-chip">{{ group.count }} 条</span>
         </div>
-        <p class="wish-message">{{ group.latest_message }}</p>
+
+        <div v-if="!compact && group.items.length" class="wish-stack">
+          <div v-for="item in group.items" :key="item.id" class="wish-entry">
+            <div class="wish-entry-copy">
+              <p class="wish-message">{{ item.message }}</p>
+              <small>{{ formatAbsoluteTime(item.created_at) }}</small>
+            </div>
+            <button
+              v-if="isOwnGroup(group)"
+              type="button"
+              class="wish-delete"
+              :disabled="actionPending"
+              @click="handleDeleteWish(item)"
+            >
+              删掉
+            </button>
+          </div>
+        </div>
+
+        <p v-else class="wish-message compact-message">{{ group.latest_message }}</p>
       </div>
     </div>
 
@@ -98,13 +128,15 @@ onMounted(async () => {
 
 .panel-head h3,
 .wish-user strong,
-.wish-message {
+.wish-message,
+.wish-entry small {
   color: #fff;
 }
 
 .panel-copy,
 .wish-tip,
-.wish-empty {
+.wish-empty,
+.wish-meta {
   color: rgba(240, 244, 255, 0.72);
   line-height: 1.75;
 }
@@ -135,7 +167,8 @@ onMounted(async () => {
   margin-top: 0.85rem;
 }
 
-.wish-button {
+.wish-button,
+.wish-delete {
   border-radius: 999px;
   border: 1px solid rgba(255, 196, 230, 0.18);
   background: rgba(255, 255, 255, 0.06);
@@ -143,7 +176,13 @@ onMounted(async () => {
   padding: 0.7rem 1.1rem;
 }
 
+.wish-delete {
+  padding: 0.45rem 0.85rem;
+  border-color: rgba(145, 215, 255, 0.18);
+}
+
 .wish-button:disabled,
+.wish-delete:disabled,
 .wish-input:disabled {
   opacity: 0.55;
 }
@@ -155,10 +194,15 @@ onMounted(async () => {
 }
 
 .wish-item {
-  padding: 0.9rem;
+  padding: 0.95rem;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.wish-item.is-me {
+  border-color: rgba(255, 196, 230, 0.3);
+  box-shadow: 0 0 0 1px rgba(255, 196, 230, 0.1), 0 18px 30px rgba(4, 10, 20, 0.22);
 }
 
 .wish-item-head,
@@ -174,18 +218,62 @@ onMounted(async () => {
 }
 
 .wish-avatar {
-  width: 2.3rem;
-  height: 2.3rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: 999px;
   object-fit: cover;
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
+.wish-meta {
+  margin: 0.1rem 0 0;
+  font-size: 0.85rem;
+}
+
+.wish-stack {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.85rem;
+}
+
+.wish-entry {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.8rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.wish-entry-copy {
+  min-width: 0;
+}
+
 .wish-message {
-  margin: 0.7rem 0 0;
+  margin: 0;
+}
+
+.wish-entry small {
+  display: block;
+  margin-top: 0.35rem;
+  color: rgba(240, 244, 255, 0.68);
+}
+
+.compact-message {
+  margin-top: 0.7rem;
 }
 
 .wish-empty {
   margin: 1rem 0 0;
+}
+
+@media (max-width: 720px) {
+  .wish-item-head,
+  .wish-entry {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 </style>
