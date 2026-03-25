@@ -140,6 +140,10 @@ onMounted(async () => {
   align-items: stretch;
 }
 
+.avatar-wall:hover .avatar-card {
+  opacity: 0.72;
+}
+
 .avatar-card {
   --card-delay: calc(var(--card-index) * 0.12s);
   display: grid;
@@ -188,6 +192,18 @@ onMounted(async () => {
   border-color: rgba(255, 196, 230, 0.28);
   background: rgba(255, 255, 255, 0.07);
   box-shadow: 0 18px 36px rgba(4, 10, 20, 0.28);
+  opacity: 1 !important;
+}
+
+.avatar-card:hover::before {
+  background:
+    linear-gradient(135deg, rgba(255, 196, 230, 0.24), transparent 38%),
+    linear-gradient(200deg, transparent 48%, rgba(145, 215, 255, 0.2));
+}
+
+.avatar-card:hover::after {
+  opacity: 1;
+  background: radial-gradient(circle, rgba(118, 213, 255, 0.48), transparent 72%);
 }
 
 .avatar-card.is-me,
@@ -270,6 +286,27 @@ onMounted(async () => {
 .avatar-wall.is-ready .avatar-spark {
   animation: avatar-sparkle 2.8s ease-in-out infinite;
   animation-delay: calc(var(--card-delay) + 1s);
+}
+
+.avatar-card:hover .avatar-glow {
+  opacity: 1;
+  background: radial-gradient(circle, rgba(255, 196, 230, 0.44), rgba(145, 215, 255, 0.1) 52%, transparent 75%);
+}
+
+.avatar-card:hover .avatar-ring {
+  opacity: 0.45;
+}
+
+.avatar-card:hover + .avatar-card,
+.avatar-card:has(+ .avatar-card:hover),
+.avatar-wall:has(.avatar-card:hover) .avatar-card.is-me {
+  opacity: 0.92;
+}
+
+.avatar-card:hover + .avatar-card::after,
+.avatar-card:has(+ .avatar-card:hover)::after,
+.avatar-wall:has(.avatar-card:hover) .avatar-card.is-me::after {
+  opacity: 0.95;
 }
 
 .visitor-avatar,
