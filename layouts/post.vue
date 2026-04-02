@@ -32,8 +32,6 @@ useSchemaOrg(
 
 <template>
   <YunLayoutWrapper>
-    <YunLayoutLeft />
-
     <RouterView v-slot="{ Component }">
       <component :is="Component">
         <template #main-header-after>

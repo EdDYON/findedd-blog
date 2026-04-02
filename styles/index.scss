@@ -713,6 +713,60 @@ button.action-pill {
   color: rgba(244, 247, 255, 0.88) !important;
 }
 
+@media (max-width: 960px) {
+  .toc-btn,
+  .yun-layout-left,
+  #yun-left-sidebar {
+    display: none !important;
+  }
+
+  .yun-layout-wrapper__content {
+    width: calc(100vw - 0.8rem);
+    gap: 0.75rem !important;
+    padding-inline: 0.2rem;
+  }
+
+  .content > .yun-card,
+  .yun-page,
+  .yun-post,
+  .yun-post-nav,
+  .yun-comment,
+  .waline-wrapper,
+  .wl-container {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .content > .yun-card,
+  .yun-post-nav,
+  .yun-comment,
+  .waline-wrapper,
+  .wl-container {
+    border-radius: 22px !important;
+  }
+
+  .post-header .post-title,
+  .yun-page-header .page-title {
+    font-size: clamp(1.85rem, 7vw, 2.4rem) !important;
+    line-height: 1.15;
+  }
+
+  .post-meta,
+  .yun-post-meta,
+  .yun-page-header {
+    gap: 0.45rem;
+  }
+
+  .markdown-body {
+    font-size: 0.98rem;
+    line-height: 1.82;
+  }
+
+  .markdown-body h2 {
+    margin-top: 1.6rem;
+  }
+}
+
 @media (max-width: 1100px) {
   .hero-grid,
   .metric-strip,
