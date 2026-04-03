@@ -504,6 +504,17 @@ button.action-pill {
   color: rgba(244, 247, 255, 0.86) !important;
 }
 
+body.inner-route .content > .yun-card,
+body.inner-route .yun-comment,
+body.inner-route .waline-wrapper,
+body.inner-route .wl-container,
+body.inner-route .yun-post-nav,
+body.inner-route .yun-ad-board {
+  background: rgba(9, 14, 24, 0.9) !important;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 44px rgba(4, 8, 18, 0.18) !important;
+}
+
 .content > .yun-card .yun-card-body,
 .content > .yun-card .yun-card-content,
 .content > .yun-card .post-title,

@@ -1,4 +1,4 @@
-import { defineSiteConfig } from 'valaxy'
+﻿import { defineSiteConfig } from 'valaxy'
 
 export default defineSiteConfig({
   url: 'https://findedd.cn',
@@ -21,5 +21,9 @@ export default defineSiteConfig({
   sponsor: {
     enable: false,
   },
-  head: [],
+  head: [
+    ['link', { rel: 'icon', type: 'image/jpeg', href: '/favicon.jpg' }],
+    ['link', { rel: 'shortcut icon', href: '/favicon.jpg' }],
+    ['link', { rel: 'apple-touch-icon', href: '/avatar.jpg' }],
+  ],
 })

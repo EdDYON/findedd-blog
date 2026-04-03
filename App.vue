@@ -165,8 +165,8 @@ onBeforeUnmount(() => {
     </video>
 
     <div class="site-overlay" />
-    <div class="site-grid" />
-    <div class="site-orb orb-b" />
+    <div v-if="isHome" class="site-grid" />
+    <div v-if="isHome" class="site-orb orb-b" />
   </div>
 
   <FloatingWidgets :is-home="isHome" :show-mascot="showMascot" />
@@ -219,12 +219,8 @@ onBeforeUnmount(() => {
 
 .site-chrome-inner .site-overlay {
   background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 36%),
-    linear-gradient(180deg, rgba(8, 12, 23, 0.18), rgba(8, 12, 23, 0.92));
-}
-
-.site-chrome-inner .site-grid {
-  opacity: 0.24;
+    linear-gradient(180deg, rgba(7, 12, 22, 0.28), rgba(7, 12, 22, 0.94)),
+    radial-gradient(circle at top, rgba(120, 204, 255, 0.04), transparent 34%);
 }
 
 .site-chrome-inner .site-video {
