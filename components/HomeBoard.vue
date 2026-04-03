@@ -61,10 +61,10 @@ const sectionLinks = [
   <section class="home-board home-board--landing">
     <div class="hero-grid">
       <article class="home-panel hero-panel hero-panel-main">
-        <p class="home-eyebrow">EdDYON の小站</p>
-        <h2 class="home-title">喜欢的东西、普通日子，还有写过的东西，都放在这里</h2>
+        <p class="home-eyebrow">EdDYON 和朋友们</p>
+        <h2 class="home-title">把想留住的东西都放进来，之后再慢慢回头看</h2>
         <p class="home-copy">
-          这里会放日常、开发记录、ACG，还有那些以后自己也会回来翻的内容。想先随便逛逛也行，想直接去看文章也可以，按你当下想看的那一边走就好。
+          这里有日常、写过的代码、喜欢的作品，也有一些当下不想弄丢的情绪和片段。不是每一篇都很重要，但都是我愿意留在这里的东西。
         </p>
 
         <div class="hero-chip-row">
