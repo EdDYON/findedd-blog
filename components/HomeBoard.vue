@@ -6,8 +6,8 @@ const posts = usePostList()
 const pages = usePageList()
 
 const heroChips = [
-  '主页入口',
-  '内容单独一页',
+  '个人小站',
+  '日常与记录',
 ]
 
 const metrics = computed(() => {
@@ -62,9 +62,9 @@ const sectionLinks = [
     <div class="hero-grid">
       <article class="home-panel hero-panel hero-panel-main">
         <p class="home-eyebrow">EdDYON の小站</p>
-        <h2 class="home-title">主页只负责把你带进来，内容和文章单独放到另一页</h2>
+        <h2 class="home-title">喜欢的东西、普通日子，还有写过的东西，都放在这里</h2>
         <p class="home-copy">
-          这次把首页和内容页彻底拆开了。首页只保留气质、入口和分区，真正要读的文章统一去内容页，阅读时不会再被首页那套展示感带着走。
+          这里会放日常、开发记录、ACG，还有那些以后自己也会回来翻的内容。想先随便逛逛也行，想直接去看文章也可以，按你当下想看的那一边走就好。
         </p>
 
         <div class="hero-chip-row">
@@ -77,7 +77,7 @@ const sectionLinks = [
             <strong>文章、更新和阅读都从这里开始</strong>
           </AppLink>
           <AppLink class="action-pill" to="/about/">
-            <span>先看我是谁</span>
+            <span>关于这里</span>
             <strong>关于我、关于站点和整个分区都在这边</strong>
           </AppLink>
         </div>
@@ -86,23 +86,23 @@ const sectionLinks = [
       <article class="home-panel hero-panel hero-panel-side">
         <div class="home-section-head compact">
           <div>
-            <p class="mini-label">现在的分工</p>
-            <h3>主页和内容页分开了</h3>
+            <p class="mini-label">站点一眼看完</p>
+            <h3>先从你感兴趣的地方进去</h3>
           </div>
         </div>
 
         <div class="home-role-list">
           <div class="home-role-item">
-            <strong>主页</strong>
-            <span>保留入口、气质和栏目分区。</span>
-          </div>
-          <div class="home-role-item">
-            <strong>内容页</strong>
-            <span>只负责文章、阅读和评论，不再承担展示任务。</span>
+            <strong>文章页</strong>
+            <span>最近写的内容、更新记录和适合安静读完的文章都在那边。</span>
           </div>
           <div class="home-role-item">
             <strong>栏目页</strong>
-            <span>每一块单独展开，不再都挤在首页首屏。</span>
+            <span>开发、生活和兴趣分开放着，想看哪一边就从哪边进去。</span>
+          </div>
+          <div class="home-role-item">
+            <strong>互动区</strong>
+            <span>如果只是想留句话、签到或者随便玩一下，也有单独的地方。</span>
           </div>
         </div>
 
@@ -119,9 +119,9 @@ const sectionLinks = [
       <div class="home-section-head">
         <div>
           <p class="mini-label">栏目入口</p>
-          <h3>从这里决定你想先看哪一边</h3>
+          <h3>先看哪一边，都可以从这里走</h3>
         </div>
-        <p class="section-copy">首页不再挂文章流，栏目和内容分开走。</p>
+        <p class="section-copy">四个常用入口留在这里，剩下的交给导航慢慢展开。</p>
       </div>
 
       <div class="quick-links quick-links-compact">
