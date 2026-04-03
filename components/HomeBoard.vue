@@ -87,22 +87,22 @@ const sectionLinks = [
         <div class="home-section-head compact">
           <div>
             <p class="mini-label">站点一眼看完</p>
-            <h3>先从你感兴趣的地方进去</h3>
+            <h3>更像一个会一直住下去的小站</h3>
           </div>
         </div>
 
         <div class="home-role-list">
           <div class="home-role-item">
-            <strong>文章页</strong>
-            <span>最近写的内容、更新记录和适合安静读完的文章都在那边。</span>
+            <strong>会写下来</strong>
+            <span>技术、日常和一些很普通的小事，只要想留住，就都会慢慢放进来。</span>
           </div>
           <div class="home-role-item">
-            <strong>栏目页</strong>
-            <span>开发、生活和兴趣分开放着，想看哪一边就从哪边进去。</span>
+            <strong>会分开放</strong>
+            <span>开发、生活和兴趣各有各的位置，逛的时候不会全都挤在一起。</span>
           </div>
           <div class="home-role-item">
-            <strong>互动区</strong>
-            <span>如果只是想留句话、签到或者随便玩一下，也有单独的地方。</span>
+            <strong>也欢迎路过</strong>
+            <span>如果只是想留一句话、签个到，或者随便看看，也都能找到自己的角落。</span>
           </div>
         </div>
 
