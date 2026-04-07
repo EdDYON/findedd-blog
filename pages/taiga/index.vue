@@ -49,14 +49,25 @@ const menuCards: Array<{
   },
 ]
 
+const quickButtons = [
+  {
+    label: '查看场景',
+    section: 'scene-archive' as const,
+  },
+  {
+    label: '打开图库',
+    section: 'gallery-shelf' as const,
+  },
+]
+
 const sceneCards = [
   {
     title: '圣诞夜',
-    copy: '这一段不用多解释，提到《龙与虎》，很多人最先想起的就是这里。',
+    copy: '提到《龙与虎》，很多人最先想起的就是这里。这一段不需要解释太多，情绪自己会落下来。',
   },
   {
     title: '雪地',
-    copy: '安静、发冷、情绪却压不住，整部作品的后劲很多都在这几分钟里。',
+    copy: '整部作品的后劲，很多都埋在这几分钟里。安静、发冷，但心口会一下收紧。',
   },
   {
     title: '晚饭时间',
@@ -132,45 +143,72 @@ function jumpTo(sectionId?: SectionId) {
 <template>
   <main class="taiga-route-page">
     <section class="taiga-stage">
-      <div class="stage-inner">
+      <div class="stage-shell">
         <div class="utility-row">
-          <AppLink class="utility-btn" to="/">
+          <AppLink class="utility-btn" to="/" aria-label="返回首页">
             <span class="i-ri-home-5-line" />
           </AppLink>
-          <AppLink class="utility-btn" to="/hobbies/">
+          <AppLink class="utility-btn" to="/hobbies/" aria-label="兴趣区">
             <span class="i-ri-heart-3-line" />
           </AppLink>
-          <AppLink class="utility-btn" to="/collection/">
+          <AppLink class="utility-btn" to="/collection/" aria-label="收藏页">
             <span class="i-ri-bookmark-3-line" />
           </AppLink>
         </div>
 
         <article class="profile-card">
-          <strong>Aisaka Taiga</strong>
-          <span>逢坂大河</span>
-          <div class="profile-tags">
-            <span>Toradora!</span>
-            <span>长驻页面</span>
-            <span>偏爱角色</span>
+          <div class="profile-topline">
+            <strong>Aisaka Taiga</strong>
+            <span class="profile-badge">Aisaka Route</span>
+          </div>
+          <span class="profile-name">逢坂大河</span>
+
+          <div class="profile-metrics">
+            <div>
+              <small>Route</small>
+              <b>01</b>
+            </div>
+            <div>
+              <small>Archive</small>
+              <b>10</b>
+            </div>
+            <div>
+              <small>Level</small>
+              <b>A++</b>
+            </div>
           </div>
         </article>
 
         <div class="hero-copy">
           <p class="kana-line">オトメモード / AISAKA TAIGA</p>
-          <h1>
-            <span class="word-pink">Taiga</span>
+
+          <h1 class="hero-title">
+            <span class="word-pink">Aisaka</span>
             <span class="word-blue">Route</span>
           </h1>
+
           <p class="hero-note">
-            这页不写大段感想，直接做成一张可以慢慢补内容的角色菜单。喜欢的场景、截图、关系线和回看记录，都从下面这些入口往下走。
+            这页不写长长的感想，直接做成一个可以慢慢补内容的角色菜单。场景、图库、关系线，还有以后回坑时想留下来的东西，都放在这里。
           </p>
+
+          <div class="hero-actions">
+            <button
+              v-for="button in quickButtons"
+              :key="button.label"
+              type="button"
+              class="hero-action-btn"
+              @click="jumpTo(button.section)"
+            >
+              {{ button.label }}
+            </button>
+          </div>
         </div>
 
         <div class="hero-art">
           <div class="hero-art-glow hero-art-glow-a" />
           <div class="hero-art-glow hero-art-glow-b" />
           <img class="hero-main" src="/taiga-route-main.jpg" alt="逢坂大河" />
-          <img class="hero-side" src="/taiga-route-side.jpg" alt="逢坂大河侧图" />
+          <img class="hero-side" src="/taiga-route-side.jpg" alt="逢坂大河副图" />
         </div>
 
         <div class="menu-row">
@@ -201,92 +239,100 @@ function jumpTo(sectionId?: SectionId) {
     </section>
 
     <section id="scene-archive" class="route-section">
-      <div class="section-head">
-        <div>
-          <p class="section-kicker">SCENE ARCHIVE</p>
-          <h2>会先想到的几个场景</h2>
+      <article class="route-panel">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">SCENE ARCHIVE</p>
+            <h2>会先想到的几个场景</h2>
+          </div>
+          <p>先放最常想起的几个，后面再慢慢补得更满。</p>
         </div>
-        <p>这块只先放最常想起的几个，后面慢慢补。</p>
-      </div>
 
-      <div class="scene-grid">
-        <article v-for="scene in sceneCards" :key="scene.title" class="scene-card">
-          <span class="card-mini">Scene</span>
-          <h3>{{ scene.title }}</h3>
-          <p>{{ scene.copy }}</p>
-        </article>
-      </div>
+        <div class="scene-grid">
+          <article v-for="scene in sceneCards" :key="scene.title" class="scene-card">
+            <span class="card-mini">Scene</span>
+            <h3>{{ scene.title }}</h3>
+            <p>{{ scene.copy }}</p>
+          </article>
+        </div>
+      </article>
     </section>
 
     <section id="save-archive" class="route-section">
-      <div class="section-head">
-        <div>
-          <p class="section-kicker">SAVE DATA</p>
-          <h2>给以后回来的内容先留存档位</h2>
+      <article class="route-panel">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">SAVE DATA</p>
+            <h2>给以后回来的内容先留存档位</h2>
+          </div>
+          <p>现在不硬填，先把位置留出来。</p>
         </div>
-        <p>现在不硬填，先把位置留出来。</p>
-      </div>
 
-      <div class="save-grid">
-        <article v-for="slot in saveSlots" :key="slot.slot" class="save-card">
-          <span class="save-index">{{ slot.slot }}</span>
-          <h3>{{ slot.title }}</h3>
-          <p>{{ slot.note }}</p>
-        </article>
-      </div>
+        <div class="save-grid">
+          <article v-for="slot in saveSlots" :key="slot.slot" class="save-card">
+            <span class="save-index">{{ slot.slot }}</span>
+            <h3>{{ slot.title }}</h3>
+            <p>{{ slot.note }}</p>
+          </article>
+        </div>
+      </article>
     </section>
 
     <section id="gallery-shelf" class="route-section">
-      <div class="section-head">
-        <div>
-          <p class="section-kicker">GALLERY</p>
-          <h2>先放两张图，后面继续补</h2>
+      <article class="route-panel">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">GALLERY</p>
+            <h2>先放两张图，后面继续补</h2>
+          </div>
+          <p>这块以后可以继续塞截图、壁纸和别的版本。</p>
         </div>
-        <p>这块以后可以继续塞截图、壁纸和别的版本。</p>
-      </div>
 
-      <div class="gallery-grid">
-        <article class="gallery-card gallery-card-large">
-          <img src="/taiga-route-main.jpg" alt="逢坂大河主图" />
-        </article>
-        <article class="gallery-card">
-          <img src="/taiga-route-side.jpg" alt="逢坂大河副图" />
-        </article>
-        <article class="gallery-card gallery-card-placeholder">
-          <span>PLACEHOLDER</span>
-          <strong>以后补截图</strong>
-        </article>
-        <article class="gallery-card gallery-card-placeholder">
-          <span>PLACEHOLDER</span>
-          <strong>以后补周边</strong>
-        </article>
-      </div>
+        <div class="gallery-grid">
+          <article class="gallery-card gallery-card-large">
+            <img src="/taiga-route-main.jpg" alt="逢坂大河主图" />
+          </article>
+          <article class="gallery-card">
+            <img src="/taiga-route-side.jpg" alt="逢坂大河副图" />
+          </article>
+          <article class="gallery-card gallery-card-placeholder">
+            <span>PLACEHOLDER</span>
+            <strong>以后补截图</strong>
+          </article>
+          <article class="gallery-card gallery-card-placeholder">
+            <span>PLACEHOLDER</span>
+            <strong>以后补周边</strong>
+          </article>
+        </div>
+      </article>
     </section>
 
     <section id="relation-room" class="route-section route-section-wide">
-      <div class="section-head">
-        <div>
-          <p class="section-kicker">RELATION ROOM</p>
-          <h2>关系线和一些固定标签</h2>
-        </div>
-        <p>不写长分析，先把最核心的东西摆出来。</p>
-      </div>
-
-      <div class="relation-layout">
-        <div class="relation-grid">
-          <article v-for="relation in relationCards" :key="relation.name" class="relation-card">
-            <h3>{{ relation.name }}</h3>
-            <p>{{ relation.copy }}</p>
-          </article>
-        </div>
-
-        <aside class="tag-panel">
-          <p class="card-mini">KEY WORDS</p>
-          <div class="tag-cloud">
-            <span v-for="tag in tags" :key="tag" class="tag-pill">{{ tag }}</span>
+      <article class="route-panel">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">RELATION ROOM</p>
+            <h2>关系线和一些固定标签</h2>
           </div>
-        </aside>
-      </div>
+          <p>不写长分析，先把最核心的东西摆出来。</p>
+        </div>
+
+        <div class="relation-layout">
+          <div class="relation-grid">
+            <article v-for="relation in relationCards" :key="relation.name" class="relation-card">
+              <h3>{{ relation.name }}</h3>
+              <p>{{ relation.copy }}</p>
+            </article>
+          </div>
+
+          <aside class="tag-panel">
+            <p class="card-mini">KEY WORDS</p>
+            <div class="tag-cloud">
+              <span v-for="tag in tags" :key="tag" class="tag-pill">{{ tag }}</span>
+            </div>
+          </aside>
+        </div>
+      </article>
     </section>
   </main>
 </template>
@@ -295,43 +341,43 @@ function jumpTo(sectionId?: SectionId) {
 .taiga-route-page {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.88), transparent 28%),
-    linear-gradient(135deg, rgba(255, 214, 230, 0.58) 0%, rgba(255, 244, 248, 0.96) 36%, rgba(255, 239, 247, 0.96) 100%);
-  color: #4c5970;
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.94), transparent 28%),
+    linear-gradient(180deg, #fff6f9 0%, #fff1f6 38%, #ffeef5 100%);
+  color: #4d6078;
 }
 
 .taiga-stage {
   min-height: 100svh;
-  padding: 1.1rem;
+  padding: 1rem;
 }
 
-.stage-inner {
+.stage-shell {
   position: relative;
-  min-height: calc(100svh - 2.2rem);
-  padding: 1.35rem 1.4rem 8.3rem;
-  border-radius: 34px;
+  min-height: calc(100svh - 2rem);
+  padding: 1.35rem 1.4rem 8.2rem;
   overflow: hidden;
+  border-radius: 34px;
   background:
-    radial-gradient(circle at 26% 38%, rgba(255, 255, 255, 0.82), transparent 18%),
-    radial-gradient(circle at 72% 24%, rgba(255, 255, 255, 0.4), transparent 18%),
-    repeating-linear-gradient(135deg, rgba(255, 213, 229, 0.46) 0 16px, rgba(255, 242, 247, 0.86) 16px 32px);
-  border: 2px solid rgba(255, 255, 255, 0.82);
-  box-shadow: 0 28px 80px rgba(235, 171, 195, 0.24);
+    radial-gradient(circle at 22% 28%, rgba(255, 255, 255, 0.66), transparent 14%),
+    radial-gradient(circle at 70% 24%, rgba(255, 255, 255, 0.44), transparent 16%),
+    url('/taiga-ui/stage-board.webp') center/cover no-repeat;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 26px 80px rgba(234, 183, 203, 0.28);
 }
 
-.stage-inner::before {
+.stage-shell::before {
   content: '';
   position: absolute;
-  inset: 1rem;
-  border-radius: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.52);
+  inset: 0.95rem;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
   pointer-events: none;
 }
 
 .utility-row,
 .menu-row,
-.profile-tags,
-.tag-cloud {
+.tag-cloud,
+.hero-actions {
   display: flex;
   flex-wrap: wrap;
 }
@@ -351,11 +397,20 @@ function jumpTo(sectionId?: SectionId) {
   width: 4rem;
   height: 4rem;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #8ba0b8;
+  background: url('/taiga-ui/utility-button.png') center/100% 100% no-repeat;
+  color: #91a3bb;
   font-size: 1.35rem;
   text-decoration: none;
-  box-shadow: 0 14px 34px rgba(223, 171, 194, 0.22);
+}
+
+.profile-card,
+.route-panel,
+.scene-card,
+.save-card,
+.gallery-card,
+.relation-card,
+.tag-panel {
+  background: url('/taiga-ui/panel-soft.png') center/100% 100% no-repeat;
 }
 
 .profile-card {
@@ -363,106 +418,147 @@ function jumpTo(sectionId?: SectionId) {
   top: 1.1rem;
   right: 1.1rem;
   z-index: 3;
-  width: min(250px, calc(100vw - 3rem));
-  padding: 1rem 1.1rem;
-  border-radius: 26px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 18px 40px rgba(232, 182, 204, 0.22);
+  width: min(270px, calc(100vw - 2.8rem));
+  padding: 1rem 1.15rem 1.1rem;
 }
 
-.profile-card strong {
-  display: block;
-  color: #526178;
-  font-size: 1.2rem;
+.profile-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
 }
 
-.profile-card > span {
-  display: block;
-  margin-top: 0.15rem;
-  color: #8ea0b5;
+.profile-topline strong {
+  color: #53637c;
+  font-size: 1.15rem;
 }
 
-.profile-tags {
-  gap: 0.45rem;
-  margin-top: 0.9rem;
-}
-
-.profile-tags span,
-.tag-pill {
+.profile-badge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   min-height: 2rem;
-  padding: 0.35rem 0.75rem;
+  padding: 0.25rem 0.8rem;
   border-radius: 999px;
-  background: rgba(255, 111, 156, 0.1);
+  background: rgba(255, 92, 150, 0.12);
   color: #ff5c96;
-  font-size: 0.82rem;
-  font-weight: 700;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-name {
+  display: block;
+  margin-top: 0.25rem;
+  color: #8a9cb2;
+}
+
+.profile-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-top: 1rem;
+}
+
+.profile-metrics div {
+  display: grid;
+  gap: 0.12rem;
+  text-align: center;
+}
+
+.profile-metrics small {
+  color: #9eabc0;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-metrics b {
+  color: #5b6a81;
+  font-size: 1.2rem;
 }
 
 .hero-copy {
   position: relative;
   z-index: 2;
   max-width: 720px;
-  padding-top: 4.4rem;
+  padding-top: 4.5rem;
 }
 
 .kana-line,
 .section-kicker,
 .card-mini {
-  color: rgba(255, 127, 168, 0.75);
+  color: rgba(255, 116, 165, 0.74);
   letter-spacing: 0.24em;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   text-transform: uppercase;
 }
 
-.hero-copy h1 {
+.hero-title {
   display: grid;
   gap: 0;
-  margin: 1.7rem 0 1rem;
+  margin: 1.5rem 0 0.9rem;
   line-height: 0.9;
 }
 
-.hero-copy h1 span {
+.hero-title span {
   font-family: 'Baloo 2', 'ZCOOL KuaiLe', 'LXGW WenKai Screen', sans-serif;
-  font-size: clamp(4.5rem, 11vw, 7.8rem);
+  font-size: clamp(4.6rem, 11vw, 8rem);
   font-weight: 800;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.06em;
 }
 
 .word-pink {
-  color: #ff4e88;
+  color: #ff538c;
   -webkit-text-stroke: 6px rgba(255, 255, 255, 0.98);
   text-shadow:
-    0 0 0 #ff84b0,
-    7px 7px 0 rgba(255, 143, 179, 0.16),
-    0 0 18px rgba(255, 123, 170, 0.18);
+    0 0 0 #ff9cbf,
+    0 8px 0 rgba(255, 168, 197, 0.14),
+    0 0 20px rgba(255, 144, 184, 0.18);
 }
 
 .word-blue {
-  margin-left: 1.2rem;
-  color: #3d7cff;
+  margin-left: 1.3rem;
+  color: #4b84ff;
   -webkit-text-stroke: 6px rgba(255, 255, 255, 0.98);
   text-shadow:
-    0 0 0 #87b8ff,
-    7px 7px 0 rgba(106, 163, 255, 0.16),
-    0 0 18px rgba(106, 163, 255, 0.2);
+    0 0 0 #9cc0ff,
+    0 8px 0 rgba(138, 179, 255, 0.12),
+    0 0 18px rgba(125, 176, 255, 0.16);
 }
 
 .hero-note {
-  max-width: 34rem;
-  margin: 1rem 0 0;
-  color: #6d7a90;
+  max-width: 35rem;
+  margin: 0;
+  color: #708198;
   font-size: 1.08rem;
-  line-height: 1.8;
+  line-height: 1.85;
+}
+
+.hero-actions {
+  gap: 0.8rem;
+  margin-top: 1.2rem;
+}
+
+.hero-action-btn {
+  min-height: 3.1rem;
+  padding: 0.55rem 1.1rem;
+  border: 2px solid rgba(255, 182, 207, 0.7);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #65768f;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 10px 24px rgba(239, 187, 207, 0.22);
 }
 
 .hero-art {
   position: absolute;
-  right: 4%;
+  right: 3%;
   bottom: 0;
-  width: min(44vw, 820px);
+  width: min(46vw, 860px);
   height: min(88vh, 900px);
   z-index: 1;
   pointer-events: none;
@@ -481,17 +577,17 @@ function jumpTo(sectionId?: SectionId) {
   width: 82%;
   height: 88%;
   border-radius: 34px 34px 0 0;
-  filter: saturate(1.03) contrast(1.02);
-  box-shadow: 0 24px 60px rgba(228, 162, 188, 0.18);
+  border: 10px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 24px 60px rgba(229, 170, 191, 0.2);
 }
 
 .hero-side {
-  right: 48%;
-  bottom: 10%;
+  right: 49%;
+  bottom: 9%;
   width: 28%;
   aspect-ratio: 1 / 1;
   border-radius: 24px;
-  border: 6px solid rgba(255, 255, 255, 0.88);
+  border: 6px solid rgba(255, 255, 255, 0.9);
   box-shadow: 0 18px 34px rgba(231, 177, 198, 0.22);
   transform: rotate(-7deg);
 }
@@ -499,15 +595,15 @@ function jumpTo(sectionId?: SectionId) {
 .hero-art-glow {
   position: absolute;
   border-radius: 999px;
-  filter: blur(44px);
+  filter: blur(42px);
 }
 
 .hero-art-glow-a {
-  right: 8%;
+  right: 10%;
   bottom: 14%;
   width: 14rem;
   height: 14rem;
-  background: rgba(255, 170, 170, 0.3);
+  background: rgba(255, 168, 168, 0.26);
 }
 
 .hero-art-glow-b {
@@ -515,14 +611,14 @@ function jumpTo(sectionId?: SectionId) {
   top: 18%;
   width: 8rem;
   height: 8rem;
-  background: rgba(111, 170, 255, 0.22);
+  background: rgba(124, 175, 255, 0.22);
 }
 
 .menu-row {
   position: absolute;
-  right: 1.1rem;
+  right: 1.15rem;
   bottom: 1.15rem;
-  left: 1.1rem;
+  left: 1.15rem;
   gap: 1rem;
   z-index: 3;
 }
@@ -530,16 +626,16 @@ function jumpTo(sectionId?: SectionId) {
 .menu-card {
   flex: 1 1 11rem;
   display: grid;
-  gap: 0.1rem;
+  gap: 0.05rem;
   min-height: 6.6rem;
   padding: 1rem 1.1rem;
-  border-radius: 24px;
-  border: 2px solid rgba(255, 190, 212, 0.68);
-  background: rgba(255, 255, 255, 0.84);
-  color: #5a6a80;
+  border: 0;
+  background:
+    url('/taiga-ui/menu-default.png') center/100% 100% no-repeat,
+    transparent;
+  color: #5d6e86;
   text-decoration: none;
   cursor: pointer;
-  box-shadow: 0 16px 30px rgba(234, 184, 206, 0.22);
 }
 
 .menu-card strong {
@@ -548,30 +644,35 @@ function jumpTo(sectionId?: SectionId) {
 }
 
 .menu-card span {
-  color: #94a4b8;
-  font-size: 0.95rem;
+  color: #97a7ba;
+  font-size: 0.93rem;
   font-weight: 700;
   letter-spacing: 0.08em;
 }
 
 .menu-card-accent {
-  background: linear-gradient(180deg, #ff6e9e, #ff5a88);
+  background:
+    url('/taiga-ui/menu-active.png') center/100% 100% no-repeat,
+    transparent;
   color: #fff;
-  border-color: rgba(255, 255, 255, 0.74);
 }
 
 .menu-card-accent span {
-  color: rgba(255, 241, 246, 0.84);
+  color: rgba(255, 244, 248, 0.9);
 }
 
 .route-section {
-  width: min(1400px, calc(100vw - 2.2rem));
+  width: min(1420px, calc(100vw - 2rem));
   margin: 0 auto;
-  padding: 0.35rem 0 1.3rem;
+  padding: 0.3rem 0 1.35rem;
 }
 
 .route-section-wide {
   padding-bottom: 2rem;
+}
+
+.route-panel {
+  padding: 1.2rem;
 }
 
 .section-head {
@@ -580,16 +681,17 @@ function jumpTo(sectionId?: SectionId) {
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1rem;
-  padding-inline: 0.3rem;
+  padding-inline: 0.2rem;
 }
 
 .section-head h2 {
   margin: 0.2rem 0 0;
-  color: #4d5d75;
+  color: #51637c;
   font-family: 'ZCOOL XiaoWei', 'STSong', 'Songti SC', serif;
   font-size: clamp(2rem, 4vw, 3rem);
 }
 
+.section-head > p,
 .section-head p:last-child {
   margin: 0;
   color: #8b98ab;
@@ -599,8 +701,8 @@ function jumpTo(sectionId?: SectionId) {
 .scene-grid,
 .save-grid,
 .gallery-grid,
-.relation-grid,
-.relation-layout {
+.relation-layout,
+.relation-grid {
   display: grid;
   gap: 1rem;
 }
@@ -624,16 +726,6 @@ function jumpTo(sectionId?: SectionId) {
 .relation-card,
 .tag-panel {
   overflow: hidden;
-  border-radius: 28px;
-  border: 2px solid rgba(255, 255, 255, 0.76);
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 18px 40px rgba(233, 184, 204, 0.18);
-}
-
-.scene-card,
-.save-card,
-.relation-card,
-.tag-panel {
   padding: 1.15rem;
 }
 
@@ -641,15 +733,15 @@ function jumpTo(sectionId?: SectionId) {
 .save-card h3,
 .relation-card h3 {
   margin: 0.5rem 0 0.45rem;
-  color: #53627a;
+  color: #566781;
 }
 
 .scene-card p,
 .save-card p,
 .relation-card p {
   margin: 0;
-  color: #7b889c;
-  line-height: 1.75;
+  color: #7d8ba0;
+  line-height: 1.78;
 }
 
 .save-index {
@@ -658,8 +750,8 @@ function jumpTo(sectionId?: SectionId) {
   min-height: 2rem;
   padding: 0.25rem 0.7rem;
   border-radius: 999px;
-  background: rgba(79, 133, 255, 0.08);
-  color: #4b85ff;
+  background: rgba(94, 139, 255, 0.1);
+  color: #5388ff;
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -668,33 +760,37 @@ function jumpTo(sectionId?: SectionId) {
 .gallery-card {
   position: relative;
   min-height: 20rem;
+  padding: 0.7rem;
 }
 
 .gallery-card img {
   display: block;
   width: 100%;
   height: 100%;
+  border-radius: 22px;
   object-fit: cover;
 }
 
 .gallery-card-large {
-  min-height: 25rem;
+  min-height: 26rem;
 }
 
 .gallery-card-placeholder {
   display: grid;
   place-content: center;
-  gap: 0.4rem;
-  color: #8a9aac;
+  gap: 0.35rem;
   text-align: center;
-  background:
-    linear-gradient(135deg, rgba(255, 224, 234, 0.62), rgba(255, 255, 255, 0.9));
 }
 
 .gallery-card-placeholder span {
-  color: rgba(255, 110, 158, 0.66);
-  letter-spacing: 0.12em;
+  color: rgba(255, 97, 150, 0.7);
   font-size: 0.78rem;
+  letter-spacing: 0.12em;
+}
+
+.gallery-card-placeholder strong {
+  color: #7d8ba1;
+  font-size: 1.2rem;
 }
 
 .relation-grid {
@@ -707,17 +803,26 @@ function jumpTo(sectionId?: SectionId) {
 }
 
 .tag-cloud {
-  gap: 0.55rem;
+  gap: 0.6rem;
   margin-top: 1rem;
 }
 
 .tag-pill {
-  min-height: 2.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.1rem;
+  padding: 0.35rem 0.78rem;
+  border-radius: 999px;
+  background: rgba(255, 103, 154, 0.12);
+  color: #ff5d98;
+  font-size: 0.84rem;
+  font-weight: 700;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1240px) {
   .hero-art {
-    width: min(48vw, 680px);
+    width: min(50vw, 720px);
   }
 
   .scene-grid,
@@ -728,8 +833,8 @@ function jumpTo(sectionId?: SectionId) {
   }
 }
 
-@media (max-width: 860px) {
-  .stage-inner {
+@media (max-width: 900px) {
+  .stage-shell {
     min-height: auto;
     padding: 1rem 1rem 1rem;
   }
@@ -743,7 +848,7 @@ function jumpTo(sectionId?: SectionId) {
 
   .profile-card {
     width: 100%;
-    margin-top: 1rem;
+    margin-top: 0.9rem;
   }
 
   .hero-copy {
@@ -763,14 +868,14 @@ function jumpTo(sectionId?: SectionId) {
     width: min(100%, 520px);
     height: auto;
     aspect-ratio: 4 / 5;
-    border-radius: 28px;
+    border-radius: 30px;
   }
 
   .hero-side {
     right: auto;
-    left: 0.4rem;
-    bottom: 1.3rem;
-    width: 7.5rem;
+    left: 0.3rem;
+    bottom: 1rem;
+    width: 7.2rem;
   }
 
   .hero-art-glow-a,
