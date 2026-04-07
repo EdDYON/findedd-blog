@@ -117,6 +117,12 @@ export default defineValaxyConfig<UserThemeConfig>({
         color: '#ff6f91',
       },
       {
+        name: '逢坂大河',
+        url: '/taiga/',
+        icon: 'i-ri-heart-3-line',
+        color: '#ff9f7f',
+      },
+      {
         name: '收藏与清单',
         url: '/collection/',
         icon: 'i-ri-bookmark-3-line',

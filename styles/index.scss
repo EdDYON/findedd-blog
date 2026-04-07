@@ -723,7 +723,8 @@ body.inner-route .yun-ad-board {
 
 .page-intro--tech h2,
 .page-intro--life h2,
-.page-intro--acg h2 {
+.page-intro--acg h2,
+.page-intro--taiga h2 {
   max-width: 14ch;
 }
 
@@ -758,6 +759,13 @@ body.inner-route .yun-ad-board {
     radial-gradient(circle at bottom left, rgba(120, 204, 255, 0.06), transparent 36%);
 }
 
+.catalog-shell--taiga::before {
+  background:
+    radial-gradient(circle at top right, rgba(255, 173, 140, 0.1), transparent 34%),
+    radial-gradient(circle at bottom left, rgba(255, 214, 153, 0.08), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 28%);
+}
+
 .catalog-shell--tech .feature-card,
 .catalog-shell--tech .story-card {
   background: rgba(12, 20, 34, 0.62);
@@ -771,6 +779,11 @@ body.inner-route .yun-ad-board {
 .catalog-shell--acg .feature-card,
 .catalog-shell--acg .story-card {
   background: rgba(16, 18, 33, 0.62);
+}
+
+.catalog-shell--taiga .feature-card,
+.catalog-shell--taiga .story-card {
+  background: rgba(28, 19, 26, 0.62);
 }
 
 .feature-grid,

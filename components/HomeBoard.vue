@@ -73,12 +73,12 @@ const sectionLinks = [
 
         <div class="home-actions">
           <AppLink class="action-pill" to="/posts/">
-            <span>进入内容页</span>
-            <strong>文章、更新和阅读都从这里开始</strong>
+            <span>去翻文章</span>
+            <strong>最近写下来的东西，都从这里开始看</strong>
           </AppLink>
-          <AppLink class="action-pill" to="/about/">
-            <span>关于这里</span>
-            <strong>关于我、关于站点和整个分区都在这边</strong>
+          <AppLink class="action-pill" to="/taiga/">
+            <span>偏爱的一页</span>
+            <strong>专门留给逢坂大河和《龙与虎》</strong>
           </AppLink>
         </div>
       </article>
