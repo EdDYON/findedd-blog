@@ -1,4 +1,6 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
+import TaigaMascot from './TaigaMascot.vue'
+
 defineProps<{
   isHome: boolean
   showMascot: boolean
@@ -7,7 +9,7 @@ defineProps<{
 
 <template>
   <aside class="floating-widgets">
-    <div v-if="showMascot && isHome" id="sakana-widget" class="sakana-shell" />
+    <TaigaMascot v-if="showMascot" :is-home="isHome" />
   </aside>
 </template>
 
@@ -22,20 +24,8 @@ defineProps<{
   gap: 0.55rem;
 }
 
-.sakana-shell {
-  width: 210px;
-  min-height: 210px;
-  border-radius: 28px;
-  background: rgba(13, 18, 33, 0.42);
-  border: 1px solid rgba(255, 196, 230, 0.18);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 24px 60px rgba(5, 10, 20, 0.18);
-  overflow: hidden;
-}
-
 @media (max-width: 900px) {
-  .floating-widgets,
-  .sakana-shell {
+  .floating-widgets {
     display: none;
   }
 }
