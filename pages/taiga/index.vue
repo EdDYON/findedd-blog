@@ -2,452 +2,799 @@
 meta:
   frontmatter:
     title: 逢坂大河
+    layout: taiga
     comment: false
 </route>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+type SectionId = 'scene-archive' | 'save-archive' | 'gallery-shelf' | 'relation-room'
 
-type FocusKey = 'character' | 'scenes' | 'tone'
-
-const focusKey = ref<FocusKey>('character')
-const facetIndex = ref(0)
-
-const focusTabs = [
+const menuCards: Array<{
+  title: string
+  subtitle: string
+  accent?: boolean
+  section?: SectionId
+  to?: string
+}> = [
   {
-    key: 'character' as const,
-    label: '角色本身',
-    title: '我喜欢的不是一个设定，而是她整个人的节奏。',
-    copy: '大河最容易被记住的当然是凶、冲、嘴硬，但真正会留下来的不是这些表面动作，而是她每次逞强之后露出来的那点笨拙和认真。她不是稳定输出某一种萌点的角色，而是会在强硬、依赖、狼狈、心软之间来回晃，这种不平整反而特别像活人。',
+    title: '开始',
+    subtitle: 'START PAGE',
+    accent: true,
+    section: 'scene-archive',
   },
   {
-    key: 'scenes' as const,
-    label: '会想起的场景',
-    title: '我记住她，很多时候是因为那些场景根本离不开她。',
-    copy: '圣诞夜、雪地、公寓门口、一起吃饭的夜晚、放学路上的灯光，这些画面单看都已经成立，但只要少了大河，整个味道就会直接淡掉。她和这些场景是绑在一起的，不是“角色在场”，而是“她就是气氛的一部分”。',
+    title: '场景',
+    subtitle: 'SCENE LOG',
+    section: 'scene-archive',
   },
   {
-    key: 'tone' as const,
-    label: '作品空气',
-    title: '提到她，我想到的从来不只是她本人，还有整部《龙与虎》的温度。',
-    copy: '那种冬天夜里有点冷、街灯却很暖的空气感，那种吵吵闹闹之后忽然安静下来的节奏，那种校园、住宅区、晚饭和心事全都挤在一起的青春味道，都是我回头再看这部作品时最舍不得的部分。',
+    title: '存档',
+    subtitle: 'SAVE DATA',
+    section: 'save-archive',
+  },
+  {
+    title: '图库',
+    subtitle: 'GALLERY',
+    section: 'gallery-shelf',
+  },
+  {
+    title: '关系',
+    subtitle: 'RELATION',
+    section: 'relation-room',
+  },
+  {
+    title: '返回',
+    subtitle: 'BACK HOME',
+    to: '/',
   },
 ]
 
 const sceneCards = [
   {
     title: '圣诞夜',
-    note: '这段几乎已经成了整部作品最容易让人心口发紧的地方。它不是靠大起大落取胜，而是情绪终于压不住的时候，前面所有铺垫一起落下来。',
+    copy: '这一段不用多解释，提到《龙与虎》，很多人最先想起的就是这里。',
   },
   {
-    title: '一起吃饭的夜晚',
-    note: '《龙与虎》最稳的一层底色，其实是那些很家常的片段。饭桌、公寓、做饭、收拾、顺手照顾彼此，这些日常把大河写得特别近。',
+    title: '雪地',
+    copy: '安静、发冷、情绪却压不住，整部作品的后劲很多都在这几分钟里。',
   },
   {
-    title: '雪地那一段',
-    note: '到这里的时候，很多感情已经不需要再绕弯子了。雪地会让整部作品的情绪突然变得很安静，也更疼。',
+    title: '晚饭时间',
+    copy: '饭桌、公寓、做饭和拌嘴，这些家常片段才是大河最贴近生活的一面。',
   },
   {
-    title: '放学后的路和住宅区',
-    note: '我会反复想起这部作品，很大一部分原因就是这些晚上的街道。大河走在这种灯光下面时，角色和场景会一起留在脑子里。',
+    title: '放学后的路',
+    copy: '我会记住这部作品，很大一部分就是因为那些路灯、住宅区和冬夜空气。',
   },
 ]
 
 const relationCards = [
   {
     name: '高须龙儿',
-    copy: '这条关系线最打动我的不是“官配感”，而是他们真的把彼此放进了生活里。一起做饭、一起收拾、吵着吵着又默认对方会在，这种靠近比很多直白表白都更重。',
+    copy: '不是只靠表白撑起来的关系，而是真的一起过日子。',
   },
   {
     name: '栉枝实乃梨',
-    copy: '大河面对实乃梨时，总会把很多真心藏得更深一点。那里面有仰望、有歉意、有不想伤人的笨拙，所以看起来才会一直拧着。',
+    copy: '很多藏起来的情绪，恰好都绕不过她。',
   },
   {
     name: '川岛亚美',
-    copy: '我很喜欢她和亚美放在一起时那种带刺的清醒感。两个人都不简单，也都很能看穿别人，所以碰到一起的时候格外有张力。',
+    copy: '带刺、清醒、互相看穿，这条线一直很有张力。',
   },
   {
     name: '北村祐作',
-    copy: '最开始的喜欢当然重要，因为那是大河最早把心意往外放的一次。就算最后答案不在这里，这条线也让她整个人更完整了。',
+    copy: '最早把心意往外放的一次，也让大河这个角色更完整。',
   },
 ]
 
-const detailChips = [
+const saveSlots = [
+  {
+    slot: 'SLOT 01',
+    title: '第一次补完',
+    note: '留给最初那次看完整部作品的感觉。',
+  },
+  {
+    slot: 'SLOT 02',
+    title: '最近一次回看',
+    note: '以后每次重看，都可以把新的感觉补进来。',
+  },
+  {
+    slot: 'SLOT 03',
+    title: '截图和小收藏',
+    note: '壁纸、截图、喜欢的表情，以后往这里堆。',
+  },
+]
+
+const tags = [
   '掌中萌虎',
-  '圣诞夜',
+  'Toradora!',
+  '冬夜',
+  '路灯',
+  '校园',
+  '公寓',
   '雪地',
-  '公寓门口',
-  '一起吃饭',
-  '放学后的街灯',
-  '嘴硬和心软',
-  '凶巴巴的关心',
-  '冬天空气感',
-  '住宅区夜色',
+  '圣诞夜',
+  '嘴硬',
+  '后劲',
 ]
 
-const revisitReasons = [
-  '她不是“可爱模板”，而是情绪起伏和自尊心都很重的人。',
-  '她和《龙与虎》的场景绑定得太紧，想到她就会想到整部作品的空气。',
-  '再看时不会只剩名场面，反而会更在意那些安静、家常、很生活化的段落。',
-  '很多年后回头看，依然能被她的别扭、认真和狼狈击中。',
-]
+function jumpTo(sectionId?: SectionId) {
+  if (!sectionId)
+    return
 
-const facets = [
-  {
-    title: '炸毛的时候',
-    copy: '她一凶起来，整个画面立刻有了节奏，这种存在感不是靠台词堆出来的，是角色本人站在那里就够强。',
-  },
-  {
-    title: '安静下来的时候',
-    copy: '真正让我一直记着她的，反而是那些突然安静的时刻。只要一沉下来，她身上的脆弱和逞强就会一起露出来。',
-  },
-  {
-    title: '把人放进生活里的时候',
-    copy: '她最动人的地方之一，就是嘴上再怎么拧，最后还是会把在意的人慢慢放进自己的日常。',
-  },
-  {
-    title: '被冬天包住的时候',
-    copy: '大河和冬天实在太配了。冷空气、路灯、围起来的心事，这些元素和她放在一起，会让记忆直接定格。',
-  },
-]
-
-const activeTab = computed(() => focusTabs.find(tab => tab.key === focusKey.value) ?? focusTabs[0])
-const currentFacet = computed(() => facets[facetIndex.value % facets.length])
-
-function nextFacet() {
-  facetIndex.value = (facetIndex.value + 1) % facets.length
+  document.getElementById(sectionId)?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start',
+  })
 }
 </script>
 
 <template>
-  <section class="taiga-page">
-    <article class="taiga-hero">
-      <div class="taiga-hero-copy">
-        <p class="eyebrow">Tiger & Dragon</p>
-        <h2>这页不打算讲道理，只想认真留住我为什么会一直喜欢逢坂大河。</h2>
-        <p>
-          如果这个站里要给某个角色单独留一页，那就是她。《龙与虎》对我来说不是“看过的一部校园番”，而是隔一段时间就会想回去听一听、看一看、再把那些冬夜和情绪重新过一遍的作品。
-        </p>
+  <main class="taiga-route-page">
+    <section class="taiga-stage">
+      <div class="stage-inner">
+        <div class="utility-row">
+          <AppLink class="utility-btn" to="/">
+            <span class="i-ri-home-5-line" />
+          </AppLink>
+          <AppLink class="utility-btn" to="/hobbies/">
+            <span class="i-ri-heart-3-line" />
+          </AppLink>
+          <AppLink class="utility-btn" to="/collection/">
+            <span class="i-ri-bookmark-3-line" />
+          </AppLink>
+        </div>
 
-        <div class="taiga-chip-row">
-          <span v-for="chip in detailChips" :key="chip" class="inline-chip">{{ chip }}</span>
+        <article class="profile-card">
+          <strong>Aisaka Taiga</strong>
+          <span>逢坂大河</span>
+          <div class="profile-tags">
+            <span>Toradora!</span>
+            <span>长驻页面</span>
+            <span>偏爱角色</span>
+          </div>
+        </article>
+
+        <div class="hero-copy">
+          <p class="kana-line">オトメモード / AISAKA TAIGA</p>
+          <h1>
+            <span class="word-pink">Taiga</span>
+            <span class="word-blue">Route</span>
+          </h1>
+          <p class="hero-note">
+            这页不写大段感想，直接做成一张可以慢慢补内容的角色菜单。喜欢的场景、截图、关系线和回看记录，都从下面这些入口往下走。
+          </p>
+        </div>
+
+        <div class="hero-art">
+          <div class="hero-art-glow hero-art-glow-a" />
+          <div class="hero-art-glow hero-art-glow-b" />
+          <img class="hero-main" src="/taiga-route-main.jpg" alt="逢坂大河" />
+          <img class="hero-side" src="/taiga-route-side.jpg" alt="逢坂大河侧图" />
+        </div>
+
+        <div class="menu-row">
+          <template v-for="card in menuCards" :key="card.title">
+            <button
+              v-if="card.section"
+              type="button"
+              class="menu-card"
+              :class="{ 'menu-card-accent': card.accent }"
+              @click="jumpTo(card.section)"
+            >
+              <strong>{{ card.title }}</strong>
+              <span>{{ card.subtitle }}</span>
+            </button>
+
+            <AppLink
+              v-else
+              class="menu-card"
+              :class="{ 'menu-card-accent': card.accent }"
+              :to="card.to || '/'"
+            >
+              <strong>{{ card.title }}</strong>
+              <span>{{ card.subtitle }}</span>
+            </AppLink>
+          </template>
         </div>
       </div>
+    </section>
 
-      <div class="taiga-side-panel">
-        <p class="mini-label">今天先想到的那一面</p>
-        <h3>{{ currentFacet.title }}</h3>
-        <p>{{ currentFacet.copy }}</p>
-        <button type="button" class="taiga-switch" @click="nextFacet">
-          再看一面
-        </button>
-      </div>
-    </article>
-
-    <article class="taiga-panel">
-      <div class="taiga-section-head">
+    <section id="scene-archive" class="route-section">
+      <div class="section-head">
         <div>
-          <p class="mini-label">我喜欢她，不只是一种喜欢法</p>
-          <h3>有时候想到角色本身，有时候想到的是整部作品的空气。</h3>
+          <p class="section-kicker">SCENE ARCHIVE</p>
+          <h2>会先想到的几个场景</h2>
         </div>
-
-        <div class="taiga-tabs">
-          <button
-            v-for="tab in focusTabs"
-            :key="tab.key"
-            type="button"
-            class="taiga-tab"
-            :class="{ active: focusKey === tab.key }"
-            @click="focusKey = tab.key"
-          >
-            {{ tab.label }}
-          </button>
-        </div>
+        <p>这块只先放最常想起的几个，后面慢慢补。</p>
       </div>
 
-      <div class="taiga-focus-card">
-        <h4>{{ activeTab.title }}</h4>
-        <p>{{ activeTab.copy }}</p>
-      </div>
-    </article>
-
-    <article class="taiga-panel">
-      <div class="taiga-section-head">
-        <div>
-          <p class="mini-label">会反复回头想起的地方</p>
-          <h3>真正撑住这页的，不是“她很好”，而是这些场景一直都在。</h3>
-        </div>
-      </div>
-
-      <div class="taiga-scene-grid">
+      <div class="scene-grid">
         <article v-for="scene in sceneCards" :key="scene.title" class="scene-card">
-          <span class="scene-kicker">Scene</span>
-          <h4>{{ scene.title }}</h4>
-          <p>{{ scene.note }}</p>
+          <span class="card-mini">Scene</span>
+          <h3>{{ scene.title }}</h3>
+          <p>{{ scene.copy }}</p>
         </article>
       </div>
-    </article>
+    </section>
 
-    <div class="taiga-dual-grid">
-      <article class="taiga-panel">
-        <div class="taiga-section-head">
-          <div>
-            <p class="mini-label">关系线</p>
-            <h3>她之所以立得住，也因为她和每个人的距离都不一样。</h3>
-          </div>
+    <section id="save-archive" class="route-section">
+      <div class="section-head">
+        <div>
+          <p class="section-kicker">SAVE DATA</p>
+          <h2>给以后回来的内容先留存档位</h2>
         </div>
+        <p>现在不硬填，先把位置留出来。</p>
+      </div>
 
+      <div class="save-grid">
+        <article v-for="slot in saveSlots" :key="slot.slot" class="save-card">
+          <span class="save-index">{{ slot.slot }}</span>
+          <h3>{{ slot.title }}</h3>
+          <p>{{ slot.note }}</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="gallery-shelf" class="route-section">
+      <div class="section-head">
+        <div>
+          <p class="section-kicker">GALLERY</p>
+          <h2>先放两张图，后面继续补</h2>
+        </div>
+        <p>这块以后可以继续塞截图、壁纸和别的版本。</p>
+      </div>
+
+      <div class="gallery-grid">
+        <article class="gallery-card gallery-card-large">
+          <img src="/taiga-route-main.jpg" alt="逢坂大河主图" />
+        </article>
+        <article class="gallery-card">
+          <img src="/taiga-route-side.jpg" alt="逢坂大河副图" />
+        </article>
+        <article class="gallery-card gallery-card-placeholder">
+          <span>PLACEHOLDER</span>
+          <strong>以后补截图</strong>
+        </article>
+        <article class="gallery-card gallery-card-placeholder">
+          <span>PLACEHOLDER</span>
+          <strong>以后补周边</strong>
+        </article>
+      </div>
+    </section>
+
+    <section id="relation-room" class="route-section route-section-wide">
+      <div class="section-head">
+        <div>
+          <p class="section-kicker">RELATION ROOM</p>
+          <h2>关系线和一些固定标签</h2>
+        </div>
+        <p>不写长分析，先把最核心的东西摆出来。</p>
+      </div>
+
+      <div class="relation-layout">
         <div class="relation-grid">
           <article v-for="relation in relationCards" :key="relation.name" class="relation-card">
-            <h4>{{ relation.name }}</h4>
+            <h3>{{ relation.name }}</h3>
             <p>{{ relation.copy }}</p>
           </article>
         </div>
-      </article>
 
-      <article class="taiga-panel">
-        <div class="taiga-section-head">
-          <div>
-            <p class="mini-label">为什么会反复重看</p>
-            <h3>不是因为怀旧，而是她和这部作品真的会留下来。</h3>
+        <aside class="tag-panel">
+          <p class="card-mini">KEY WORDS</p>
+          <div class="tag-cloud">
+            <span v-for="tag in tags" :key="tag" class="tag-pill">{{ tag }}</span>
           </div>
-        </div>
-
-        <ul class="revisit-list">
-          <li v-for="reason in revisitReasons" :key="reason">
-            {{ reason }}
-          </li>
-        </ul>
-      </article>
-    </div>
-
-    <article class="taiga-panel taiga-ending">
-      <p class="mini-label">最后留一句最像我的话</p>
-      <h3>如果以后我还会给角色单开页面，标准大概就是：想到她的时候，我会不会连整部作品的风都一起想起来。</h3>
-      <p>
-        逢坂大河会。所以这页留给她，不是顺手做的收藏夹，也不是为了显得自己很懂角色，而是因为她和《龙与虎》确实在我这里留了很久。
-      </p>
-    </article>
-  </section>
+        </aside>
+      </div>
+    </section>
+  </main>
 </template>
 
 <style scoped>
-.taiga-page {
-  display: grid;
-  gap: 1rem;
+.taiga-route-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.88), transparent 28%),
+    linear-gradient(135deg, rgba(255, 214, 230, 0.58) 0%, rgba(255, 244, 248, 0.96) 36%, rgba(255, 239, 247, 0.96) 100%);
+  color: #4c5970;
 }
 
-.taiga-hero,
-.taiga-panel,
-.scene-card,
-.relation-card,
-.taiga-focus-card {
+.taiga-stage {
+  min-height: 100svh;
+  padding: 1.1rem;
+}
+
+.stage-inner {
   position: relative;
+  min-height: calc(100svh - 2.2rem);
+  padding: 1.35rem 1.4rem 8.3rem;
+  border-radius: 34px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: var(--site-shadow);
+  background:
+    radial-gradient(circle at 26% 38%, rgba(255, 255, 255, 0.82), transparent 18%),
+    radial-gradient(circle at 72% 24%, rgba(255, 255, 255, 0.4), transparent 18%),
+    repeating-linear-gradient(135deg, rgba(255, 213, 229, 0.46) 0 16px, rgba(255, 242, 247, 0.86) 16px 32px);
+  border: 2px solid rgba(255, 255, 255, 0.82);
+  box-shadow: 0 28px 80px rgba(235, 171, 195, 0.24);
 }
 
-.taiga-hero,
-.taiga-panel {
+.stage-inner::before {
+  content: '';
+  position: absolute;
+  inset: 1rem;
   border-radius: 30px;
-  background:
-    radial-gradient(circle at top right, rgba(255, 175, 143, 0.12), transparent 28%),
-    radial-gradient(circle at bottom left, rgba(255, 214, 153, 0.09), transparent 34%),
-    rgba(11, 16, 28, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  pointer-events: none;
 }
 
-.taiga-hero {
-  display: grid;
-  grid-template-columns: 1.35fr 0.75fr;
-  gap: 1rem;
-  padding: 1.3rem;
-}
-
-.taiga-hero-copy h2,
-.taiga-panel h3,
-.taiga-focus-card h4,
-.scene-card h4,
-.relation-card h4,
-.taiga-side-panel h3 {
-  color: #fff;
-}
-
-.taiga-hero-copy h2 {
-  margin: 0.35rem 0 0.8rem;
-  font-size: clamp(2rem, 4vw, 3.2rem);
-  line-height: 1.06;
-  max-width: 12ch;
-}
-
-.taiga-hero-copy p,
-.taiga-side-panel p,
-.taiga-focus-card p,
-.scene-card p,
-.relation-card p,
-.revisit-list li,
-.taiga-ending p {
-  color: rgba(240, 244, 255, 0.8);
-  line-height: 1.82;
-}
-
-.taiga-chip-row {
+.utility-row,
+.menu-row,
+.profile-tags,
+.tag-cloud {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.7rem;
-  margin-top: 1rem;
 }
 
-.taiga-side-panel {
-  display: grid;
-  align-content: start;
-  gap: 0.55rem;
-  padding: 1rem;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.utility-row {
+  position: absolute;
+  top: 1.3rem;
+  left: 1.3rem;
+  gap: 0.8rem;
+  z-index: 3;
 }
 
-.taiga-switch,
-.taiga-tab {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
-  cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+.utility-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #8ba0b8;
+  font-size: 1.35rem;
+  text-decoration: none;
+  box-shadow: 0 14px 34px rgba(223, 171, 194, 0.22);
 }
 
-.taiga-switch {
-  width: fit-content;
-  margin-top: 0.3rem;
-  padding: 0.8rem 1rem;
-  border-radius: 999px;
+.profile-card {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.1rem;
+  z-index: 3;
+  width: min(250px, calc(100vw - 3rem));
+  padding: 1rem 1.1rem;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 40px rgba(232, 182, 204, 0.22);
 }
 
-.taiga-switch:hover,
-.taiga-tab:hover {
-  transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.09);
-}
-
-.taiga-panel {
-  padding: 1.2rem;
-}
-
-.taiga-section-head {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.9rem;
-}
-
-.taiga-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-}
-
-.taiga-tab {
-  padding: 0.7rem 0.95rem;
-  border-radius: 999px;
-}
-
-.taiga-tab.active {
-  background: rgba(255, 186, 156, 0.14);
-  border-color: rgba(255, 186, 156, 0.26);
-}
-
-.taiga-focus-card {
-  padding: 1rem 1.05rem;
-  border-radius: 24px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
-    rgba(255, 255, 255, 0.03);
-}
-
-.taiga-focus-card h4 {
-  margin: 0 0 0.6rem;
+.profile-card strong {
+  display: block;
+  color: #526178;
   font-size: 1.2rem;
 }
 
-.taiga-scene-grid,
-.relation-grid {
-  display: grid;
-  gap: 1rem;
+.profile-card > span {
+  display: block;
+  margin-top: 0.15rem;
+  color: #8ea0b5;
 }
 
-.taiga-scene-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.profile-tags {
+  gap: 0.45rem;
+  margin-top: 0.9rem;
 }
 
-.relation-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.profile-tags span,
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(255, 111, 156, 0.1);
+  color: #ff5c96;
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
-.scene-card,
-.relation-card {
-  padding: 1rem;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.035);
+.hero-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 720px;
+  padding-top: 4.4rem;
 }
 
-.scene-kicker {
-  display: inline-block;
-  margin-bottom: 0.65rem;
-  color: rgba(255, 210, 170, 0.72);
-  font-size: 0.76rem;
-  letter-spacing: 0.12em;
+.kana-line,
+.section-kicker,
+.card-mini {
+  color: rgba(255, 127, 168, 0.75);
+  letter-spacing: 0.24em;
+  font-size: 0.8rem;
   text-transform: uppercase;
 }
 
-.scene-card h4,
-.relation-card h4 {
-  margin: 0 0 0.5rem;
+.hero-copy h1 {
+  display: grid;
+  gap: 0;
+  margin: 1.7rem 0 1rem;
+  line-height: 0.9;
 }
 
-.taiga-dual-grid {
+.hero-copy h1 span {
+  font-family: 'Baloo 2', 'ZCOOL KuaiLe', 'LXGW WenKai Screen', sans-serif;
+  font-size: clamp(4.5rem, 11vw, 7.8rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+}
+
+.word-pink {
+  color: #ff4e88;
+  -webkit-text-stroke: 6px rgba(255, 255, 255, 0.98);
+  text-shadow:
+    0 0 0 #ff84b0,
+    7px 7px 0 rgba(255, 143, 179, 0.16),
+    0 0 18px rgba(255, 123, 170, 0.18);
+}
+
+.word-blue {
+  margin-left: 1.2rem;
+  color: #3d7cff;
+  -webkit-text-stroke: 6px rgba(255, 255, 255, 0.98);
+  text-shadow:
+    0 0 0 #87b8ff,
+    7px 7px 0 rgba(106, 163, 255, 0.16),
+    0 0 18px rgba(106, 163, 255, 0.2);
+}
+
+.hero-note {
+  max-width: 34rem;
+  margin: 1rem 0 0;
+  color: #6d7a90;
+  font-size: 1.08rem;
+  line-height: 1.8;
+}
+
+.hero-art {
+  position: absolute;
+  right: 4%;
+  bottom: 0;
+  width: min(44vw, 820px);
+  height: min(88vh, 900px);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero-main,
+.hero-side {
+  position: absolute;
+  display: block;
+  object-fit: cover;
+}
+
+.hero-main {
+  right: 0;
+  bottom: 0;
+  width: 82%;
+  height: 88%;
+  border-radius: 34px 34px 0 0;
+  filter: saturate(1.03) contrast(1.02);
+  box-shadow: 0 24px 60px rgba(228, 162, 188, 0.18);
+}
+
+.hero-side {
+  right: 48%;
+  bottom: 10%;
+  width: 28%;
+  aspect-ratio: 1 / 1;
+  border-radius: 24px;
+  border: 6px solid rgba(255, 255, 255, 0.88);
+  box-shadow: 0 18px 34px rgba(231, 177, 198, 0.22);
+  transform: rotate(-7deg);
+}
+
+.hero-art-glow {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(44px);
+}
+
+.hero-art-glow-a {
+  right: 8%;
+  bottom: 14%;
+  width: 14rem;
+  height: 14rem;
+  background: rgba(255, 170, 170, 0.3);
+}
+
+.hero-art-glow-b {
+  right: 42%;
+  top: 18%;
+  width: 8rem;
+  height: 8rem;
+  background: rgba(111, 170, 255, 0.22);
+}
+
+.menu-row {
+  position: absolute;
+  right: 1.1rem;
+  bottom: 1.15rem;
+  left: 1.1rem;
+  gap: 1rem;
+  z-index: 3;
+}
+
+.menu-card {
+  flex: 1 1 11rem;
   display: grid;
-  grid-template-columns: 1.08fr 0.92fr;
+  gap: 0.1rem;
+  min-height: 6.6rem;
+  padding: 1rem 1.1rem;
+  border-radius: 24px;
+  border: 2px solid rgba(255, 190, 212, 0.68);
+  background: rgba(255, 255, 255, 0.84);
+  color: #5a6a80;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 16px 30px rgba(234, 184, 206, 0.22);
+}
+
+.menu-card strong {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.menu-card span {
+  color: #94a4b8;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.menu-card-accent {
+  background: linear-gradient(180deg, #ff6e9e, #ff5a88);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.74);
+}
+
+.menu-card-accent span {
+  color: rgba(255, 241, 246, 0.84);
+}
+
+.route-section {
+  width: min(1400px, calc(100vw - 2.2rem));
+  margin: 0 auto;
+  padding: 0.35rem 0 1.3rem;
+}
+
+.route-section-wide {
+  padding-bottom: 2rem;
+}
+
+.section-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-inline: 0.3rem;
+}
+
+.section-head h2 {
+  margin: 0.2rem 0 0;
+  color: #4d5d75;
+  font-family: 'ZCOOL XiaoWei', 'STSong', 'Songti SC', serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.section-head p:last-child {
+  margin: 0;
+  color: #8b98ab;
+  line-height: 1.75;
+}
+
+.scene-grid,
+.save-grid,
+.gallery-grid,
+.relation-grid,
+.relation-layout {
+  display: grid;
   gap: 1rem;
 }
 
-.revisit-list {
-  display: grid;
-  gap: 0.85rem;
+.scene-grid,
+.save-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.gallery-grid {
+  grid-template-columns: 1.2fr 0.8fr 0.8fr 0.8fr;
+}
+
+.relation-layout {
+  grid-template-columns: 1.15fr 0.85fr;
+}
+
+.scene-card,
+.save-card,
+.gallery-card,
+.relation-card,
+.tag-panel {
+  overflow: hidden;
+  border-radius: 28px;
+  border: 2px solid rgba(255, 255, 255, 0.76);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 18px 40px rgba(233, 184, 204, 0.18);
+}
+
+.scene-card,
+.save-card,
+.relation-card,
+.tag-panel {
+  padding: 1.15rem;
+}
+
+.scene-card h3,
+.save-card h3,
+.relation-card h3 {
+  margin: 0.5rem 0 0.45rem;
+  color: #53627a;
+}
+
+.scene-card p,
+.save-card p,
+.relation-card p {
   margin: 0;
-  padding-left: 1.2rem;
+  color: #7b889c;
+  line-height: 1.75;
 }
 
-.taiga-ending {
+.save-index {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(79, 133, 255, 0.08);
+  color: #4b85ff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.gallery-card {
+  position: relative;
+  min-height: 20rem;
+}
+
+.gallery-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gallery-card-large {
+  min-height: 25rem;
+}
+
+.gallery-card-placeholder {
+  display: grid;
+  place-content: center;
+  gap: 0.4rem;
+  color: #8a9aac;
+  text-align: center;
   background:
-    radial-gradient(circle at top right, rgba(255, 198, 163, 0.13), transparent 28%),
-    rgba(12, 17, 29, 0.82);
+    linear-gradient(135deg, rgba(255, 224, 234, 0.62), rgba(255, 255, 255, 0.9));
 }
 
-@media (max-width: 1100px) {
-  .taiga-hero,
-  .taiga-dual-grid,
-  .taiga-scene-grid,
+.gallery-card-placeholder span {
+  color: rgba(255, 110, 158, 0.66);
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+}
+
+.relation-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tag-panel {
+  display: grid;
+  align-content: start;
+}
+
+.tag-cloud {
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.tag-pill {
+  min-height: 2.15rem;
+}
+
+@media (max-width: 1200px) {
+  .hero-art {
+    width: min(48vw, 680px);
+  }
+
+  .scene-grid,
+  .save-grid,
+  .gallery-grid,
+  .relation-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .stage-inner {
+    min-height: auto;
+    padding: 1rem 1rem 1rem;
+  }
+
+  .utility-row,
+  .profile-card,
+  .hero-art,
+  .menu-row {
+    position: static;
+  }
+
+  .profile-card {
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  .hero-copy {
+    padding-top: 2rem;
+  }
+
+  .hero-art {
+    width: 100%;
+    height: auto;
+    margin-top: 1rem;
+    display: grid;
+    justify-items: center;
+  }
+
+  .hero-main {
+    position: relative;
+    width: min(100%, 520px);
+    height: auto;
+    aspect-ratio: 4 / 5;
+    border-radius: 28px;
+  }
+
+  .hero-side {
+    right: auto;
+    left: 0.4rem;
+    bottom: 1.3rem;
+    width: 7.5rem;
+  }
+
+  .hero-art-glow-a,
+  .hero-art-glow-b {
+    display: none;
+  }
+
+  .menu-row,
+  .scene-grid,
+  .save-grid,
+  .gallery-grid,
+  .relation-layout,
   .relation-grid {
     grid-template-columns: 1fr;
   }
-}
 
-@media (max-width: 720px) {
-  .taiga-hero,
-  .taiga-panel {
-    padding: 1rem;
-    border-radius: 24px;
+  .menu-row {
+    display: grid;
+    margin-top: 1rem;
   }
 
-  .taiga-section-head {
+  .section-head {
     flex-direction: column;
-  }
-
-  .taiga-hero-copy h2 {
-    max-width: none;
-    font-size: clamp(2rem, 9vw, 2.7rem);
+    align-items: start;
   }
 }
 </style>
