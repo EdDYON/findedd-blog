@@ -4,7 +4,6 @@ import { useRoute } from 'vue-router'
 
 const route = useRoute()
 const isHome = computed(() => route.path === '/')
-const temporaryPlanCover = true
 
 const showMascot = ref(false)
 const showLive2d = ref(false)
@@ -130,8 +129,8 @@ function updateExperience() {
   const largeScreen = window.matchMedia('(min-width: 1080px)').matches
   const extraWide = window.matchMedia('(min-width: 1320px)').matches
 
-  showMascot.value = isHome.value && !temporaryPlanCover && largeScreen && !reducedMotion
-  showLive2d.value = isHome.value && !temporaryPlanCover && extraWide && !reducedMotion
+  showMascot.value = isHome.value && largeScreen && !reducedMotion
+  showLive2d.value = isHome.value && extraWide && !reducedMotion
 
   clearAmbientTimers()
   scheduleAmbientAddons()
