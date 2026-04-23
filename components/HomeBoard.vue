@@ -31,6 +31,12 @@ const metrics = computed(() => {
 
 const sectionLinks = [
   {
+    title: '九机展示屏',
+    badge: '数据大屏',
+    copy: '门店运营展示页面，从这里直接进。',
+    to: '/jiuji',
+  },
+  {
     title: 'Data & Dev',
     badge: '开发记录',
     copy: '改站、写代码和那些以后还会回来翻的判断。',

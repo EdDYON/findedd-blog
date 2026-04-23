@@ -48,6 +48,11 @@ export default defineValaxyConfig<UserThemeConfig>({
     },
     nav: [
       {
+        text: '九机',
+        link: '/jiuji',
+        icon: 'i-ri-bar-chart-box-line',
+      },
+      {
         text: '文章',
         link: '/posts/',
         icon: 'i-ri-article-line',
