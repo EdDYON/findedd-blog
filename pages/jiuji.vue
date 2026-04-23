@@ -29,6 +29,10 @@ interface StoreRecord extends RawStore {
   accessoryShare: number
   serviceScore: number
   serviceTag: string
+  opportunityScore: number
+  riskScore: number
+  opportunityTag: string
+  nextAction: string
 }
 
 interface AlertRecord {
@@ -36,6 +40,15 @@ interface AlertRecord {
   title: string
   detail: string
   level: AlertLevel
+}
+
+interface StrategyRecord {
+  id: string
+  title: string
+  insight: string
+  action: string
+  impact: string
+  priority: 'P0' | 'P1' | 'P2'
 }
 
 interface LeafletMarker {
@@ -66,6 +79,7 @@ const mapContainer = ref<HTMLElement | null>(null)
 const trendChartEl = ref<HTMLElement | null>(null)
 const districtChartEl = ref<HTMLElement | null>(null)
 const categoryChartEl = ref<HTMLElement | null>(null)
+const opportunityChartEl = ref<HTMLElement | null>(null)
 
 const isPresentationMode = ref(false)
 const lastSync = ref('--:--:--')
@@ -86,6 +100,7 @@ let echartsLib: typeof import('echarts') | null = null
 let trendChart: ECharts | null = null
 let districtChart: ECharts | null = null
 let categoryChart: ECharts | null = null
+let opportunityChart: ECharts | null = null
 
 const rawStores: RawStore[] = [
   { name: '昆明佰腾店', loc: [25.0458, 102.7135], address: '五华区圆通北路120号', phone: '0871-65141852', url: 'https://www.9ji.com/stores/26', type: 'core' },
@@ -154,6 +169,45 @@ function createSeries(base: number, multipliers: number[]) {
   return multipliers.map(multiplier => Math.round(base * multiplier))
 }
 
+function getSalesBenchmark(storeType: StoreType) {
+  return storeType === 'core' ? 44 : 22
+}
+
+function getTrafficBenchmark(storeType: StoreType) {
+  return storeType === 'core' ? 35 : 18
+}
+
+function getOpportunityTag(opportunityScore: number, riskScore: number, repairOrders: number) {
+  if (riskScore >= 16)
+    return '高压待处置'
+  if (opportunityScore >= 24)
+    return '高潜待释放'
+  if (repairOrders >= 11)
+    return '售后联动'
+  return '稳定运营'
+}
+
+function getNextAction(store: {
+  traffic: number
+  todaySales: number
+  health: number
+  repairOrders: number
+  smartShare: number
+  type: StoreType
+  opportunityScore: number
+  riskScore: number
+}) {
+  if (store.riskScore >= 16)
+    return '优先做排队治理、售后分流和门店排班补位'
+  if (store.opportunityScore >= 24 && store.smartShare < 22)
+    return '建议加配件连带与智能品类联动，释放高客流转化潜力'
+  if (store.opportunityScore >= 16)
+    return '建议增加商圈引流和以旧换新话术，提升自然转化'
+  if (store.repairOrders >= 11)
+    return '建议跨店调配维修资源，压缩工单等待时长'
+  return '维持当前节奏，持续跟踪关键指标波动'
+}
+
 function initStoreData() {
   storeData.value = rawStores.map((store, index) => {
     const isCore = store.type === 'core'
@@ -165,8 +219,23 @@ function initStoreData() {
     const smartShare = 14 + (seed * 3) % 12
     const accessoryShare = 24 + (seed * 5) % 18
     const serviceScore = Number((4.4 + (seed % 5) * 0.08).toFixed(2))
+    const salesBenchmark = getSalesBenchmark(store.type)
+    const trafficBenchmark = getTrafficBenchmark(store.type)
+    const opportunityScore = Number(Math.max(
+      0,
+      (Math.max(0, traffic - trafficBenchmark) * 2.4)
+      + (Math.max(0, salesBenchmark - todaySales) * 2.2)
+      + (Math.max(0, health - 93) * 1.4)
+      - (Math.max(0, repairOrders - 8) * 1.6),
+    ).toFixed(1))
+    const riskScore = Number((
+      (Math.max(0, traffic - 38) * 1.5)
+      + (Math.max(0, 95 - health) * 2.2)
+      + (Math.max(0, repairOrders - 9) * 2.5)
+    ).toFixed(1))
+    const opportunityTag = getOpportunityTag(opportunityScore, riskScore, repairOrders)
 
-    return {
+    const record: StoreRecord = {
       id: index,
       ...store,
       district: pickDistrict(store.address),
@@ -181,7 +250,14 @@ function initStoreData() {
       accessoryShare,
       serviceScore,
       serviceTag: isCore ? '旗舰服务覆盖' : '社区便捷服务',
+      opportunityScore,
+      riskScore,
+      opportunityTag,
+      nextAction: '',
     }
+
+    record.nextAction = getNextAction(record)
+    return record
   })
 
   const sorted = [...storeData.value].sort((a, b) => b.todaySales - a.todaySales)
@@ -220,6 +296,28 @@ const selectedStore = computed(() =>
   storeData.value.find(store => store.id === selectedStoreId.value) || topStores.value[0] || null,
 )
 
+const anomalyStores = computed(() =>
+  [...storeData.value]
+    .filter(store => store.riskScore >= 10 || store.health <= 93 || store.repairOrders >= 11)
+    .sort((a, b) => b.riskScore - a.riskScore || b.repairOrders - a.repairOrders)
+    .slice(0, 5),
+)
+
+const opportunityStores = computed(() =>
+  [...storeData.value]
+    .filter(store => store.opportunityScore >= 12)
+    .sort((a, b) => b.opportunityScore - a.opportunityScore || b.traffic - a.traffic)
+    .slice(0, 5),
+)
+
+const anomalyCount = computed(() =>
+  storeData.value.filter(store => store.riskScore >= 10 || store.health <= 93 || store.repairOrders >= 11).length,
+)
+
+const opportunityCount = computed(() =>
+  storeData.value.filter(store => store.opportunityScore >= 12).length,
+)
+
 const districtStats = computed(() => {
   const map = new Map<string, { district: string, stores: number, sales: number }>()
   storeData.value.forEach((store) => {
@@ -245,34 +343,72 @@ const categoryMix = computed(() => {
   ]
 })
 
-const alertFeed = computed<AlertRecord[]>(() => {
+const strategyBoard = computed<StrategyRecord[]>(() => {
   if (!storeData.value.length)
     return []
 
-  const busiest = [...storeData.value].sort((a, b) => b.traffic - a.traffic)[0]
-  const lowestHealth = [...storeData.value].sort((a, b) => a.health - b.health)[0]
-  const heavyRepair = [...storeData.value].sort((a, b) => b.repairOrders - a.repairOrders)[0]
+  const conversionStore = opportunityStores.value[0] || selectedStore.value
+  const serviceStore = [...storeData.value].sort((a, b) => b.repairOrders - a.repairOrders)[0]
+  const recoveryStore = [...storeData.value].sort((a, b) => a.health - b.health || b.traffic - a.traffic)[0]
 
   return [
     {
-      id: 'busy',
-      title: `${busiest.name} 客流峰值`,
-      detail: `当前客流 ${busiest.traffic} 人，建议优先补位导购与收银支援。`,
-      level: busiest.traffic >= 40 ? 'high' : 'medium',
+      id: 'conversion',
+      title: `释放 ${conversionStore?.name || '--'} 的增长潜力`,
+      insight: `${conversionStore?.district || '--'}门店客流 ${conversionStore?.traffic || 0} 人，潜力评分 ${conversionStore?.opportunityScore || 0}。`,
+      action: '晚高峰优先补位导购，叠加配件连带、智能设备和以旧换新转化话术。',
+      impact: '预估可提升 8% - 12% 的当日转化效率',
+      priority: 'P0',
     },
     {
-      id: 'health',
-      title: `${lowestHealth.name} 健康度偏低`,
-      detail: `门店健康指数 ${lowestHealth.health}% ，建议检查陈列、排队和售后响应。`,
-      level: lowestHealth.health <= 93 ? 'high' : 'medium',
+      id: 'service',
+      title: `处理 ${serviceStore?.name || '--'} 的售后堆积`,
+      insight: `当前维修工单 ${serviceStore?.repairOrders || 0} 单，服务压力已开始影响门店承接效率。`,
+      action: '建议跨店调配维修技师，并对高频机型做前置备件补货。',
+      impact: '预估可压缩 20% 的售后等待时长',
+      priority: 'P1',
     },
     {
-      id: 'repair',
-      title: `${heavyRepair.name} 维修工单堆积`,
-      detail: `当前工单 ${heavyRepair.repairOrders} 单，可考虑调配维修技师或分流到附近门店。`,
-      level: heavyRepair.repairOrders >= 12 ? 'high' : 'info',
+      id: 'recovery',
+      title: `修复 ${recoveryStore?.name || '--'} 的运营短板`,
+      insight: `健康指数 ${recoveryStore?.health || 0}% ，同时有 ${recoveryStore?.traffic || 0} 人实时进店。`,
+      action: '优先排查陈列动线、收银等待与售后响应，避免高客流场景下体验流失。',
+      impact: '预估可稳定门店体验并减少潜在差评风险',
+      priority: 'P2',
     },
   ]
+})
+
+const alertFeed = computed<AlertRecord[]>(() => {
+  if (!anomalyStores.value.length)
+    return []
+
+  return anomalyStores.value.slice(0, 3).map((store) => {
+    if (store.repairOrders >= 11) {
+      return {
+        id: `repair-${store.id}`,
+        title: `${store.name} 售后承压`,
+        detail: `维修工单 ${store.repairOrders} 单，建议立即做跨店分流和高频配件补货。`,
+        level: store.repairOrders >= 14 ? 'high' : 'medium',
+      }
+    }
+
+    if (store.health <= 93) {
+      return {
+        id: `health-${store.id}`,
+        title: `${store.name} 体验健康度偏低`,
+        detail: `健康指数 ${store.health}% ，优先排查陈列动线、排队和售后响应。`,
+        level: store.health <= 92 ? 'high' : 'medium',
+      }
+    }
+
+    return {
+      id: `traffic-${store.id}`,
+      title: `${store.name} 高客流待承接`,
+      detail: `实时客流 ${store.traffic} 人，建议补位导购并提升高峰时段成交承接。`,
+      level: store.traffic >= 40 ? 'high' : 'info',
+    }
+  })
 })
 
 function seedTrendSeries() {
@@ -345,6 +481,7 @@ function generateHTML(store: StoreRecord) {
           <div class="info-item"><span>电话</span>${store.phone}</div>
           <div class="info-item"><span>经营范围</span>${store.category}</div>
           <div class="info-item"><span>月销区间</span>${store.avgSales}</div>
+          <div class="info-item"><span>经营判断</span>${store.opportunityTag} · ${store.nextAction}</div>
         </div>
       </div>
       <div class="popup-footer">
@@ -504,7 +641,7 @@ function ensureLeafletScript() {
 }
 
 async function initCharts() {
-  if (!trendChartEl.value || !districtChartEl.value || !categoryChartEl.value)
+  if (!trendChartEl.value || !districtChartEl.value || !categoryChartEl.value || !opportunityChartEl.value)
     return
 
   if (!echartsLib)
@@ -513,6 +650,7 @@ async function initCharts() {
   trendChart ??= echartsLib.init(trendChartEl.value)
   districtChart ??= echartsLib.init(districtChartEl.value)
   categoryChart ??= echartsLib.init(categoryChartEl.value)
+  opportunityChart ??= echartsLib.init(opportunityChartEl.value)
 
   updateCharts()
 }
@@ -684,13 +822,85 @@ function createCategoryOption(): EChartsOption {
   }
 }
 
+function createOpportunityOption(): EChartsOption {
+  const coreData = storeData.value
+    .filter(store => store.type === 'core')
+    .map(store => [store.traffic, store.todaySales, store.opportunityScore, store.riskScore, store.name, store.district])
+
+  const standardData = storeData.value
+    .filter(store => store.type === 'standard')
+    .map(store => [store.traffic, store.todaySales, store.opportunityScore, store.riskScore, store.name, store.district])
+
+  return {
+    animationDuration: 700,
+    grid: { left: 24, right: 20, top: 34, bottom: 26, containLabel: true },
+    tooltip: {
+      trigger: 'item',
+      backgroundColor: 'rgba(6, 15, 28, 0.94)',
+      borderColor: 'rgba(84, 211, 255, 0.22)',
+      textStyle: { color: '#f8fcff' },
+      formatter(params: { value: [number, number, number, number, string, string] }) {
+        const [traffic, sales, opportunity, risk, name, district] = params.value
+        return [
+          `<strong>${name}</strong>`,
+          `${district}`,
+          `客流：${traffic} 人`,
+          `销量：${sales} 台`,
+          `潜力评分：${opportunity}`,
+          `风险评分：${risk}`,
+        ].join('<br/>')
+      },
+    },
+    legend: {
+      top: 0,
+      right: 0,
+      itemWidth: 10,
+      itemHeight: 10,
+      textStyle: { color: 'rgba(225, 236, 255, 0.72)' },
+    },
+    xAxis: {
+      type: 'value',
+      name: '实时客流',
+      nameTextStyle: { color: 'rgba(220,233,255,0.52)' },
+      splitLine: { lineStyle: { color: 'rgba(255,255,255,0.08)' } },
+      axisLabel: { color: 'rgba(220,233,255,0.48)' },
+    },
+    yAxis: {
+      type: 'value',
+      name: '今日销量',
+      nameTextStyle: { color: 'rgba(220,233,255,0.52)' },
+      splitLine: { lineStyle: { color: 'rgba(255,255,255,0.08)' } },
+      axisLabel: { color: 'rgba(220,233,255,0.48)' },
+    },
+    series: [
+      {
+        name: '核心店',
+        type: 'scatter',
+        data: coreData,
+        symbolSize: (value: number[]) => Math.min(34, Math.max(16, 12 + value[2] * 0.75)),
+        itemStyle: { color: 'rgba(251, 197, 49, 0.88)' },
+        emphasis: { scale: 1.15 },
+      },
+      {
+        name: '标准店',
+        type: 'scatter',
+        data: standardData,
+        symbolSize: (value: number[]) => Math.min(30, Math.max(14, 11 + value[2] * 0.68)),
+        itemStyle: { color: 'rgba(86, 215, 255, 0.88)' },
+        emphasis: { scale: 1.15 },
+      },
+    ],
+  }
+}
+
 function updateCharts() {
-  if (!trendChart || !districtChart || !categoryChart)
+  if (!trendChart || !districtChart || !categoryChart || !opportunityChart)
     return
 
   trendChart.setOption(createTrendOption())
   districtChart.setOption(createDistrictOption())
   categoryChart.setOption(createCategoryOption())
+  opportunityChart.setOption(createOpportunityOption())
 }
 
 onMounted(async () => {
@@ -712,6 +922,7 @@ onMounted(async () => {
     trendChart?.resize()
     districtChart?.resize()
     categoryChart?.resize()
+    opportunityChart?.resize()
   }
 
   window.addEventListener('resize', handleResize, { passive: true })
@@ -730,6 +941,7 @@ onUnmounted(() => {
   trendChart?.dispose()
   districtChart?.dispose()
   categoryChart?.dispose()
+  opportunityChart?.dispose()
 
   if (mapInstance)
     mapInstance.remove()
@@ -744,7 +956,7 @@ onUnmounted(() => {
           <div class="brand-badge">9JI OPS COMMAND</div>
           <div>
             <h1>昆明门店运营驾驶舱</h1>
-            <p>面试展示版 / 实时模拟数据联动 / 门店地图与经营指标一屏联动</p>
+            <p>面试展示版 / 业务机会挖掘 / 异常诊断预警 / 自动化分析看板</p>
           </div>
         </div>
 
@@ -786,14 +998,14 @@ onUnmounted(() => {
           <small>门店即时销量模拟</small>
         </article>
         <article class="kpi-card">
-          <span>售后工单</span>
-          <strong :class="metricTone(totalRepairs, 180, 230)">{{ totalRepairs }}</strong>
-          <small>维修/售后待处理量</small>
+          <span>异常门店</span>
+          <strong :class="metricTone(anomalyCount, 6, 10)">{{ anomalyCount }}</strong>
+          <small>异常门店待处理</small>
         </article>
         <article class="kpi-card">
-          <span>服务评分</span>
-          <strong class="tone-green">{{ avgServiceScore }}</strong>
-          <small>平均门店服务体验</small>
+          <span>增长机会</span>
+          <strong class="tone-green">{{ opportunityCount }}</strong>
+          <small>可释放增长门店</small>
         </article>
       </section>
 
@@ -833,10 +1045,10 @@ onUnmounted(() => {
           <article class="panel-card">
             <div class="panel-head">
               <div>
-                <span class="panel-kicker">ALERT FEED</span>
-                <h2>运营提醒</h2>
+                <span class="panel-kicker">DIAGNOSIS FEED</span>
+                <h2>异常诊断</h2>
               </div>
-              <span class="panel-tag">LIVE</span>
+              <span class="panel-tag">THRESHOLD</span>
             </div>
 
             <div class="alert-list">
@@ -896,6 +1108,7 @@ onUnmounted(() => {
               <span>{{ selectedStore.district }}</span>
               <span>{{ selectedStore.serviceTag }}</span>
               <span>{{ selectedStore.techs }}</span>
+              <span>{{ selectedStore.opportunityTag }}</span>
             </div>
 
             <div class="detail-grid">
@@ -923,6 +1136,14 @@ onUnmounted(() => {
                 <span>服务评分</span>
                 <strong class="tone-green">{{ selectedStore.serviceScore }}</strong>
               </div>
+              <div class="detail-metric">
+                <span>潜力评分</span>
+                <strong class="tone-cyan">{{ selectedStore.opportunityScore }}</strong>
+              </div>
+              <div class="detail-metric">
+                <span>风险评分</span>
+                <strong :class="metricTone(selectedStore.riskScore, 10, 16)">{{ selectedStore.riskScore }}</strong>
+              </div>
             </div>
 
             <div class="detail-lines">
@@ -938,6 +1159,10 @@ onUnmounted(() => {
                 <span>联系电话</span>
                 <p>{{ selectedStore.phone }}</p>
               </div>
+              <div class="detail-callout">
+                <span>建议动作</span>
+                <p>{{ selectedStore.nextAction }}</p>
+              </div>
             </div>
 
             <a :href="selectedStore.url" target="_blank" rel="noreferrer" class="detail-link">查看官网详情 ↗</a>
@@ -946,9 +1171,23 @@ onUnmounted(() => {
           <article class="panel-card summary-card">
             <div class="panel-head">
               <div>
-                <span class="panel-kicker">OPS SUMMARY</span>
-                <h2>当前总览</h2>
+                <span class="panel-kicker">ACTION BOARD</span>
+                <h2>策略输出</h2>
               </div>
+            </div>
+
+            <div class="strategy-list">
+              <article v-for="item in strategyBoard" :key="item.id" class="strategy-item">
+                <div class="strategy-header">
+                  <strong>{{ item.title }}</strong>
+                  <span class="strategy-priority">{{ item.priority }}</span>
+                </div>
+                <p>{{ item.insight }}</p>
+                <div class="strategy-meta">
+                  <span>{{ item.action }}</span>
+                  <b>{{ item.impact }}</b>
+                </div>
+              </article>
             </div>
 
             <div class="summary-list">
@@ -963,6 +1202,10 @@ onUnmounted(() => {
               <div class="summary-row">
                 <span>全域服务评分</span>
                 <b class="tone-cyan">{{ avgServiceScore }}</b>
+              </div>
+              <div class="summary-row">
+                <span>售后工单总量</span>
+                <b>{{ totalRepairs }}</b>
               </div>
               <div class="summary-row">
                 <span>轮播展示状态</span>
@@ -1002,6 +1245,16 @@ onUnmounted(() => {
             </div>
           </div>
           <div ref="categoryChartEl" class="chart-host" />
+        </article>
+
+        <article class="chart-card panel-card">
+          <div class="panel-head">
+            <div>
+              <span class="panel-kicker">OPPORTUNITY MATRIX</span>
+              <h2>门店增长机会矩阵</h2>
+            </div>
+          </div>
+          <div ref="opportunityChartEl" class="chart-host" />
         </article>
       </section>
     </div>
@@ -1541,6 +1794,25 @@ onUnmounted(() => {
   line-height: 1.65;
 }
 
+.detail-callout {
+  padding: 0.85rem 0.95rem;
+  border-radius: 16px;
+  border: 1px solid rgba(86, 215, 255, 0.16);
+  background: linear-gradient(135deg, rgba(86, 215, 255, 0.12), rgba(255, 255, 255, 0.04));
+}
+
+.detail-callout span {
+  display: block;
+  color: rgba(120, 223, 255, 0.72);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.detail-callout p {
+  margin: 0.4rem 0 0;
+}
+
 .detail-link {
   display: inline-flex;
   align-items: center;
@@ -1559,6 +1831,70 @@ onUnmounted(() => {
 .summary-list {
   display: grid;
   gap: 0.75rem;
+  margin-top: 0.95rem;
+}
+
+.strategy-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.strategy-item {
+  padding: 0.9rem 0.95rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.strategy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.strategy-header strong {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.strategy-priority {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  min-height: 24px;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  background: rgba(86, 215, 255, 0.14);
+  color: #56d7ff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.strategy-item p {
+  margin: 0.45rem 0 0;
+  color: rgba(220, 233, 255, 0.62);
+  line-height: 1.6;
+  font-size: 13px;
+}
+
+.strategy-meta {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.strategy-meta span {
+  color: rgba(244, 248, 255, 0.84);
+  line-height: 1.55;
+  font-size: 13px;
+}
+
+.strategy-meta b {
+  color: #4ff0af;
+  font-size: 13px;
 }
 
 .summary-row {
@@ -1582,7 +1918,7 @@ onUnmounted(() => {
 }
 
 .chart-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .chart-card {
@@ -1824,7 +2160,7 @@ onUnmounted(() => {
   }
 
   .chart-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
