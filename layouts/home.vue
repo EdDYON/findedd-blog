@@ -1,3 +1,3 @@
 <template>
-  <MaydayTravelPlan />
+  <TemporaryPlanCover />
 </template>
