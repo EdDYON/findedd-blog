@@ -48,6 +48,7 @@ const moodOptions: MoodOption[] = [
 ]
 
 const stageRef = ref<HTMLElement | null>(null)
+const toolsRef = ref<HTMLElement | null>(null)
 const playCanvas = ref<HTMLCanvasElement | null>(null)
 const stageCursor = ref({ x: 50, y: 50 })
 const currentTime = ref('--:--')
@@ -167,6 +168,13 @@ const stageCursorStyle = computed(() => ({
   '--cursor-y': `${stageCursor.value.y}%`,
 }))
 
+const heroModules = computed(() => [
+  { key: 'PLAY', label: 'Arcade Field', value: playHighScore.value || playScore.value || 'READY', tone: 'cyan' },
+  { key: 'FOCUS', label: 'Timer Core', value: formattedFocus.value, tone: 'gold' },
+  { key: 'NOTES', label: 'Quick Cache', value: `${noteChars.value} CH`, tone: 'pink' },
+  { key: 'MOOD', label: 'Pixel Log', value: `${moodStreak.value} DAY`, tone: 'green' },
+])
+
 function formatDateKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
@@ -206,6 +214,10 @@ function handleStagePointerMove(event: PointerEvent) {
     x: Math.max(0, Math.min(100, ((event.clientX - bounds.left) / bounds.width) * 100)),
     y: Math.max(0, Math.min(100, ((event.clientY - bounds.top) / bounds.height) * 100)),
   }
+}
+
+function scrollToTools() {
+  toolsRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function setFocusPreset(minutes: number) {
@@ -619,10 +631,83 @@ onBeforeUnmount(() => {
     </video>
     <div class="lab-grid-bg" aria-hidden="true" />
 
-    <header class="lab-header">
+    <section class="hero-stage" aria-label="EdDYON Lab home">
+      <nav class="hero-nav" aria-label="Quick status">
+        <span>EdDYON LAB</span>
+        <div>
+          <button type="button" @click="scrollToTools">
+            ENTER
+          </button>
+          <time>{{ currentTime }}</time>
+        </div>
+      </nav>
+
+      <div class="hero-layout">
+        <div class="hero-copy">
+          <p class="hero-kicker">
+            PERSONAL INTERACTIVE CONTROL ROOM
+          </p>
+          <h1>
+            Signal<br>
+            Playground
+          </h1>
+          <p class="hero-subtitle">
+            一个给自己打开的小型实验室：玩一局、记一笔、专注一轮，顺便让页面本身也动起来。
+          </p>
+
+          <div class="hero-actions">
+            <button type="button" class="hero-primary" @click="scrollToTools">
+              ENTER LAB
+            </button>
+            <button type="button" class="hero-secondary" @click="rollDice">
+              SPIN A THOUGHT
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-machine" aria-hidden="true">
+          <div class="machine-ring ring-one" />
+          <div class="machine-ring ring-two" />
+          <div class="machine-ring ring-three" />
+          <div class="machine-core">
+            <span>ED</span>
+          </div>
+          <i class="node node-a" />
+          <i class="node node-b" />
+          <i class="node node-c" />
+          <i class="node node-d" />
+          <div class="scan-panel">
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-dock" aria-label="Lab modules">
+        <button
+          v-for="module in heroModules"
+          :key="module.key"
+          type="button"
+          :class="`tone-${module.tone}`"
+          @click="scrollToTools"
+        >
+          <span>{{ module.key }}</span>
+          <strong>{{ module.label }}</strong>
+          <em>{{ module.value }}</em>
+        </button>
+      </div>
+
+      <button type="button" class="scroll-cue" aria-label="Scroll to tools" @click="scrollToTools">
+        <span />
+      </button>
+    </section>
+
+    <header ref="toolsRef" class="lab-header">
       <div>
         <p>EDDYON LAB</p>
-        <h1>Playground</h1>
+        <h1>Console</h1>
       </div>
       <time>{{ currentTime }}</time>
     </header>
@@ -934,6 +1019,406 @@ onBeforeUnmount(() => {
 
 .lab-stage[data-flash='fever'] .lab-grid-bg {
   animation: feverFlash 0.42s ease;
+}
+
+.hero-stage {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  width: min(1560px, calc(100% - 32px));
+  min-height: 100svh;
+  margin-inline: auto;
+  padding: 24px 0 28px;
+}
+
+.hero-stage::before {
+  position: absolute;
+  inset: 78px 0 110px;
+  z-index: -1;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 26px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.018)),
+    linear-gradient(100deg, rgba(85, 214, 255, 0.08), rgba(255, 93, 122, 0.05) 48%, rgba(245, 200, 76, 0.07));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 40px 120px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(20px);
+  content: '';
+}
+
+.hero-stage::after {
+  position: absolute;
+  inset: 78px 0 110px;
+  z-index: -1;
+  border-radius: 26px;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 24px, rgba(255, 255, 255, 0.035) 24px 25px),
+    linear-gradient(90deg, transparent 0 48%, rgba(255, 255, 255, 0.12) 50%, transparent 52% 100%);
+  opacity: 0.42;
+  mask-image: linear-gradient(90deg, transparent, black 16%, black 84%, transparent);
+  animation: heroInterference 7s linear infinite;
+  content: '';
+}
+
+.hero-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 50px;
+  color: rgba(247, 251, 255, 0.72);
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.2em;
+}
+
+.hero-nav div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hero-nav button {
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: #071018;
+  background: #f7fbff;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.hero-nav time {
+  color: #f5c84c;
+  font-size: 18px;
+  letter-spacing: 0.06em;
+}
+
+.hero-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(420px, 0.9fr);
+  align-items: center;
+  gap: 40px;
+  padding: 44px clamp(18px, 4vw, 72px) 34px;
+}
+
+.hero-copy {
+  position: relative;
+}
+
+.hero-kicker {
+  width: fit-content;
+  margin: 0 0 16px;
+  padding: 8px 12px;
+  border: 1px solid rgba(85, 214, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(85, 214, 255, 0.08);
+  color: #55d6ff;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.18em;
+}
+
+.hero-copy h1 {
+  position: relative;
+  width: min-content;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(4.5rem, 12vw, 12rem);
+  font-weight: 950;
+  line-height: 0.74;
+  letter-spacing: -0.08em;
+  text-transform: uppercase;
+  text-shadow:
+    0 0 28px rgba(85, 214, 255, 0.42),
+    0 0 72px rgba(255, 93, 122, 0.22);
+}
+
+.hero-copy h1::before,
+.hero-copy h1::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: 'Signal\A Playground';
+  white-space: pre;
+}
+
+.hero-copy h1::before {
+  color: rgba(85, 214, 255, 0.6);
+  transform: translate(4px, -3px);
+  mix-blend-mode: screen;
+  animation: glitchA 3.8s steps(2, end) infinite;
+}
+
+.hero-copy h1::after {
+  color: rgba(255, 93, 122, 0.48);
+  transform: translate(-4px, 3px);
+  mix-blend-mode: screen;
+  animation: glitchB 4.5s steps(2, end) infinite;
+}
+
+.hero-subtitle {
+  max-width: 650px;
+  margin: 26px 0 0;
+  color: rgba(247, 251, 255, 0.72);
+  font-size: clamp(1rem, 1.5vw, 1.32rem);
+  line-height: 1.85;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.hero-actions button {
+  min-height: 54px;
+  padding: 0 22px;
+  border-radius: 999px;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
+.hero-primary {
+  border-color: transparent;
+  background: linear-gradient(90deg, #55d6ff, #78f0a8);
+  color: #061015;
+  box-shadow: 0 0 34px rgba(85, 214, 255, 0.34);
+}
+
+.hero-secondary {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hero-machine {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: min(62vw, 680px);
+  isolation: isolate;
+}
+
+.machine-ring {
+  position: absolute;
+  width: min(44vw, 560px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 36px rgba(85, 214, 255, 0.08),
+    0 0 42px rgba(85, 214, 255, 0.12);
+}
+
+.ring-one {
+  background:
+    conic-gradient(from 0deg, transparent 0 16%, rgba(85, 214, 255, 0.72) 17% 19%, transparent 20% 48%, rgba(255, 93, 122, 0.66) 49% 51%, transparent 52% 100%);
+  mask-image: radial-gradient(circle, transparent 0 61%, black 62% 64%, transparent 65%);
+  animation: orbitSpin 16s linear infinite;
+}
+
+.ring-two {
+  width: min(35vw, 440px);
+  border-style: dashed;
+  border-color: rgba(245, 200, 76, 0.3);
+  animation: orbitSpin 22s linear infinite reverse;
+}
+
+.ring-three {
+  width: min(25vw, 310px);
+  border-color: rgba(120, 240, 168, 0.35);
+  animation: pulseRing 3.4s ease-in-out infinite;
+}
+
+.machine-core {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(20vw, 230px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 28px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03)),
+    rgba(7, 9, 12, 0.76);
+  box-shadow:
+    inset 0 0 44px rgba(85, 214, 255, 0.12),
+    0 0 62px rgba(255, 93, 122, 0.18);
+  transform: rotate(45deg);
+  animation: coreFloat 5s ease-in-out infinite;
+}
+
+.machine-core span {
+  color: #fff;
+  font-size: clamp(2.6rem, 6vw, 5rem);
+  font-weight: 950;
+  letter-spacing: -0.14em;
+  text-shadow: 0 0 20px rgba(85, 214, 255, 0.72);
+  transform: rotate(-45deg);
+}
+
+.node {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #55d6ff;
+  box-shadow: 0 0 22px currentColor;
+}
+
+.node-a {
+  top: 18%;
+  right: 20%;
+  color: #55d6ff;
+  animation: nodeBlink 1.8s ease-in-out infinite;
+}
+
+.node-b {
+  right: 9%;
+  bottom: 32%;
+  color: #ff5d7a;
+  background: #ff5d7a;
+  animation: nodeBlink 2.4s ease-in-out infinite 0.3s;
+}
+
+.node-c {
+  left: 18%;
+  bottom: 20%;
+  color: #f5c84c;
+  background: #f5c84c;
+  animation: nodeBlink 2.1s ease-in-out infinite 0.7s;
+}
+
+.node-d {
+  top: 34%;
+  left: 8%;
+  color: #78f0a8;
+  background: #78f0a8;
+  animation: nodeBlink 2.6s ease-in-out infinite 1s;
+}
+
+.scan-panel {
+  position: absolute;
+  right: 0;
+  bottom: 12%;
+  display: grid;
+  gap: 8px;
+  width: min(22vw, 260px);
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  background: rgba(7, 9, 12, 0.52);
+  backdrop-filter: blur(18px);
+}
+
+.scan-panel span {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(85, 214, 255, 0.1), #55d6ff, rgba(120, 240, 168, 0.14));
+  transform-origin: left;
+  animation: scanBars 1.8s ease-in-out infinite;
+}
+
+.scan-panel span:nth-child(2) {
+  width: 72%;
+  animation-delay: 0.18s;
+}
+
+.scan-panel span:nth-child(3) {
+  width: 88%;
+  animation-delay: 0.36s;
+}
+
+.scan-panel span:nth-child(4) {
+  width: 54%;
+  animation-delay: 0.54s;
+}
+
+.hero-dock {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0 clamp(18px, 4vw, 72px);
+}
+
+.hero-dock button {
+  position: relative;
+  overflow: hidden;
+  min-height: 122px;
+  padding: 18px;
+  text-align: left;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.035)),
+    rgba(7, 9, 12, 0.66);
+}
+
+.hero-dock button::before {
+  position: absolute;
+  inset: auto 18px 14px 18px;
+  height: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 22px currentColor;
+  content: '';
+}
+
+.hero-dock span,
+.hero-dock em {
+  display: block;
+  color: rgba(247, 251, 255, 0.58);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+}
+
+.hero-dock strong {
+  display: block;
+  margin: 10px 0 18px;
+  color: #fff;
+  font-size: clamp(1.1rem, 1.7vw, 1.6rem);
+  font-weight: 950;
+}
+
+.tone-cyan {
+  color: #55d6ff;
+}
+
+.tone-gold {
+  color: #f5c84c;
+}
+
+.tone-pink {
+  color: #ff5d7a;
+}
+
+.tone-green {
+  color: #78f0a8;
+}
+
+.scroll-cue {
+  position: absolute;
+  left: 50%;
+  bottom: 42px;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(-50%);
+}
+
+.scroll-cue span {
+  width: 12px;
+  height: 12px;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(45deg);
+  animation: cueDrop 1.4s ease-in-out infinite;
 }
 
 .lab-header,
@@ -1483,7 +1968,148 @@ dd {
   }
 }
 
+@keyframes heroInterference {
+  0% {
+    transform: translateY(-2%);
+  }
+
+  100% {
+    transform: translateY(2%);
+  }
+}
+
+@keyframes glitchA {
+  0%,
+  84%,
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+
+  86% {
+    clip-path: inset(8% 0 68% 0);
+    transform: translate(8px, -3px);
+  }
+
+  88% {
+    clip-path: inset(62% 0 12% 0);
+    transform: translate(-3px, 2px);
+  }
+}
+
+@keyframes glitchB {
+  0%,
+  76%,
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+
+  78% {
+    clip-path: inset(18% 0 58% 0);
+    transform: translate(-7px, 4px);
+  }
+
+  80% {
+    clip-path: inset(70% 0 8% 0);
+    transform: translate(4px, -2px);
+  }
+}
+
+@keyframes orbitSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulseRing {
+  0%,
+  100% {
+    transform: scale(0.92);
+    opacity: 0.42;
+  }
+
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes coreFloat {
+  0%,
+  100% {
+    transform: translateY(-8px) rotate(45deg);
+  }
+
+  50% {
+    transform: translateY(10px) rotate(45deg);
+  }
+}
+
+@keyframes nodeBlink {
+  0%,
+  100% {
+    transform: scale(0.72);
+    opacity: 0.42;
+  }
+
+  50% {
+    transform: scale(1.28);
+    opacity: 1;
+  }
+}
+
+@keyframes scanBars {
+  0%,
+  100% {
+    transform: scaleX(0.28);
+    opacity: 0.42;
+  }
+
+  50% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes cueDrop {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(-3px) rotate(45deg);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(4px) rotate(45deg);
+  }
+}
+
 @media (max-width: 1100px) {
+  .hero-layout {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .hero-machine {
+    min-height: 420px;
+  }
+
+  .machine-ring {
+    width: min(72vw, 480px);
+  }
+
+  .ring-two {
+    width: min(58vw, 380px);
+  }
+
+  .ring-three,
+  .machine-core {
+    width: min(40vw, 260px);
+  }
+
+  .hero-dock {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .lab-shell {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-areas:
@@ -1499,6 +2125,71 @@ dd {
 }
 
 @media (max-width: 720px) {
+  .hero-stage {
+    width: calc(100% - 20px);
+    min-height: auto;
+    padding-bottom: 96px;
+  }
+
+  .hero-stage::before,
+  .hero-stage::after {
+    inset: 64px 0 88px;
+    border-radius: 18px;
+  }
+
+  .hero-nav {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hero-layout {
+    padding: 28px 14px 22px;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(4rem, 24vw, 6.5rem);
+  }
+
+  .hero-copy h1::before,
+  .hero-copy h1::after {
+    display: none;
+  }
+
+  .hero-subtitle {
+    font-size: 0.96rem;
+    line-height: 1.75;
+  }
+
+  .hero-actions button {
+    width: 100%;
+  }
+
+  .hero-machine {
+    min-height: 300px;
+  }
+
+  .scan-panel {
+    display: none;
+  }
+
+  .node {
+    width: 12px;
+    height: 12px;
+  }
+
+  .hero-dock {
+    grid-template-columns: 1fr;
+    padding: 0 14px;
+  }
+
+  .hero-dock button {
+    min-height: 96px;
+  }
+
+  .scroll-cue {
+    bottom: 34px;
+  }
+
   .lab-header {
     align-items: start;
     flex-direction: column;
