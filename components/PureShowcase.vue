@@ -13,6 +13,8 @@ interface MoodDay {
   value: string
 }
 
+type PlayKind = 'orb' | 'bonus' | 'hazard'
+
 interface PlayParticle {
   x: number
   y: number
@@ -22,11 +24,20 @@ interface PlayParticle {
   value: number
   color: string
   life: number
+  kind: PlayKind
+  spin: number
+  phase: number
 }
 
 const storagePrefix = 'eddyon-lab-v1'
 const focusPresets = [5, 15, 25, 45]
-const defaultDiceInput = '今天先做最轻松的那件事\n先把一个小问题解决掉\n出去走 10 分钟\n打开计时器专注一轮\n把脑子里的想法写下来'
+const defaultDiceInput = [
+  '先做最轻的一件事',
+  '把一个小问题解决掉',
+  '出去走 10 分钟',
+  '开一轮 Focus',
+  '写下现在脑子里最吵的想法',
+].join('\n')
 
 const moodOptions: MoodOption[] = [
   { key: 'clear', label: 'CLEAR', color: '#55d6ff' },
@@ -38,12 +49,14 @@ const moodOptions: MoodOption[] = [
 
 const stageRef = ref<HTMLElement | null>(null)
 const playCanvas = ref<HTMLCanvasElement | null>(null)
+const stageCursor = ref({ x: 50, y: 50 })
 const currentTime = ref('--:--')
 const focusMinutes = ref(25)
 const focusLeft = ref(25 * 60)
 const focusRunning = ref(false)
 const focusSessions = ref(0)
 const focusTotalSeconds = ref(0)
+const focusTask = ref('')
 const noteText = ref('')
 const diceInput = ref(defaultDiceInput)
 const diceResult = ref('READY')
@@ -51,8 +64,13 @@ const diceHistory = ref<string[]>([])
 const selectedMood = ref('clear')
 const moodMap = ref<Record<string, string>>({})
 const playScore = ref(0)
+const playHighScore = ref(0)
 const playCombo = ref(0)
 const playRunning = ref(true)
+const playLives = ref(3)
+const playEnergy = ref(0)
+const feverMode = ref(false)
+const playStatus = ref('READY')
 const hydrated = ref(false)
 
 let clockTimer: ReturnType<typeof setInterval> | null = null
@@ -64,6 +82,7 @@ let playHeight = 0
 let playParticles: PlayParticle[] = []
 let playPointer = { x: 0, y: 0, active: false }
 let lastPlayTime = 0
+let feverUntil = 0
 
 const formattedFocus = computed(() => {
   const minutes = Math.floor(focusLeft.value / 60)
@@ -131,6 +150,23 @@ const moodStreak = computed(() => {
 
 const focusHours = computed(() => (focusTotalSeconds.value / 3600).toFixed(1))
 
+const playLevel = computed(() => Math.min(9, Math.floor(playScore.value / 160) + 1))
+const playEnergyPercent = computed(() => `${Math.min(100, playEnergy.value)}%`)
+const playStatusLabel = computed(() => feverMode.value ? 'FEVER' : playRunning.value ? playStatus.value : 'HOLD')
+const playMessage = computed(() => {
+  if (playLives.value <= 0)
+    return 'FIELD LOST / HIT RETRY'
+  if (feverMode.value)
+    return 'FEVER MODE / ABSORB EVERYTHING'
+  if (playEnergy.value >= 100)
+    return 'BURST READY / PRESS THE SWITCH'
+  return 'DODGE RED / CATCH LIGHT'
+})
+const stageCursorStyle = computed(() => ({
+  '--cursor-x': `${stageCursor.value.x}%`,
+  '--cursor-y': `${stageCursor.value.y}%`,
+}))
+
 function formatDateKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
@@ -158,6 +194,18 @@ function updateClock() {
     minute: '2-digit',
     hour12: false,
   })
+}
+
+function handleStagePointerMove(event: PointerEvent) {
+  const target = stageRef.value
+  if (!target)
+    return
+
+  const bounds = target.getBoundingClientRect()
+  stageCursor.value = {
+    x: Math.max(0, Math.min(100, ((event.clientX - bounds.left) / bounds.width) * 100)),
+    y: Math.max(0, Math.min(100, ((event.clientY - bounds.top) / bounds.height) * 100)),
+  }
 }
 
 function setFocusPreset(minutes: number) {
@@ -218,11 +266,40 @@ function rollDice() {
   flashStage('dice')
 }
 
+function appendTimestamp() {
+  const stamp = new Date().toLocaleString('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+  noteText.value = `${noteText.value}${noteText.value ? '\n' : ''}[${stamp}] `
+  flashStage('note')
+}
+
+function clearNotes() {
+  noteText.value = ''
+  flashStage('note')
+}
+
+function clearDiceHistory() {
+  diceHistory.value = []
+  diceResult.value = 'READY'
+}
+
 function setMood(dayKey = todayKey.value) {
   moodMap.value = {
     ...moodMap.value,
     [dayKey]: selectedMood.value,
   }
+  flashStage('mood')
+}
+
+function clearMood(dayKey = todayKey.value) {
+  const nextMap = { ...moodMap.value }
+  delete nextMap[dayKey]
+  moodMap.value = nextMap
   flashStage('mood')
 }
 
@@ -251,19 +328,29 @@ function resizePlayCanvas() {
 }
 
 function createPlayParticle(): PlayParticle {
-  const colors = ['#55d6ff', '#ff5d7a', '#f5c84c', '#78f0a8', '#9b8cff']
-  const value = Math.random() > 0.86 ? 5 : Math.random() > 0.62 ? 3 : 1
-  const radius = value === 5 ? 8 : value === 3 ? 6 : 4
+  const roll = Math.random()
+  const kind: PlayKind = roll > 0.84 ? 'hazard' : roll > 0.72 ? 'bonus' : 'orb'
+  const colors = kind === 'hazard'
+    ? ['#ff355d', '#ff7b35']
+    : kind === 'bonus'
+      ? ['#f5c84c', '#ffffff']
+      : ['#55d6ff', '#78f0a8', '#9b8cff', '#ff5d7a']
+  const value = kind === 'hazard' ? -12 : kind === 'bonus' ? 18 : Math.random() > 0.76 ? 5 : Math.random() > 0.44 ? 3 : 1
+  const radius = kind === 'hazard' ? 10 : kind === 'bonus' ? 9 : value === 5 ? 7 : value === 3 ? 5.5 : 4
+  const speedBoost = 1 + playLevel.value * 0.08
 
   return {
     x: Math.random() * playWidth,
     y: Math.random() * playHeight,
-    vx: (Math.random() - 0.5) * 0.55,
-    vy: (Math.random() - 0.5) * 0.55,
+    vx: (Math.random() - 0.5) * 0.7 * speedBoost,
+    vy: (Math.random() - 0.5) * 0.7 * speedBoost,
     radius,
     value,
     color: colors[Math.floor(Math.random() * colors.length)],
     life: 0.65 + Math.random() * 0.35,
+    kind,
+    spin: (Math.random() - 0.5) * 0.08,
+    phase: Math.random() * Math.PI * 2,
   }
 }
 
@@ -280,20 +367,34 @@ function drawPlay(time: number) {
 
   const delta = Math.min(32, time - lastPlayTime || 16) / 16
   lastPlayTime = time
+
+  if (feverMode.value && time > feverUntil) {
+    feverMode.value = false
+    playStatus.value = 'RUN'
+  }
+
   playCtx.clearRect(0, 0, playWidth, playHeight)
 
   const gradient = playCtx.createLinearGradient(0, 0, playWidth, playHeight)
-  gradient.addColorStop(0, 'rgba(85, 214, 255, 0.13)')
-  gradient.addColorStop(0.52, 'rgba(255, 93, 122, 0.08)')
-  gradient.addColorStop(1, 'rgba(120, 240, 168, 0.11)')
+  gradient.addColorStop(0, feverMode.value ? 'rgba(245, 200, 76, 0.22)' : 'rgba(85, 214, 255, 0.13)')
+  gradient.addColorStop(0.52, feverMode.value ? 'rgba(255, 93, 122, 0.2)' : 'rgba(255, 93, 122, 0.08)')
+  gradient.addColorStop(1, feverMode.value ? 'rgba(120, 240, 168, 0.2)' : 'rgba(120, 240, 168, 0.11)')
   playCtx.fillStyle = gradient
   playCtx.fillRect(0, 0, playWidth, playHeight)
 
   for (let x = 0; x < playWidth; x += 34) {
-    playCtx.strokeStyle = 'rgba(255,255,255,0.035)'
+    playCtx.strokeStyle = feverMode.value ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.035)'
     playCtx.beginPath()
     playCtx.moveTo(x, 0)
     playCtx.lineTo(x, playHeight)
+    playCtx.stroke()
+  }
+
+  for (let y = 0; y < playHeight; y += 34) {
+    playCtx.strokeStyle = feverMode.value ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)'
+    playCtx.beginPath()
+    playCtx.moveTo(0, y)
+    playCtx.lineTo(playWidth, y)
     playCtx.stroke()
   }
 
@@ -302,6 +403,7 @@ function drawPlay(time: number) {
       particle.x += particle.vx * delta
       particle.y += particle.vy * delta
       particle.life -= 0.0015 * delta
+      particle.phase += particle.spin * delta
     }
 
     if (particle.x < -20 || particle.x > playWidth + 20 || particle.y < -20 || particle.y > playHeight + 20 || particle.life <= 0)
@@ -312,39 +414,109 @@ function drawPlay(time: number) {
       const dy = playPointer.y - particle.y
       const dist = Math.hypot(dx, dy)
 
-      if (dist < 72) {
-        particle.vx += dx * 0.0018
-        particle.vy += dy * 0.0018
+      const magnetRange = feverMode.value ? 132 : 72
+
+      if (particle.kind !== 'hazard' && dist < magnetRange) {
+        particle.vx += dx * (feverMode.value ? 0.0028 : 0.0018)
+        particle.vy += dy * (feverMode.value ? 0.0028 : 0.0018)
+      }
+
+      if (particle.kind === 'hazard' && dist < 86) {
+        particle.vx -= dx * 0.0012
+        particle.vy -= dy * 0.0012
       }
 
       if (dist < particle.radius + 18) {
-        playScore.value += particle.value
-        playCombo.value += 1
+        if (particle.kind === 'hazard') {
+          if (!feverMode.value) {
+            playLives.value -= 1
+            playCombo.value = 0
+            playStatus.value = playLives.value <= 0 ? 'CRASH' : 'HIT'
+            flashStage('hit')
+          }
+          else {
+            playScore.value += 8
+            playCombo.value += 1
+          }
+        }
+        else {
+          const comboBonus = Math.floor(playCombo.value / 5)
+          const feverBonus = feverMode.value ? 2 : 1
+          playScore.value += (particle.value + comboBonus) * feverBonus
+          playHighScore.value = Math.max(playHighScore.value, playScore.value)
+          playCombo.value += particle.kind === 'bonus' ? 3 : 1
+          playEnergy.value = Math.min(100, playEnergy.value + (particle.kind === 'bonus' ? 22 : 5))
+          playStatus.value = particle.kind === 'bonus' ? 'BOOST' : 'RUN'
+
+          if (playEnergy.value >= 100)
+            activateFever(time)
+        }
+
+        if (playLives.value <= 0)
+          playRunning.value = false
+
         playParticles[index] = createPlayParticle()
       }
     }
 
     playCtx.globalAlpha = 0.38 + particle.life * 0.58
     playCtx.shadowColor = particle.color
-    playCtx.shadowBlur = 18
+    playCtx.shadowBlur = particle.kind === 'bonus' || feverMode.value ? 28 : 18
     playCtx.fillStyle = particle.color
-    playCtx.beginPath()
-    playCtx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2)
-    playCtx.fill()
+
+    if (particle.kind === 'hazard') {
+      playCtx.save()
+      playCtx.translate(particle.x, particle.y)
+      playCtx.rotate(particle.phase)
+      playCtx.beginPath()
+      for (let i = 0; i < 8; i += 1) {
+        const angle = (i / 8) * Math.PI * 2
+        const radius = i % 2 === 0 ? particle.radius * 1.35 : particle.radius * 0.58
+        const x = Math.cos(angle) * radius
+        const y = Math.sin(angle) * radius
+        if (i === 0)
+          playCtx.moveTo(x, y)
+        else
+          playCtx.lineTo(x, y)
+      }
+      playCtx.closePath()
+      playCtx.fill()
+      playCtx.restore()
+    }
+    else if (particle.kind === 'bonus') {
+      playCtx.save()
+      playCtx.translate(particle.x, particle.y)
+      playCtx.rotate(particle.phase)
+      playCtx.fillRect(-particle.radius, -particle.radius, particle.radius * 2, particle.radius * 2)
+      playCtx.restore()
+    }
+    else {
+      playCtx.beginPath()
+      playCtx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2)
+      playCtx.fill()
+    }
   })
 
   playCtx.shadowBlur = 0
   playCtx.globalAlpha = 1
 
   if (playPointer.active) {
-    playCtx.strokeStyle = 'rgba(255,255,255,0.72)'
+    playCtx.strokeStyle = feverMode.value ? 'rgba(245,200,76,0.92)' : 'rgba(255,255,255,0.72)'
     playCtx.lineWidth = 1
     playCtx.beginPath()
-    playCtx.arc(playPointer.x, playPointer.y, 20 + Math.sin(time / 120) * 5, 0, Math.PI * 2)
+    playCtx.arc(playPointer.x, playPointer.y, (feverMode.value ? 34 : 20) + Math.sin(time / 120) * 5, 0, Math.PI * 2)
     playCtx.stroke()
   }
 
   playRaf = requestAnimationFrame(drawPlay)
+}
+
+function activateFever(time = performance.now()) {
+  feverMode.value = true
+  feverUntil = time + 6500
+  playEnergy.value = 0
+  playStatus.value = 'FEVER'
+  flashStage('fever')
 }
 
 function handlePlayPointerMove(event: PointerEvent) {
@@ -360,18 +532,33 @@ function handlePlayPointerMove(event: PointerEvent) {
   }
 }
 
+function handlePlayPointerDown(event: PointerEvent) {
+  handlePlayPointerMove(event)
+  const canvas = event.currentTarget as HTMLCanvasElement | null
+  canvas?.setPointerCapture?.(event.pointerId)
+}
+
 function handlePlayPointerLeave() {
   playPointer.active = false
   playCombo.value = 0
 }
 
 function togglePlay() {
-  playRunning.value = !playRunning.value
+  if (playLives.value <= 0)
+    resetPlay()
+  else
+    playRunning.value = !playRunning.value
 }
 
 function resetPlay() {
   playScore.value = 0
   playCombo.value = 0
+  playLives.value = 3
+  playEnergy.value = 0
+  feverMode.value = false
+  feverUntil = 0
+  playStatus.value = 'READY'
+  playRunning.value = true
   seedPlayParticles()
 }
 
@@ -380,24 +567,28 @@ function hydrateState() {
   focusLeft.value = focusMinutes.value * 60
   focusSessions.value = readStorage('focusSessions', 0)
   focusTotalSeconds.value = readStorage('focusTotalSeconds', 0)
+  focusTask.value = readStorage('focusTask', '')
   noteText.value = readStorage('noteText', '')
   diceInput.value = readStorage('diceInput', defaultDiceInput)
   diceHistory.value = readStorage('diceHistory', [])
   selectedMood.value = readStorage('selectedMood', 'clear')
   moodMap.value = readStorage('moodMap', {})
   playScore.value = readStorage('playScore', 0)
+  playHighScore.value = readStorage('playHighScore', 0)
   hydrated.value = true
 }
 
 watch(focusMinutes, value => writeStorage('focusMinutes', value))
 watch(focusSessions, value => writeStorage('focusSessions', value))
 watch(focusTotalSeconds, value => writeStorage('focusTotalSeconds', value))
+watch(focusTask, value => writeStorage('focusTask', value))
 watch(noteText, value => writeStorage('noteText', value))
 watch(diceInput, value => writeStorage('diceInput', value))
 watch(diceHistory, value => writeStorage('diceHistory', value), { deep: true })
 watch(selectedMood, value => writeStorage('selectedMood', value))
 watch(moodMap, value => writeStorage('moodMap', value), { deep: true })
 watch(playScore, value => writeStorage('playScore', value))
+watch(playHighScore, value => writeStorage('playHighScore', value))
 
 onMounted(async () => {
   hydrateState()
@@ -422,7 +613,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <main ref="stageRef" class="lab-stage">
+  <main ref="stageRef" class="lab-stage" :style="stageCursorStyle" @pointermove="handleStagePointerMove">
     <video autoplay loop muted playsinline class="lab-video">
       <source src="/bg.mp4" type="video/mp4">
     </video>
@@ -437,7 +628,7 @@ onBeforeUnmount(() => {
     </header>
 
     <section class="lab-shell" aria-label="EdDYON Lab tools">
-      <article class="tool-panel focus-panel">
+      <article class="tool-panel focus-panel" :class="{ running: focusRunning }">
         <div class="panel-head">
           <span>Focus</span>
           <strong>{{ formattedFocus }}</strong>
@@ -452,6 +643,13 @@ onBeforeUnmount(() => {
             {{ focusRunning ? 'PAUSE' : 'START' }}
           </button>
         </div>
+
+        <input
+          v-model="focusTask"
+          class="focus-task"
+          spellcheck="false"
+          placeholder="Focus target for this round."
+        >
 
         <div class="preset-row">
           <button
@@ -469,25 +667,55 @@ onBeforeUnmount(() => {
         </div>
       </article>
 
-      <article class="tool-panel play-panel">
+      <article class="tool-panel play-panel" :class="{ fever: feverMode, crashed: playLives <= 0 }">
         <div class="panel-head">
           <span>Play</span>
-          <strong>{{ playScore }}</strong>
+          <strong>{{ playStatusLabel }}</strong>
+        </div>
+
+        <div class="play-hud">
+          <div>
+            <span>SCORE</span>
+            <strong>{{ playScore }}</strong>
+          </div>
+          <div>
+            <span>HIGH</span>
+            <strong>{{ playHighScore }}</strong>
+          </div>
+          <div>
+            <span>LV</span>
+            <strong>{{ playLevel }}</strong>
+          </div>
+          <div class="life-stack" aria-label="Lives">
+            <i v-for="life in 3" :key="life" :class="{ lost: life > playLives }" />
+          </div>
+        </div>
+
+        <div class="energy-track" aria-label="Energy">
+          <span :style="{ width: playEnergyPercent }" />
         </div>
 
         <canvas
           ref="playCanvas"
           class="play-canvas"
+          @pointerdown="handlePlayPointerDown"
           @pointermove="handlePlayPointerMove"
           @pointerleave="handlePlayPointerLeave"
         />
 
+        <p class="play-tip">
+          {{ playMessage }}
+        </p>
+
         <div class="play-controls">
           <button type="button" @click="togglePlay">
-            {{ playRunning ? 'HOLD' : 'RUN' }}
+            {{ playLives <= 0 ? 'RETRY' : playRunning ? 'HOLD' : 'RUN' }}
           </button>
           <button type="button" @click="resetPlay">
             RESET
+          </button>
+          <button type="button" :disabled="playEnergy < 100" @click="activateFever()">
+            BURST
           </button>
           <span>COMBO {{ playCombo }}</span>
         </div>
@@ -500,6 +728,14 @@ onBeforeUnmount(() => {
         </div>
 
         <textarea v-model="noteText" spellcheck="false" placeholder="Drop something here." />
+        <div class="note-actions">
+          <button type="button" @click="appendTimestamp">
+            STAMP
+          </button>
+          <button type="button" @click="clearNotes">
+            CLEAR
+          </button>
+        </div>
       </article>
 
       <article class="tool-panel dice-panel">
@@ -517,6 +753,9 @@ onBeforeUnmount(() => {
         <div class="history-line">
           <span v-for="item in diceHistory" :key="item">{{ item }}</span>
         </div>
+        <button type="button" class="ghost-action" @click="clearDiceHistory">
+          CLEAR HISTORY
+        </button>
       </article>
 
       <article class="tool-panel mood-panel">
@@ -538,9 +777,14 @@ onBeforeUnmount(() => {
           </button>
         </div>
 
-        <button type="button" class="wide-action" @click="setMood()">
-          MARK TODAY
-        </button>
+        <div class="mood-actions">
+          <button type="button" class="wide-action" @click="setMood()">
+            MARK TODAY
+          </button>
+          <button type="button" class="wide-action secondary" @click="clearMood()">
+            CLEAR TODAY
+          </button>
+        </div>
 
         <div class="mood-grid">
           <button
@@ -578,6 +822,14 @@ onBeforeUnmount(() => {
             <dt>SCORE</dt>
             <dd>{{ playScore }}</dd>
           </div>
+          <div>
+            <dt>BEST</dt>
+            <dd>{{ playHighScore }}</dd>
+          </div>
+          <div>
+            <dt>LEVEL</dt>
+            <dd>{{ playLevel }}</dd>
+          </div>
         </dl>
       </article>
     </section>
@@ -593,6 +845,35 @@ onBeforeUnmount(() => {
   background: #070709;
   color: #f7fbff;
   font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+}
+
+.lab-stage::before,
+.lab-stage::after {
+  position: fixed;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+}
+
+.lab-stage::before {
+  inset: 0;
+  background:
+    linear-gradient(115deg, transparent 0 42%, rgba(85, 214, 255, 0.16) 43% 44%, transparent 45% 100%),
+    linear-gradient(62deg, transparent 0 58%, rgba(245, 200, 76, 0.11) 59% 60%, transparent 61% 100%);
+  opacity: 0.55;
+  mix-blend-mode: screen;
+  animation: stageScan 9s linear infinite;
+}
+
+.lab-stage::after {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34vh;
+  background:
+    linear-gradient(180deg, transparent, rgba(7, 7, 9, 0.72)),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.055) 0 1px, transparent 1px 20px);
+  mask-image: linear-gradient(180deg, transparent, black 26%);
 }
 
 .lab-video,
@@ -620,8 +901,39 @@ onBeforeUnmount(() => {
   background-size: 68px 68px, 68px 68px, auto, auto, auto;
 }
 
+.lab-grid-bg::before,
+.lab-grid-bg::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: '';
+}
+
+.lab-grid-bg::before {
+  background:
+    radial-gradient(circle at var(--cursor-x, 50%) var(--cursor-y, 50%), rgba(85, 214, 255, 0.24), transparent 22rem),
+    radial-gradient(circle at calc(100% - var(--cursor-x, 50%)) calc(100% - var(--cursor-y, 50%)), rgba(255, 93, 122, 0.14), transparent 18rem);
+  mix-blend-mode: screen;
+  transition: background-position 0.08s linear;
+}
+
+.lab-grid-bg::after {
+  background:
+    repeating-linear-gradient(120deg, transparent 0 22px, rgba(255, 255, 255, 0.028) 22px 23px, transparent 23px 46px);
+  opacity: 0.8;
+  animation: dataRain 12s linear infinite;
+}
+
 .lab-stage[data-flash] .lab-grid-bg {
   animation: stageFlash 0.26s ease;
+}
+
+.lab-stage[data-flash='hit'] .lab-grid-bg {
+  animation: dangerFlash 0.28s ease;
+}
+
+.lab-stage[data-flash='fever'] .lab-grid-bg {
+  animation: feverFlash 0.42s ease;
 }
 
 .lab-header,
@@ -675,6 +987,8 @@ onBeforeUnmount(() => {
 }
 
 .tool-panel {
+  position: relative;
+  overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
   background:
@@ -684,13 +998,48 @@ onBeforeUnmount(() => {
   backdrop-filter: blur(22px);
 }
 
+.tool-panel::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, transparent, rgba(85, 214, 255, 0.16), transparent) -120% 0 / 80% 100% no-repeat,
+    radial-gradient(circle at top right, rgba(255, 93, 122, 0.12), transparent 46%);
+  opacity: 0.72;
+  transition: opacity 0.2s ease;
+  content: '';
+}
+
+.tool-panel:hover::before {
+  opacity: 1;
+  animation: panelSweep 1.15s ease;
+}
+
 .focus-panel {
   grid-area: focus;
+}
+
+.focus-panel.running {
+  border-color: rgba(85, 214, 255, 0.42);
+  box-shadow:
+    0 20px 52px rgba(0, 0, 0, 0.28),
+    0 0 38px rgba(85, 214, 255, 0.14);
 }
 
 .play-panel {
   grid-area: play;
   min-height: 620px;
+}
+
+.play-panel.fever {
+  border-color: rgba(245, 200, 76, 0.62);
+  box-shadow:
+    0 20px 52px rgba(0, 0, 0, 0.28),
+    0 0 54px rgba(245, 200, 76, 0.2);
+}
+
+.play-panel.crashed {
+  border-color: rgba(255, 93, 122, 0.62);
 }
 
 .notes-panel {
@@ -763,6 +1112,7 @@ onBeforeUnmount(() => {
 }
 
 button,
+input,
 textarea {
   font: inherit;
 }
@@ -782,6 +1132,12 @@ button:hover {
   background: rgba(85, 214, 255, 0.12);
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+}
+
 .primary-action {
   min-width: 138px;
   min-height: 46px;
@@ -791,9 +1147,28 @@ button:hover {
   font-weight: 950;
 }
 
+.focus-task {
+  display: block;
+  width: calc(100% - 32px);
+  min-height: 42px;
+  margin: 0 16px 2px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  outline: none;
+  background: rgba(0, 0, 0, 0.22);
+  color: #f7fbff;
+  padding: 0 12px;
+}
+
+.focus-task:focus {
+  border-color: rgba(85, 214, 255, 0.7);
+  box-shadow: 0 0 0 2px rgba(85, 214, 255, 0.12);
+}
+
 .preset-row,
 .play-controls,
-.mood-picker {
+.mood-picker,
+.note-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -802,7 +1177,8 @@ button:hover {
 
 .preset-row button,
 .play-controls button,
-.mood-picker button {
+.mood-picker button,
+.note-actions button {
   min-height: 38px;
   padding: 0 12px;
 }
@@ -816,11 +1192,75 @@ button:hover {
   display: block;
   width: calc(100% - 32px);
   height: 500px;
-  margin: 16px;
+  margin: 16px 16px 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 6px;
   background: #08090c;
   touch-action: none;
+}
+
+.play-hud {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  padding: 14px 16px 0;
+}
+
+.play-hud div {
+  min-height: 62px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.play-hud span {
+  display: block;
+  color: rgba(247, 251, 255, 0.52);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.play-hud strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 22px;
+  font-weight: 950;
+}
+
+.life-stack {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.life-stack i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ff5d7a;
+  box-shadow: 0 0 16px rgba(255, 93, 122, 0.75);
+}
+
+.life-stack i.lost {
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: none;
+}
+
+.energy-track {
+  height: 5px;
+  margin: 12px 16px 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.energy-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #55d6ff, #f5c84c, #ff5d7a);
+  box-shadow: 0 0 18px rgba(245, 200, 76, 0.66);
+  transition: width 0.2s ease;
 }
 
 .play-controls {
@@ -833,6 +1273,15 @@ button:hover {
   color: #78f0a8;
   font-size: 13px;
   font-weight: 900;
+}
+
+.play-tip {
+  min-height: 20px;
+  margin: 0 16px 10px;
+  color: rgba(247, 251, 255, 0.58);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
 }
 
 textarea {
@@ -853,6 +1302,10 @@ textarea {
 textarea:focus {
   border-color: rgba(85, 214, 255, 0.7);
   box-shadow: 0 0 0 2px rgba(85, 214, 255, 0.12);
+}
+
+.note-actions {
+  padding-top: 0;
 }
 
 .wide-action {
@@ -887,6 +1340,14 @@ output {
   font-size: 12px;
 }
 
+.ghost-action {
+  min-height: 34px;
+  margin: 0 16px 16px;
+  padding: 0 10px;
+  color: rgba(247, 251, 255, 0.66);
+  font-size: 12px;
+}
+
 .mood-picker button {
   border-color: color-mix(in srgb, var(--mood) 60%, transparent);
 }
@@ -894,6 +1355,23 @@ output {
 .mood-picker button.active {
   background: color-mix(in srgb, var(--mood) 28%, transparent);
   box-shadow: 0 0 18px color-mix(in srgb, var(--mood) 34%, transparent);
+}
+
+.mood-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 0 16px 12px;
+}
+
+.mood-actions .wide-action {
+  width: auto;
+  margin: 0;
+}
+
+.mood-actions .secondary {
+  color: rgba(247, 251, 255, 0.68);
+  font-size: 12px;
 }
 
 .mood-grid {
@@ -950,6 +1428,58 @@ dd {
 
   50% {
     filter: brightness(1.65) saturate(1.35);
+  }
+}
+
+@keyframes dangerFlash {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+
+  50% {
+    filter: brightness(1.85) saturate(1.45) hue-rotate(-22deg);
+  }
+}
+
+@keyframes feverFlash {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+
+  50% {
+    filter: brightness(2.1) saturate(1.8) hue-rotate(32deg);
+  }
+}
+
+@keyframes stageScan {
+  0% {
+    transform: translateX(-10%) translateY(-6%);
+  }
+
+  100% {
+    transform: translateX(10%) translateY(6%);
+  }
+}
+
+@keyframes panelSweep {
+  0% {
+    background-position: -120% 0, 0 0;
+  }
+
+  100% {
+    background-position: 220% 0, 0 0;
+  }
+}
+
+@keyframes dataRain {
+  0% {
+    transform: translate3d(-2%, -2%, 0);
+  }
+
+  100% {
+    transform: translate3d(2%, 2%, 0);
   }
 }
 
