@@ -1,923 +1,997 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-type ThreeModule = typeof import('three')
-type WebGLRenderer = import('three').WebGLRenderer
-type Scene = import('three').Scene
-type PerspectiveCamera = import('three').PerspectiveCamera
-type Group = import('three').Group
-type Mesh = import('three').Mesh
-type Points = import('three').Points
-type LineSegments = import('three').LineSegments
-type InstancedMesh = import('three').InstancedMesh
-type ShaderMaterial = import('three').ShaderMaterial
-type BufferGeometry = import('three').BufferGeometry
-type Color = import('three').Color
-type Object3D = import('three').Object3D
-
-interface Palette {
-  id: string
-  primary: string
-  secondary: string
-  accent: string
-  hot: string
-  ink: string
+interface MoodOption {
+  key: string
+  label: string
+  color: string
 }
 
-interface Shockwave {
-  mesh: Mesh
-  age: number
+interface MoodDay {
+  key: string
+  label: string
+  value: string
 }
 
-interface ShardState {
+interface PlayParticle {
+  x: number
+  y: number
+  vx: number
+  vy: number
   radius: number
-  speed: number
-  phase: number
-  height: number
+  value: number
+  color: string
+  life: number
 }
 
-const stageRef = ref<HTMLElement | null>(null)
-const webglHost = ref<HTMLElement | null>(null)
-const activeIndex = ref(0)
-const charge = ref(0)
-const isReady = ref(false)
+const storagePrefix = 'eddyon-lab-v1'
+const focusPresets = [5, 15, 25, 45]
+const defaultDiceInput = '今天先做最轻松的那件事\n先把一个小问题解决掉\n出去走 10 分钟\n打开计时器专注一轮\n把脑子里的想法写下来'
 
-const palettes: Palette[] = [
-  {
-    id: '01',
-    primary: '#58f7ff',
-    secondary: '#ff4fa3',
-    accent: '#f9d65c',
-    hot: '#ffffff',
-    ink: '#040710',
-  },
-  {
-    id: '02',
-    primary: '#7cff9d',
-    secondary: '#4d8dff',
-    accent: '#ff6f61',
-    hot: '#f8fff9',
-    ink: '#030a08',
-  },
-  {
-    id: '03',
-    primary: '#ffca57',
-    secondary: '#67e8ff',
-    accent: '#b27cff',
-    hot: '#fff7df',
-    ink: '#0b0604',
-  },
+const moodOptions: MoodOption[] = [
+  { key: 'clear', label: 'CLEAR', color: '#55d6ff' },
+  { key: 'fire', label: 'FIRE', color: '#ff5d7a' },
+  { key: 'slow', label: 'SLOW', color: '#f5c84c' },
+  { key: 'green', label: 'GREEN', color: '#78f0a8' },
+  { key: 'void', label: 'VOID', color: '#9b8cff' },
 ]
 
-const activePalette = computed(() => palettes[activeIndex.value])
-const paletteStyle = computed(() => ({
-  '--primary': activePalette.value.primary,
-  '--secondary': activePalette.value.secondary,
-  '--accent': activePalette.value.accent,
-  '--hot': activePalette.value.hot,
-  '--ink': activePalette.value.ink,
-}))
+const stageRef = ref<HTMLElement | null>(null)
+const playCanvas = ref<HTMLCanvasElement | null>(null)
+const currentTime = ref('--:--')
+const focusMinutes = ref(25)
+const focusLeft = ref(25 * 60)
+const focusRunning = ref(false)
+const focusSessions = ref(0)
+const focusTotalSeconds = ref(0)
+const noteText = ref('')
+const diceInput = ref(defaultDiceInput)
+const diceResult = ref('READY')
+const diceHistory = ref<string[]>([])
+const selectedMood = ref('clear')
+const moodMap = ref<Record<string, string>>({})
+const playScore = ref(0)
+const playCombo = ref(0)
+const playRunning = ref(true)
+const hydrated = ref(false)
 
-let THREE: ThreeModule | null = null
-let renderer: WebGLRenderer | null = null
-let scene: Scene | null = null
-let camera: PerspectiveCamera | null = null
-let root: Group | null = null
-let core: Mesh | null = null
-let coreWire: Mesh | null = null
-let particleField: Points | null = null
-let tunnel: LineSegments | null = null
-let shards: InstancedMesh | null = null
-let coreMaterial: ShaderMaterial | null = null
-let ringMaterials: import('three').MeshBasicMaterial[] = []
-let rings: Mesh[] = []
-let shardStates: ShardState[] = []
-let shockwaves: Shockwave[] = []
-let raf = 0
-let start = 0
-let targetMouse = { x: 0, y: 0 }
-let currentMouse = { x: 0, y: 0 }
-let lastTime = 0
+let clockTimer: ReturnType<typeof setInterval> | null = null
+let focusTimer: ReturnType<typeof setInterval> | null = null
+let playRaf = 0
+let playCtx: CanvasRenderingContext2D | null = null
+let playWidth = 0
+let playHeight = 0
+let playParticles: PlayParticle[] = []
+let playPointer = { x: 0, y: 0, active: false }
+let lastPlayTime = 0
 
-function color(hex: string) {
-  return new THREE!.Color(hex)
-}
+const formattedFocus = computed(() => {
+  const minutes = Math.floor(focusLeft.value / 60)
+  const seconds = focusLeft.value % 60
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+})
 
-function nextPalette() {
-  activeIndex.value = (activeIndex.value + 1) % palettes.length
-  applyPalette()
-}
+const focusProgress = computed(() => {
+  const total = focusMinutes.value * 60
+  if (!total)
+    return 0
+  return 1 - focusLeft.value / total
+})
 
-function applyPalette() {
-  if (!THREE || !coreMaterial)
-    return
+const focusRingOffset = computed(() => `${314 - focusProgress.value * 314}`)
 
-  const palette = activePalette.value
-  const primary = color(palette.primary)
-  const secondary = color(palette.secondary)
-  const accent = color(palette.accent)
+const noteLines = computed(() => noteText.value.split('\n').filter(Boolean).length)
+const noteChars = computed(() => noteText.value.length)
 
-  coreMaterial.uniforms.uColorA.value = primary
-  coreMaterial.uniforms.uColorB.value = secondary
+const diceOptions = computed(() =>
+  diceInput.value
+    .split('\n')
+    .map(item => item.trim())
+    .filter(Boolean),
+)
 
-  ringMaterials.forEach((material, index) => {
-    material.color = index % 3 === 0 ? primary : index % 3 === 1 ? secondary : accent
-  })
+const todayKey = computed(() => formatDateKey(new Date()))
 
-  if (particleField && 'color' in particleField.material)
-    particleField.material.color = primary
+const moodDays = computed<MoodDay[]>(() => {
+  const days: MoodDay[] = []
+  const formatter = new Intl.DateTimeFormat('zh-CN', { month: '2-digit', day: '2-digit' })
 
-  if (tunnel && 'color' in tunnel.material)
-    tunnel.material.color = secondary
-
-  if (shards && 'color' in shards.material)
-    shards.material.color = accent
-}
-
-function createParticleField() {
-  const count = window.innerWidth < 720 ? 1800 : 4200
-  const positions = new Float32Array(count * 3)
-  const colors = new Float32Array(count * 3)
-  const primary = color(activePalette.value.primary)
-  const secondary = color(activePalette.value.secondary)
-  const accent = color(activePalette.value.accent)
-  const mixed = new THREE!.Color()
-
-  for (let i = 0; i < count; i += 1) {
-    const i3 = i * 3
-    const arm = i % 5
-    const radius = 2.8 + Math.random() * 9.5
-    const angle = radius * 0.72 + arm * ((Math.PI * 2) / 5) + (Math.random() - 0.5) * 0.55
-    const vertical = (Math.random() - 0.5) * (1.2 + radius * 0.12)
-
-    positions[i3] = Math.cos(angle) * radius
-    positions[i3 + 1] = vertical
-    positions[i3 + 2] = Math.sin(angle) * radius
-
-    mixed.copy(i % 3 === 0 ? primary : i % 3 === 1 ? secondary : accent)
-    mixed.lerp(color(activePalette.value.hot), Math.random() * 0.16)
-    colors[i3] = mixed.r
-    colors[i3 + 1] = mixed.g
-    colors[i3 + 2] = mixed.b
-  }
-
-  const geometry = new THREE!.BufferGeometry()
-  geometry.setAttribute('position', new THREE!.BufferAttribute(positions, 3))
-  geometry.setAttribute('color', new THREE!.BufferAttribute(colors, 3))
-
-  const material = new THREE!.PointsMaterial({
-    size: window.innerWidth < 720 ? 0.035 : 0.026,
-    vertexColors: true,
-    transparent: true,
-    opacity: 0.92,
-    depthWrite: false,
-    blending: THREE!.AdditiveBlending,
-  })
-
-  particleField = new THREE!.Points(geometry, material)
-  root!.add(particleField)
-}
-
-function createTunnel() {
-  const ringsCount = 34
-  const segments = 96
-  const vertices: number[] = []
-
-  for (let r = 0; r < ringsCount; r += 1) {
-    const z = -22 + r * 1.35
-    const radius = 4.2 + Math.sin(r * 0.7) * 0.28
-
-    for (let s = 0; s < segments; s += 1) {
-      const a1 = (s / segments) * Math.PI * 2
-      const a2 = ((s + 1) / segments) * Math.PI * 2
-      vertices.push(Math.cos(a1) * radius, Math.sin(a1) * radius * 0.48, z)
-      vertices.push(Math.cos(a2) * radius, Math.sin(a2) * radius * 0.48, z)
-    }
-  }
-
-  const geometry = new THREE!.BufferGeometry()
-  geometry.setAttribute('position', new THREE!.Float32BufferAttribute(vertices, 3))
-
-  const material = new THREE!.LineBasicMaterial({
-    color: color(activePalette.value.secondary),
-    transparent: true,
-    opacity: 0.2,
-    blending: THREE!.AdditiveBlending,
-  })
-
-  tunnel = new THREE!.LineSegments(geometry, material)
-  tunnel.rotation.x = Math.PI / 2.9
-  tunnel.position.z = -4.5
-  root!.add(tunnel)
-}
-
-function createCore() {
-  const geometry = new THREE!.IcosahedronGeometry(1.32, 7)
-  coreMaterial = new THREE!.ShaderMaterial({
-    transparent: true,
-    depthWrite: false,
-    blending: THREE!.AdditiveBlending,
-    uniforms: {
-      uTime: { value: 0 },
-      uColorA: { value: color(activePalette.value.primary) },
-      uColorB: { value: color(activePalette.value.secondary) },
-      uPower: { value: 0 },
-    },
-    vertexShader: `
-      uniform float uTime;
-      uniform float uPower;
-      varying vec3 vNormal;
-      varying vec3 vPosition;
-
-      void main() {
-        vNormal = normalize(normalMatrix * normal);
-        vPosition = position;
-        float wave = sin((position.x * 3.0) + (position.y * 4.0) + (position.z * 2.4) + uTime * 2.6);
-        vec3 warped = position + normal * (wave * 0.06 + uPower * 0.12);
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(warped, 1.0);
-      }
-    `,
-    fragmentShader: `
-      uniform float uTime;
-      uniform vec3 uColorA;
-      uniform vec3 uColorB;
-      uniform float uPower;
-      varying vec3 vNormal;
-      varying vec3 vPosition;
-
-      void main() {
-        float fresnel = pow(1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0))), 2.2);
-        float lines = smoothstep(0.32, 0.92, sin((vPosition.y + vPosition.x) * 11.0 + uTime * 5.0) * 0.5 + 0.5);
-        vec3 color = mix(uColorA, uColorB, fresnel + lines * 0.25);
-        float alpha = 0.3 + fresnel * 0.72 + lines * 0.16 + uPower * 0.28;
-        gl_FragColor = vec4(color, alpha);
-      }
-    `,
-  })
-
-  core = new THREE!.Mesh(geometry, coreMaterial)
-  core.scale.set(1.4, 1.4, 1.4)
-  root!.add(core)
-
-  coreWire = new THREE!.Mesh(
-    geometry,
-    new THREE!.MeshBasicMaterial({
-      color: color(activePalette.value.hot),
-      wireframe: true,
-      transparent: true,
-      opacity: 0.22,
-      blending: THREE!.AdditiveBlending,
-    }),
-  )
-  coreWire.scale.set(1.48, 1.48, 1.48)
-  root!.add(coreWire)
-}
-
-function createRings() {
-  const configs = [
-    { r: 2.15, t: 0.012, x: 0.95, y: 0.2, z: 0.1 },
-    { r: 2.7, t: 0.009, x: 0.2, y: 1.18, z: -0.35 },
-    { r: 3.28, t: 0.008, x: -0.35, y: 0.52, z: 1.12 },
-    { r: 3.92, t: 0.007, x: 1.38, y: -0.3, z: 0.45 },
-    { r: 4.65, t: 0.006, x: -0.58, y: 0.18, z: -0.9 },
-  ]
-
-  configs.forEach((config, index) => {
-    const geometry = new THREE!.TorusGeometry(config.r, config.t, 12, 192)
-    const material = new THREE!.MeshBasicMaterial({
-      color: color(index % 3 === 0 ? activePalette.value.primary : index % 3 === 1 ? activePalette.value.secondary : activePalette.value.accent),
-      transparent: true,
-      opacity: 0.52 - index * 0.055,
-      blending: THREE!.AdditiveBlending,
+  for (let index = 27; index >= 0; index -= 1) {
+    const date = new Date()
+    date.setDate(date.getDate() - index)
+    const key = formatDateKey(date)
+    days.push({
+      key,
+      label: formatter.format(date),
+      value: moodMap.value[key] || '',
     })
+  }
 
-    const ring = new THREE!.Mesh(geometry, material)
-    ring.rotation.set(config.x, config.y, config.z)
-    rings.push(ring)
-    ringMaterials.push(material)
-    root!.add(ring)
-  })
+  return days
+})
+
+const activeMood = computed(() =>
+  moodOptions.find(option => option.key === selectedMood.value) || moodOptions[0],
+)
+
+const moodStreak = computed(() => {
+  let streak = 0
+  const cursor = new Date()
+
+  for (;;) {
+    const key = formatDateKey(cursor)
+    if (!moodMap.value[key])
+      break
+    streak += 1
+    cursor.setDate(cursor.getDate() - 1)
+  }
+
+  return streak
+})
+
+const focusHours = computed(() => (focusTotalSeconds.value / 3600).toFixed(1))
+
+function formatDateKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
-function createShards() {
-  const count = window.innerWidth < 720 ? 42 : 92
-  const geometry = new THREE!.TetrahedronGeometry(0.075, 0)
-  const material = new THREE!.MeshBasicMaterial({
-    color: color(activePalette.value.accent),
-    transparent: true,
-    opacity: 0.7,
-    blending: THREE!.AdditiveBlending,
-  })
-  const dummy = new THREE!.Object3D()
-
-  shards = new THREE!.InstancedMesh(geometry, material, count)
-  shardStates = Array.from({ length: count }, (_, index) => ({
-    radius: 2.2 + Math.random() * 4.8,
-    speed: 0.22 + Math.random() * 0.78,
-    phase: (index / count) * Math.PI * 2,
-    height: (Math.random() - 0.5) * 1.9,
-  }))
-
-  shardStates.forEach((state, index) => {
-    dummy.position.set(Math.cos(state.phase) * state.radius, state.height, Math.sin(state.phase) * state.radius)
-    dummy.rotation.set(state.phase, state.phase * 0.7, state.phase * 0.4)
-    dummy.updateMatrix()
-    shards!.setMatrixAt(index, dummy.matrix)
-  })
-
-  root!.add(shards)
+function readStorage<T>(key: string, fallback: T): T {
+  try {
+    const raw = window.localStorage.getItem(`${storagePrefix}:${key}`)
+    return raw ? JSON.parse(raw) as T : fallback
+  }
+  catch {
+    return fallback
+  }
 }
 
-function createShockwave() {
-  if (!THREE || !root)
+function writeStorage(key: string, value: unknown) {
+  if (!hydrated.value)
     return
 
-  const geometry = new THREE.TorusGeometry(1.6, 0.012, 8, 192)
-  const material = new THREE.MeshBasicMaterial({
-    color: color(activePalette.value.hot),
-    transparent: true,
-    opacity: 0.72,
-    blending: THREE.AdditiveBlending,
-  })
-  const mesh = new THREE.Mesh(geometry, material)
-  mesh.rotation.set(Math.PI / 2, currentMouse.x * 0.6, currentMouse.y * 0.6)
-  root.add(mesh)
-  shockwaves.push({ mesh, age: 0 })
+  window.localStorage.setItem(`${storagePrefix}:${key}`, JSON.stringify(value))
 }
 
-function initThree(three: ThreeModule) {
-  if (!webglHost.value)
+function updateClock() {
+  currentTime.value = new Date().toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}
+
+function setFocusPreset(minutes: number) {
+  focusMinutes.value = minutes
+  if (!focusRunning.value)
+    focusLeft.value = minutes * 60
+}
+
+function startFocusTimer() {
+  if (focusTimer)
     return
 
-  THREE = three
-  scene = new THREE.Scene()
-  scene.fog = new THREE.Fog(activePalette.value.ink, 8, 28)
+  focusRunning.value = true
+  focusTimer = setInterval(() => {
+    focusLeft.value -= 1
 
-  camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 80)
-  camera.position.set(0, 0.2, 10.8)
+    if (focusLeft.value > 0)
+      return
 
-  renderer = new THREE.WebGLRenderer({
-    alpha: true,
-    antialias: true,
-    powerPreference: 'high-performance',
-  })
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.8))
-  renderer.setSize(window.innerWidth, window.innerHeight)
-  renderer.outputColorSpace = THREE.SRGBColorSpace
-  webglHost.value.replaceChildren(renderer.domElement)
-
-  root = new THREE.Group()
-  scene.add(root)
-
-  const ambient = new THREE.AmbientLight(0xffffff, 0.45)
-  const key = new THREE.PointLight(color(activePalette.value.primary), 2.3, 26)
-  key.position.set(4, 3, 5)
-  const rim = new THREE.PointLight(color(activePalette.value.secondary), 2, 24)
-  rim.position.set(-4, -2, 4)
-  scene.add(ambient, key, rim)
-
-  createTunnel()
-  createParticleField()
-  createCore()
-  createRings()
-  createShards()
-  applyPalette()
-  isReady.value = true
+    focusSessions.value += 1
+    focusTotalSeconds.value += focusMinutes.value * 60
+    focusLeft.value = focusMinutes.value * 60
+    pauseFocusTimer()
+    flashStage('focus')
+  }, 1000)
 }
 
-function resizeScene() {
-  if (!renderer || !camera)
-    return
-
-  camera.aspect = window.innerWidth / window.innerHeight
-  camera.fov = window.innerWidth < 720 ? 58 : 46
-  camera.position.z = window.innerWidth < 720 ? 12.2 : 10.8
-  camera.updateProjectionMatrix()
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.8))
-  renderer.setSize(window.innerWidth, window.innerHeight)
+function pauseFocusTimer() {
+  focusRunning.value = false
+  if (focusTimer) {
+    clearInterval(focusTimer)
+    focusTimer = null
+  }
 }
 
-function animate(time: number) {
-  if (!THREE || !renderer || !scene || !camera || !root) {
-    raf = requestAnimationFrame(animate)
+function toggleFocusTimer() {
+  if (focusRunning.value)
+    pauseFocusTimer()
+  else
+    startFocusTimer()
+}
+
+function resetFocusTimer() {
+  pauseFocusTimer()
+  focusLeft.value = focusMinutes.value * 60
+}
+
+function rollDice() {
+  const options = diceOptions.value
+  if (!options.length) {
+    diceResult.value = 'EMPTY'
     return
   }
 
-  const elapsed = (time - start) * 0.001
-  const delta = Math.min(0.04, (time - lastTime) * 0.001 || 0.016)
-  lastTime = time
-
-  currentMouse.x += (targetMouse.x - currentMouse.x) * 0.075
-  currentMouse.y += (targetMouse.y - currentMouse.y) * 0.075
-
-  charge.value = Math.round(58 + Math.sin(elapsed * 2.6) * 16 + Math.abs(currentMouse.x) * 18 + shockwaves.length * 9)
-
-  root.rotation.y = elapsed * 0.08 + currentMouse.x * 0.26
-  root.rotation.x = currentMouse.y * 0.16
-  root.position.x = currentMouse.x * 0.22
-  root.position.y = -currentMouse.y * 0.12
-
-  if (coreMaterial) {
-    coreMaterial.uniforms.uTime.value = elapsed
-    coreMaterial.uniforms.uPower.value = Math.min(1, shockwaves.length * 0.24 + Math.abs(currentMouse.x) * 0.35)
-  }
-
-  if (core) {
-    core.rotation.x = elapsed * 0.32
-    core.rotation.y = elapsed * 0.46
-  }
-
-  if (coreWire) {
-    coreWire.rotation.x = -elapsed * 0.22
-    coreWire.rotation.z = elapsed * 0.4
-  }
-
-  rings.forEach((ring, index) => {
-    ring.rotation.x += delta * (0.18 + index * 0.04)
-    ring.rotation.y -= delta * (0.12 + index * 0.025)
-    ring.scale.setScalar(1 + Math.sin(elapsed * 1.8 + index) * 0.02)
-  })
-
-  if (particleField) {
-    particleField.rotation.y = -elapsed * 0.035
-    particleField.rotation.z = elapsed * 0.018
-  }
-
-  if (tunnel) {
-    tunnel.rotation.z = elapsed * 0.045
-    tunnel.position.z = -4.5 + Math.sin(elapsed * 0.7) * 0.35
-  }
-
-  if (shards) {
-    const dummy = new THREE.Object3D()
-    shardStates.forEach((state, index) => {
-      const angle = state.phase + elapsed * state.speed
-      dummy.position.set(
-        Math.cos(angle) * state.radius,
-        state.height + Math.sin(elapsed * 1.7 + state.phase) * 0.28,
-        Math.sin(angle) * state.radius,
-      )
-      dummy.rotation.set(elapsed * state.speed, angle, elapsed * 0.35 + state.phase)
-      dummy.scale.setScalar(0.75 + Math.sin(elapsed * 2.4 + state.phase) * 0.22)
-      dummy.updateMatrix()
-      shards!.setMatrixAt(index, dummy.matrix)
-    })
-    shards.instanceMatrix.needsUpdate = true
-  }
-
-  shockwaves.forEach((wave) => {
-    wave.age += delta
-    const scale = 1 + wave.age * 3.8
-    wave.mesh.scale.setScalar(scale)
-    const material = wave.mesh.material as import('three').MeshBasicMaterial
-    material.opacity = Math.max(0, 0.72 - wave.age * 0.82)
-  })
-
-  shockwaves = shockwaves.filter((wave) => {
-    if (wave.age <= 0.9)
-      return true
-    wave.mesh.geometry.dispose()
-    ;(wave.mesh.material as import('three').Material).dispose()
-    root!.remove(wave.mesh)
-    return false
-  })
-
-  camera.position.x += (currentMouse.x * 0.7 - camera.position.x) * 0.045
-  camera.position.y += (-currentMouse.y * 0.45 - camera.position.y) * 0.045
-  camera.lookAt(0, 0, 0)
-
-  renderer.render(scene, camera)
-  raf = requestAnimationFrame(animate)
+  const result = options[Math.floor(Math.random() * options.length)]
+  diceResult.value = result
+  diceHistory.value = [result, ...diceHistory.value.filter(item => item !== result)].slice(0, 5)
+  flashStage('dice')
 }
 
-function handlePointerMove(event: PointerEvent) {
-  const x = (event.clientX / window.innerWidth) * 2 - 1
-  const y = (event.clientY / window.innerHeight) * 2 - 1
-  targetMouse = { x, y }
-  stageRef.value?.style.setProperty('--mx', `${event.clientX}px`)
-  stageRef.value?.style.setProperty('--my', `${event.clientY}px`)
+function setMood(dayKey = todayKey.value) {
+  moodMap.value = {
+    ...moodMap.value,
+    [dayKey]: selectedMood.value,
+  }
+  flashStage('mood')
 }
 
-function handlePointerDown() {
-  createShockwave()
+function getMoodColor(key: string) {
+  return moodOptions.find(option => option.key === key)?.color || 'rgba(255,255,255,0.12)'
 }
 
-function handleKeydown(event: KeyboardEvent) {
-  if (event.code === 'Space') {
-    event.preventDefault()
-    nextPalette()
+function flashStage(kind: string) {
+  stageRef.value?.setAttribute('data-flash', kind)
+  window.setTimeout(() => stageRef.value?.removeAttribute('data-flash'), 260)
+}
+
+function resizePlayCanvas() {
+  const canvas = playCanvas.value
+  if (!canvas)
+    return
+
+  const bounds = canvas.getBoundingClientRect()
+  const ratio = Math.min(window.devicePixelRatio || 1, 2)
+  playWidth = Math.max(320, Math.floor(bounds.width))
+  playHeight = Math.max(260, Math.floor(bounds.height))
+  canvas.width = Math.floor(playWidth * ratio)
+  canvas.height = Math.floor(playHeight * ratio)
+  playCtx = canvas.getContext('2d')
+  playCtx?.setTransform(ratio, 0, 0, ratio, 0, 0)
+}
+
+function createPlayParticle(): PlayParticle {
+  const colors = ['#55d6ff', '#ff5d7a', '#f5c84c', '#78f0a8', '#9b8cff']
+  const value = Math.random() > 0.86 ? 5 : Math.random() > 0.62 ? 3 : 1
+  const radius = value === 5 ? 8 : value === 3 ? 6 : 4
+
+  return {
+    x: Math.random() * playWidth,
+    y: Math.random() * playHeight,
+    vx: (Math.random() - 0.5) * 0.55,
+    vy: (Math.random() - 0.5) * 0.55,
+    radius,
+    value,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    life: 0.65 + Math.random() * 0.35,
   }
 }
 
-function disposeObject(object: Object3D) {
-  object.traverse((child) => {
-    const mesh = child as Mesh
-    if ('geometry' in mesh && mesh.geometry)
-      mesh.geometry.dispose()
+function seedPlayParticles() {
+  const count = window.innerWidth < 740 ? 34 : 58
+  playParticles = Array.from({ length: count }, createPlayParticle)
+}
 
-    if ('material' in mesh && mesh.material) {
-      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-      materials.forEach(material => material.dispose())
+function drawPlay(time: number) {
+  if (!playCtx) {
+    playRaf = requestAnimationFrame(drawPlay)
+    return
+  }
+
+  const delta = Math.min(32, time - lastPlayTime || 16) / 16
+  lastPlayTime = time
+  playCtx.clearRect(0, 0, playWidth, playHeight)
+
+  const gradient = playCtx.createLinearGradient(0, 0, playWidth, playHeight)
+  gradient.addColorStop(0, 'rgba(85, 214, 255, 0.13)')
+  gradient.addColorStop(0.52, 'rgba(255, 93, 122, 0.08)')
+  gradient.addColorStop(1, 'rgba(120, 240, 168, 0.11)')
+  playCtx.fillStyle = gradient
+  playCtx.fillRect(0, 0, playWidth, playHeight)
+
+  for (let x = 0; x < playWidth; x += 34) {
+    playCtx.strokeStyle = 'rgba(255,255,255,0.035)'
+    playCtx.beginPath()
+    playCtx.moveTo(x, 0)
+    playCtx.lineTo(x, playHeight)
+    playCtx.stroke()
+  }
+
+  playParticles.forEach((particle, index) => {
+    if (playRunning.value) {
+      particle.x += particle.vx * delta
+      particle.y += particle.vy * delta
+      particle.life -= 0.0015 * delta
     }
+
+    if (particle.x < -20 || particle.x > playWidth + 20 || particle.y < -20 || particle.y > playHeight + 20 || particle.life <= 0)
+      playParticles[index] = createPlayParticle()
+
+    if (playPointer.active && playRunning.value) {
+      const dx = playPointer.x - particle.x
+      const dy = playPointer.y - particle.y
+      const dist = Math.hypot(dx, dy)
+
+      if (dist < 72) {
+        particle.vx += dx * 0.0018
+        particle.vy += dy * 0.0018
+      }
+
+      if (dist < particle.radius + 18) {
+        playScore.value += particle.value
+        playCombo.value += 1
+        playParticles[index] = createPlayParticle()
+      }
+    }
+
+    playCtx.globalAlpha = 0.38 + particle.life * 0.58
+    playCtx.shadowColor = particle.color
+    playCtx.shadowBlur = 18
+    playCtx.fillStyle = particle.color
+    playCtx.beginPath()
+    playCtx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2)
+    playCtx.fill()
   })
+
+  playCtx.shadowBlur = 0
+  playCtx.globalAlpha = 1
+
+  if (playPointer.active) {
+    playCtx.strokeStyle = 'rgba(255,255,255,0.72)'
+    playCtx.lineWidth = 1
+    playCtx.beginPath()
+    playCtx.arc(playPointer.x, playPointer.y, 20 + Math.sin(time / 120) * 5, 0, Math.PI * 2)
+    playCtx.stroke()
+  }
+
+  playRaf = requestAnimationFrame(drawPlay)
 }
+
+function handlePlayPointerMove(event: PointerEvent) {
+  const canvas = playCanvas.value
+  if (!canvas)
+    return
+
+  const rect = canvas.getBoundingClientRect()
+  playPointer = {
+    x: event.clientX - rect.left,
+    y: event.clientY - rect.top,
+    active: true,
+  }
+}
+
+function handlePlayPointerLeave() {
+  playPointer.active = false
+  playCombo.value = 0
+}
+
+function togglePlay() {
+  playRunning.value = !playRunning.value
+}
+
+function resetPlay() {
+  playScore.value = 0
+  playCombo.value = 0
+  seedPlayParticles()
+}
+
+function hydrateState() {
+  focusMinutes.value = readStorage('focusMinutes', 25)
+  focusLeft.value = focusMinutes.value * 60
+  focusSessions.value = readStorage('focusSessions', 0)
+  focusTotalSeconds.value = readStorage('focusTotalSeconds', 0)
+  noteText.value = readStorage('noteText', '')
+  diceInput.value = readStorage('diceInput', defaultDiceInput)
+  diceHistory.value = readStorage('diceHistory', [])
+  selectedMood.value = readStorage('selectedMood', 'clear')
+  moodMap.value = readStorage('moodMap', {})
+  playScore.value = readStorage('playScore', 0)
+  hydrated.value = true
+}
+
+watch(focusMinutes, value => writeStorage('focusMinutes', value))
+watch(focusSessions, value => writeStorage('focusSessions', value))
+watch(focusTotalSeconds, value => writeStorage('focusTotalSeconds', value))
+watch(noteText, value => writeStorage('noteText', value))
+watch(diceInput, value => writeStorage('diceInput', value))
+watch(diceHistory, value => writeStorage('diceHistory', value), { deep: true })
+watch(selectedMood, value => writeStorage('selectedMood', value))
+watch(moodMap, value => writeStorage('moodMap', value), { deep: true })
+watch(playScore, value => writeStorage('playScore', value))
 
 onMounted(async () => {
-  start = performance.now()
-  lastTime = start
-  const three = await import('three')
-  initThree(three)
-  resizeScene()
-  raf = requestAnimationFrame(animate)
+  hydrateState()
+  updateClock()
+  clockTimer = setInterval(updateClock, 1000)
 
-  window.addEventListener('resize', resizeScene, { passive: true })
-  window.addEventListener('pointermove', handlePointerMove, { passive: true })
-  window.addEventListener('pointerdown', handlePointerDown, { passive: true })
-  window.addEventListener('keydown', handleKeydown)
+  await nextTick()
+  resizePlayCanvas()
+  seedPlayParticles()
+  playRaf = requestAnimationFrame(drawPlay)
+  window.addEventListener('resize', resizePlayCanvas, { passive: true })
 })
 
 onBeforeUnmount(() => {
-  cancelAnimationFrame(raf)
-  window.removeEventListener('resize', resizeScene)
-  window.removeEventListener('pointermove', handlePointerMove)
-  window.removeEventListener('pointerdown', handlePointerDown)
-  window.removeEventListener('keydown', handleKeydown)
-
-  if (root)
-    disposeObject(root)
-
-  renderer?.dispose()
-  webglHost.value?.replaceChildren()
+  if (clockTimer)
+    clearInterval(clockTimer)
+  if (focusTimer)
+    clearInterval(focusTimer)
+  cancelAnimationFrame(playRaf)
+  window.removeEventListener('resize', resizePlayCanvas)
 })
 </script>
 
 <template>
-  <main ref="stageRef" class="pure-stage" :class="{ ready: isReady }" :style="paletteStyle">
-    <video autoplay loop muted playsinline class="stage-video">
+  <main ref="stageRef" class="lab-stage">
+    <video autoplay loop muted playsinline class="lab-video">
       <source src="/bg.mp4" type="video/mp4">
     </video>
+    <div class="lab-grid-bg" aria-hidden="true" />
 
-    <div ref="webglHost" class="webgl-stage" aria-hidden="true" />
-    <div class="noise-field" aria-hidden="true" />
-    <div class="edge-frame" aria-hidden="true" />
-    <div class="cursor-slice" aria-hidden="true" />
-
-    <section class="identity" aria-label="EdDYON visual showcase">
-      <p class="eyebrow">EDDYON / INTERACTIVE FIELD</p>
-      <h1 data-text="EdDYON">EdDYON</h1>
-      <div class="charge-line">
-        <span :style="{ width: `${Math.min(100, charge)}%` }" />
+    <header class="lab-header">
+      <div>
+        <p>EDDYON LAB</p>
+        <h1>Playground</h1>
       </div>
+      <time>{{ currentTime }}</time>
+    </header>
+
+    <section class="lab-shell" aria-label="EdDYON Lab tools">
+      <article class="tool-panel focus-panel">
+        <div class="panel-head">
+          <span>Focus</span>
+          <strong>{{ formattedFocus }}</strong>
+        </div>
+
+        <div class="focus-wrap">
+          <svg viewBox="0 0 120 120" class="focus-ring" aria-hidden="true">
+            <circle cx="60" cy="60" r="50" class="ring-track" />
+            <circle cx="60" cy="60" r="50" class="ring-value" :style="{ strokeDashoffset: focusRingOffset }" />
+          </svg>
+          <button type="button" class="primary-action" @click="toggleFocusTimer">
+            {{ focusRunning ? 'PAUSE' : 'START' }}
+          </button>
+        </div>
+
+        <div class="preset-row">
+          <button
+            v-for="minutes in focusPresets"
+            :key="minutes"
+            type="button"
+            :class="{ active: focusMinutes === minutes }"
+            @click="setFocusPreset(minutes)"
+          >
+            {{ minutes }}
+          </button>
+          <button type="button" @click="resetFocusTimer">
+            RESET
+          </button>
+        </div>
+      </article>
+
+      <article class="tool-panel play-panel">
+        <div class="panel-head">
+          <span>Play</span>
+          <strong>{{ playScore }}</strong>
+        </div>
+
+        <canvas
+          ref="playCanvas"
+          class="play-canvas"
+          @pointermove="handlePlayPointerMove"
+          @pointerleave="handlePlayPointerLeave"
+        />
+
+        <div class="play-controls">
+          <button type="button" @click="togglePlay">
+            {{ playRunning ? 'HOLD' : 'RUN' }}
+          </button>
+          <button type="button" @click="resetPlay">
+            RESET
+          </button>
+          <span>COMBO {{ playCombo }}</span>
+        </div>
+      </article>
+
+      <article class="tool-panel notes-panel">
+        <div class="panel-head">
+          <span>Notes</span>
+          <strong>{{ noteLines }} / {{ noteChars }}</strong>
+        </div>
+
+        <textarea v-model="noteText" spellcheck="false" placeholder="Drop something here." />
+      </article>
+
+      <article class="tool-panel dice-panel">
+        <div class="panel-head">
+          <span>Dice</span>
+          <strong>{{ diceOptions.length }}</strong>
+        </div>
+
+        <textarea v-model="diceInput" spellcheck="false" />
+        <button type="button" class="wide-action" @click="rollDice">
+          ROLL
+        </button>
+        <output>{{ diceResult }}</output>
+
+        <div class="history-line">
+          <span v-for="item in diceHistory" :key="item">{{ item }}</span>
+        </div>
+      </article>
+
+      <article class="tool-panel mood-panel">
+        <div class="panel-head">
+          <span>Mood</span>
+          <strong>{{ moodStreak }}</strong>
+        </div>
+
+        <div class="mood-picker">
+          <button
+            v-for="mood in moodOptions"
+            :key="mood.key"
+            type="button"
+            :class="{ active: selectedMood === mood.key }"
+            :style="{ '--mood': mood.color }"
+            @click="selectedMood = mood.key"
+          >
+            {{ mood.label }}
+          </button>
+        </div>
+
+        <button type="button" class="wide-action" @click="setMood()">
+          MARK TODAY
+        </button>
+
+        <div class="mood-grid">
+          <button
+            v-for="day in moodDays"
+            :key="day.key"
+            type="button"
+            :title="day.label"
+            :class="{ today: day.key === todayKey }"
+            :style="{ backgroundColor: getMoodColor(day.value) }"
+            @click="setMood(day.key)"
+          />
+        </div>
+      </article>
+
+      <article class="tool-panel stats-panel">
+        <div class="panel-head">
+          <span>Stats</span>
+          <strong>LIVE</strong>
+        </div>
+
+        <dl>
+          <div>
+            <dt>SESSIONS</dt>
+            <dd>{{ focusSessions }}</dd>
+          </div>
+          <div>
+            <dt>HOURS</dt>
+            <dd>{{ focusHours }}</dd>
+          </div>
+          <div>
+            <dt>MOOD</dt>
+            <dd>{{ activeMood.label }}</dd>
+          </div>
+          <div>
+            <dt>SCORE</dt>
+            <dd>{{ playScore }}</dd>
+          </div>
+        </dl>
+      </article>
     </section>
-
-    <nav class="mode-switch" aria-label="Palette modes">
-      <button
-        v-for="(palette, index) in palettes"
-        :key="palette.id"
-        type="button"
-        :class="{ active: activeIndex === index }"
-        :aria-label="`Mode ${palette.id}`"
-        @click="activeIndex = index; applyPalette()"
-      >
-        {{ palette.id }}
-      </button>
-    </nav>
-
-    <div class="corner-readout" aria-label="Scene readout">
-      <span>{{ charge }}</span>
-      <i />
-    </div>
   </main>
 </template>
 
 <style scoped>
-.pure-stage {
-  --mx: 50vw;
-  --my: 50vh;
+.lab-stage {
   position: fixed;
   inset: 0;
-  isolation: isolate;
-  overflow: hidden;
+  overflow: auto;
   min-height: 100svh;
-  background: var(--ink);
-  color: #fff;
+  background: #070709;
+  color: #f7fbff;
+  font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
 }
 
-.stage-video,
-.webgl-stage,
-.noise-field,
-.edge-frame,
-.cursor-slice {
-  position: absolute;
+.lab-video,
+.lab-grid-bg {
+  position: fixed;
   inset: 0;
+  pointer-events: none;
 }
 
-.stage-video {
-  z-index: -5;
+.lab-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: saturate(1.2) contrast(1.15) brightness(0.24);
+  filter: saturate(0.86) contrast(1.1) brightness(0.18);
   transform: scale(1.04);
 }
 
-.webgl-stage {
-  z-index: -2;
-  opacity: 0;
-  transition: opacity 0.7s ease;
-}
-
-.ready .webgl-stage {
-  opacity: 1;
-}
-
-.webgl-stage :deep(canvas) {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.noise-field {
-  z-index: -1;
+.lab-grid-bg {
   background:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 120px),
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.034) 0 1px, transparent 1px 90px),
-    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 7px);
-  opacity: 0.28;
-  mask-image: linear-gradient(180deg, black, rgba(0, 0, 0, 0.24));
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    radial-gradient(circle at 18% 24%, rgba(85, 214, 255, 0.2), transparent 26rem),
+    radial-gradient(circle at 88% 76%, rgba(255, 93, 122, 0.16), transparent 25rem),
+    linear-gradient(135deg, rgba(7, 7, 9, 0.72), rgba(7, 7, 9, 0.92));
+  background-size: 68px 68px, 68px 68px, auto, auto, auto;
 }
 
-.noise-field::after {
-  position: absolute;
-  inset: -20%;
-  background-image:
-    linear-gradient(115deg, transparent 0 46%, color-mix(in srgb, var(--primary) 32%, transparent) 47% 48%, transparent 49%),
-    linear-gradient(65deg, transparent 0 51%, color-mix(in srgb, var(--secondary) 24%, transparent) 52% 53%, transparent 54%);
-  transform: translate3d(0, 0, 0);
-  animation: scanSweep 7s linear infinite;
-  content: '';
+.lab-stage[data-flash] .lab-grid-bg {
+  animation: stageFlash 0.26s ease;
 }
 
-.edge-frame {
+.lab-header,
+.lab-shell {
+  position: relative;
   z-index: 2;
-  pointer-events: none;
+  width: min(1480px, calc(100% - 32px));
+  margin-inline: auto;
+}
+
+.lab-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 28px 0 18px;
+}
+
+.lab-header p {
+  margin: 0 0 6px;
+  color: #55d6ff;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+}
+
+.lab-header h1 {
+  margin: 0;
+  font-size: clamp(3rem, 8vw, 7rem);
+  line-height: 0.82;
+  letter-spacing: 0;
+  text-shadow: 0 0 28px rgba(85, 214, 255, 0.42);
+}
+
+.lab-header time {
+  color: #f5c84c;
+  font-size: clamp(2rem, 4vw, 4.8rem);
+  font-weight: 950;
+  line-height: 1;
+}
+
+.lab-shell {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(380px, 1.35fr) minmax(300px, 0.95fr);
+  grid-template-areas:
+    'focus play notes'
+    'dice play mood'
+    'stats play mood';
+  gap: 12px;
+  padding-bottom: 24px;
+}
+
+.tool-panel {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
   background:
-    linear-gradient(90deg, var(--primary), transparent 26%, transparent 74%, var(--secondary)) top / 100% 1px no-repeat,
-    linear-gradient(90deg, var(--accent), transparent 32%, transparent 68%, var(--primary)) bottom / 100% 1px no-repeat,
-    linear-gradient(180deg, var(--primary), transparent 35%, transparent 65%, var(--accent)) left / 1px 100% no-repeat,
-    linear-gradient(180deg, var(--secondary), transparent 35%, transparent 65%, var(--primary)) right / 1px 100% no-repeat;
-  opacity: 0.9;
+    linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.025)),
+    rgba(8, 9, 12, 0.78);
+  box-shadow: 0 20px 52px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(22px);
 }
 
-.cursor-slice {
-  z-index: 1;
-  pointer-events: none;
-  background:
-    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent) var(--mx) 0 / 1px 100% no-repeat,
-    linear-gradient(0deg, transparent, rgba(255, 255, 255, 0.13), transparent) 0 var(--my) / 100% 1px no-repeat;
-  mix-blend-mode: screen;
+.focus-panel {
+  grid-area: focus;
 }
 
-.identity {
-  position: absolute;
-  left: clamp(18px, 5vw, 84px);
-  bottom: clamp(92px, 12vh, 150px);
-  z-index: 4;
-  width: min(880px, calc(100vw - 36px));
-  pointer-events: none;
+.play-panel {
+  grid-area: play;
+  min-height: 620px;
 }
 
-.eyebrow {
-  margin: 0 0 12px;
-  color: color-mix(in srgb, var(--primary) 74%, white);
-  font: 800 12px/1 'JetBrains Mono', monospace;
-  letter-spacing: 0.28em;
+.notes-panel {
+  grid-area: notes;
+}
+
+.dice-panel {
+  grid-area: dice;
+}
+
+.mood-panel {
+  grid-area: mood;
+}
+
+.stats-panel {
+  grid-area: stats;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 58px;
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.panel-head span {
+  color: rgba(247, 251, 255, 0.62);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
-.identity h1 {
-  position: relative;
-  margin: 0;
+.panel-head strong {
   color: #fff;
-  font-size: clamp(5.4rem, 18vw, 17.5rem);
+  font-size: 22px;
   font-weight: 950;
-  line-height: 0.78;
-  letter-spacing: 0;
-  text-transform: none;
-  text-shadow:
-    0 0 16px color-mix(in srgb, var(--hot) 70%, transparent),
-    0 0 44px color-mix(in srgb, var(--primary) 58%, transparent),
-    0 0 92px color-mix(in srgb, var(--secondary) 42%, transparent);
-  animation: titleBreathe 3.8s ease-in-out infinite;
 }
 
-.identity h1::before,
-.identity h1::after {
-  position: absolute;
-  inset: 0;
-  content: attr(data-text);
-  opacity: 0.62;
-  mix-blend-mode: screen;
-  pointer-events: none;
-}
-
-.identity h1::before {
-  color: var(--primary);
-  transform: translate(-0.035em, -0.015em);
-  clip-path: polygon(0 9%, 100% 0, 100% 34%, 0 42%);
-  animation: glitchA 2.4s steps(2, end) infinite;
-}
-
-.identity h1::after {
-  color: var(--secondary);
-  transform: translate(0.028em, 0.02em);
-  clip-path: polygon(0 58%, 100% 48%, 100% 100%, 0 88%);
-  animation: glitchB 2.9s steps(2, end) infinite;
-}
-
-.charge-line {
-  width: min(620px, 72vw);
-  height: 3px;
-  margin-top: 22px;
-  background: rgba(255, 255, 255, 0.14);
-  overflow: hidden;
-}
-
-.charge-line span {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
-  box-shadow: 0 0 22px var(--primary);
-  transition: width 0.18s ease;
-}
-
-.mode-switch {
-  position: absolute;
-  right: clamp(18px, 4vw, 60px);
-  bottom: clamp(22px, 5vh, 54px);
-  z-index: 5;
-  display: grid;
-  grid-template-columns: repeat(3, 52px);
-  gap: 8px;
-}
-
-.mode-switch button {
-  width: 52px;
-  height: 52px;
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.055);
-  color: #fff;
-  font: 900 14px/1 'JetBrains Mono', monospace;
-  cursor: pointer;
-  backdrop-filter: blur(18px);
-  transition: transform 0.22s ease, background 0.22s ease, border-color 0.22s ease;
-}
-
-.mode-switch button:hover,
-.mode-switch button.active {
-  transform: translateY(-3px);
-  border-color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 22%, transparent);
-}
-
-.corner-readout {
-  position: absolute;
-  right: clamp(18px, 4vw, 60px);
-  top: clamp(18px, 4vw, 52px);
-  z-index: 5;
+.focus-wrap {
   display: grid;
   place-items: center;
-  width: 76px;
-  height: 76px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 50%;
-  background:
-    conic-gradient(from 0deg, var(--primary), var(--secondary), var(--accent), var(--primary));
-  box-shadow: 0 0 28px color-mix(in srgb, var(--primary) 34%, transparent);
+  padding: 20px 16px 10px;
 }
 
-.corner-readout::before {
-  position: absolute;
-  inset: 5px;
-  border-radius: 50%;
-  background: rgba(5, 8, 16, 0.82);
-  content: '';
+.focus-ring {
+  width: 172px;
+  height: 172px;
+  transform: rotate(-90deg);
 }
 
-.corner-readout span {
-  position: relative;
-  z-index: 1;
-  font: 950 22px/1 'JetBrains Mono', monospace;
+.ring-track,
+.ring-value {
+  fill: none;
+  stroke-width: 8;
 }
 
-.corner-readout i {
-  position: absolute;
-  inset: -8px;
-  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
-  border-radius: 50%;
-  animation: readoutSpin 4.6s linear infinite;
+.ring-track {
+  stroke: rgba(255, 255, 255, 0.1);
 }
 
-@keyframes scanSweep {
-  0% {
-    transform: translateX(-12%) translateY(-6%);
-  }
-
-  100% {
-    transform: translateX(12%) translateY(6%);
-  }
+.ring-value {
+  stroke: #55d6ff;
+  stroke-linecap: round;
+  stroke-dasharray: 314;
+  filter: drop-shadow(0 0 10px rgba(85, 214, 255, 0.85));
+  transition: stroke-dashoffset 0.25s ease;
 }
 
-@keyframes titleBreathe {
+button,
+textarea {
+  font: inherit;
+}
+
+button {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #f7fbff;
+  cursor: pointer;
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(85, 214, 255, 0.65);
+  background: rgba(85, 214, 255, 0.12);
+}
+
+.primary-action {
+  min-width: 138px;
+  min-height: 46px;
+  margin-top: -72px;
+  background: #55d6ff;
+  color: #071018;
+  font-weight: 950;
+}
+
+.preset-row,
+.play-controls,
+.mood-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 16px 16px;
+}
+
+.preset-row button,
+.play-controls button,
+.mood-picker button {
+  min-height: 38px;
+  padding: 0 12px;
+}
+
+.preset-row button.active {
+  border-color: #f5c84c;
+  background: rgba(245, 200, 76, 0.16);
+}
+
+.play-canvas {
+  display: block;
+  width: calc(100% - 32px);
+  height: 500px;
+  margin: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: #08090c;
+  touch-action: none;
+}
+
+.play-controls {
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0;
+}
+
+.play-controls span {
+  color: #78f0a8;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+textarea {
+  display: block;
+  width: calc(100% - 32px);
+  min-height: 220px;
+  margin: 16px;
+  resize: vertical;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  outline: none;
+  background: rgba(0, 0, 0, 0.24);
+  color: #f7fbff;
+  line-height: 1.6;
+  padding: 12px;
+}
+
+textarea:focus {
+  border-color: rgba(85, 214, 255, 0.7);
+  box-shadow: 0 0 0 2px rgba(85, 214, 255, 0.12);
+}
+
+.wide-action {
+  width: calc(100% - 32px);
+  min-height: 42px;
+  margin: 0 16px 12px;
+  font-weight: 950;
+}
+
+output {
+  display: block;
+  min-height: 54px;
+  margin: 0 16px 12px;
+  color: #f5c84c;
+  font-size: 20px;
+  font-weight: 950;
+  line-height: 1.4;
+}
+
+.history-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 16px 16px;
+}
+
+.history-line span {
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  color: rgba(247, 251, 255, 0.72);
+  font-size: 12px;
+}
+
+.mood-picker button {
+  border-color: color-mix(in srgb, var(--mood) 60%, transparent);
+}
+
+.mood-picker button.active {
+  background: color-mix(in srgb, var(--mood) 28%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--mood) 34%, transparent);
+}
+
+.mood-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 7px;
+  padding: 4px 16px 16px;
+}
+
+.mood-grid button {
+  aspect-ratio: 1;
+  min-width: 0;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.mood-grid button.today {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  padding: 16px;
+}
+
+dl div {
+  min-height: 86px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+dt {
+  color: rgba(247, 251, 255, 0.52);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+dd {
+  margin: 12px 0 0;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 950;
+}
+
+@keyframes stageFlash {
   0%,
   100% {
-    transform: translateY(0);
+    filter: brightness(1);
   }
 
   50% {
-    transform: translateY(-0.035em);
+    filter: brightness(1.65) saturate(1.35);
   }
 }
 
-@keyframes glitchA {
-  0%,
-  84%,
-  100% {
-    transform: translate(-0.035em, -0.015em);
+@media (max-width: 1100px) {
+  .lab-shell {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      'play play'
+      'focus notes'
+      'dice mood'
+      'stats stats';
   }
 
-  86% {
-    transform: translate(0.045em, -0.01em);
-  }
-
-  88% {
-    transform: translate(-0.02em, 0.02em);
-  }
-}
-
-@keyframes glitchB {
-  0%,
-  78%,
-  100% {
-    transform: translate(0.028em, 0.02em);
-  }
-
-  80% {
-    transform: translate(-0.045em, 0.01em);
-  }
-
-  82% {
-    transform: translate(0.02em, -0.02em);
+  .play-panel {
+    min-height: auto;
   }
 }
 
-@keyframes readoutSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (max-width: 760px) {
-  .identity {
-    left: 16px;
-    right: 16px;
-    bottom: 104px;
-    width: auto;
+@media (max-width: 720px) {
+  .lab-header {
+    align-items: start;
+    flex-direction: column;
   }
 
-  .eyebrow {
-    font-size: 10px;
-    letter-spacing: 0.18em;
+  .lab-shell {
+    width: calc(100% - 24px);
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'play'
+      'focus'
+      'notes'
+      'dice'
+      'mood'
+      'stats';
   }
 
-  .identity h1 {
-    font-size: clamp(4.2rem, 24vw, 7.6rem);
+  .play-canvas {
+    height: 360px;
   }
 
-  .charge-line {
-    width: 82vw;
-  }
-
-  .mode-switch {
-    left: 16px;
-    right: auto;
-    bottom: 24px;
-  }
-
-  .corner-readout {
-    width: 62px;
-    height: 62px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .identity h1,
-  .identity h1::before,
-  .identity h1::after,
-  .corner-readout i,
-  .noise-field::after {
-    animation: none;
+  textarea {
+    min-height: 180px;
   }
 }
 </style>
