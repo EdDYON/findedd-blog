@@ -12,6 +12,7 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "three": "^0.184.0",
     "valaxy": "0.28.0-beta.3",
     "valaxy-theme-yun": "0.28.0-beta.3",
     "vite": "^8.0.0"
