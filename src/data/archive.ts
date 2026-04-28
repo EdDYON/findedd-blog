@@ -1,0 +1,58 @@
+import type { ArchiveItem } from '@/types/void'
+
+export const archiveItems: ArchiveItem[] = [
+  {
+    id: '001',
+    title: 'Neon Pulse',
+    type: 'Visual Experiment',
+    status: 'Active',
+    danger: 'LOW',
+    description: 'A reactive light fragment born inside the VOID.',
+    tags: ['visual', 'light', 'interactive'],
+  },
+  {
+    id: '002',
+    title: 'Black Signal',
+    type: 'Unknown Transmission',
+    status: 'Unstable',
+    danger: 'MEDIUM',
+    description: 'A repeating signal with no detectable source.',
+    tags: ['signal', 'glitch', 'unknown'],
+  },
+  {
+    id: '003',
+    title: 'Glass Phantom',
+    type: 'Interface Ghost',
+    status: 'Unknown',
+    danger: 'UNKNOWN',
+    description: 'It appears only when the cursor stops moving.',
+    tags: ['ghost', 'cursor', 'hidden'],
+  },
+  {
+    id: '004',
+    title: 'Red Gate',
+    type: 'Locked Portal',
+    status: 'Dormant',
+    danger: 'HIGH',
+    description: 'A sealed entry point that should not be opened.',
+    tags: ['gate', 'secret', 'warning'],
+  },
+  {
+    id: '005',
+    title: 'Static Bloom',
+    type: 'Noise Garden',
+    status: 'Active',
+    danger: 'LOW',
+    description: 'A field of digital flowers growing inside corrupted static.',
+    tags: ['noise', 'particle', 'ambient'],
+  },
+  {
+    id: '006',
+    title: 'Null Mirror',
+    type: 'Reflection Engine',
+    status: 'Corrupted',
+    danger: 'UNKNOWN',
+    description: 'A mirror that renders what the visitor almost became.',
+    tags: ['mirror', 'void', 'identity'],
+  },
+]

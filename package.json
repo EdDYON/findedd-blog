@@ -1,22 +1,35 @@
 {
-  "name": "EdDYON的blog",
+  "name": "void",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "npm run build:ssg",
-    "build:spa": "valaxy build",
-    "build:ssg": "valaxy build --ssg",
-    "dev": "valaxy",
-    "rss": "valaxy rss",
-    "serve": "vite preview"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint ."
   },
   "dependencies": {
-    "valaxy": "0.28.0-beta.3",
-    "valaxy-theme-yun": "0.28.0-beta.3",
-    "vite": "^8.0.0"
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.11.0",
+    "motion": "^12.38.0",
+    "next": "^16.2.4",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "tailwind-merge": "^3.5.0",
+    "three": "^0.184.0",
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.4",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.4",
+    "tailwindcss": "^4.2.4",
     "typescript": "^5.9.3"
   }
 }
