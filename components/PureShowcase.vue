@@ -29,6 +29,16 @@ interface PlayParticle {
   phase: number
 }
 
+interface HeroParticle {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  size: number
+  color: string
+  pulse: number
+}
+
 const storagePrefix = 'eddyon-lab-v1'
 const focusPresets = [5, 15, 25, 45]
 const defaultDiceInput = [
@@ -49,6 +59,7 @@ const moodOptions: MoodOption[] = [
 
 const stageRef = ref<HTMLElement | null>(null)
 const toolsRef = ref<HTMLElement | null>(null)
+const heroCanvas = ref<HTMLCanvasElement | null>(null)
 const playCanvas = ref<HTMLCanvasElement | null>(null)
 const stageCursor = ref({ x: 50, y: 50 })
 const currentTime = ref('--:--')
@@ -76,6 +87,11 @@ const hydrated = ref(false)
 
 let clockTimer: ReturnType<typeof setInterval> | null = null
 let focusTimer: ReturnType<typeof setInterval> | null = null
+let heroRaf = 0
+let heroCtx: CanvasRenderingContext2D | null = null
+let heroWidth = 0
+let heroHeight = 0
+let heroParticles: HeroParticle[] = []
 let playRaf = 0
 let playCtx: CanvasRenderingContext2D | null = null
 let playWidth = 0
@@ -218,6 +234,147 @@ function handleStagePointerMove(event: PointerEvent) {
 
 function scrollToTools() {
   toolsRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+function resizeHeroCanvas() {
+  const canvas = heroCanvas.value
+  if (!canvas)
+    return
+
+  const bounds = canvas.getBoundingClientRect()
+  const ratio = Math.min(window.devicePixelRatio || 1, 2)
+  heroWidth = Math.max(360, Math.floor(bounds.width))
+  heroHeight = Math.max(360, Math.floor(bounds.height))
+  canvas.width = Math.floor(heroWidth * ratio)
+  canvas.height = Math.floor(heroHeight * ratio)
+  heroCtx = canvas.getContext('2d')
+  heroCtx?.setTransform(ratio, 0, 0, ratio, 0, 0)
+}
+
+function createHeroParticle(): HeroParticle {
+  const colors = ['#55d6ff', '#ff5d7a', '#f5c84c', '#78f0a8', '#9b8cff', '#ffffff']
+  return {
+    x: Math.random() * heroWidth,
+    y: Math.random() * heroHeight,
+    vx: (Math.random() - 0.5) * 0.62,
+    vy: (Math.random() - 0.5) * 0.62,
+    size: 1.2 + Math.random() * 3.8,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    pulse: Math.random() * Math.PI * 2,
+  }
+}
+
+function seedHeroParticles() {
+  const count = window.innerWidth < 740 ? 64 : 126
+  heroParticles = Array.from({ length: count }, createHeroParticle)
+}
+
+function drawHero(time: number) {
+  if (!heroCtx) {
+    heroRaf = requestAnimationFrame(drawHero)
+    return
+  }
+
+  const pointerX = (stageCursor.value.x / 100) * heroWidth
+  const pointerY = (stageCursor.value.y / 100) * heroHeight
+
+  heroCtx.clearRect(0, 0, heroWidth, heroHeight)
+  heroCtx.globalCompositeOperation = 'lighter'
+
+  const wash = heroCtx.createLinearGradient(0, 0, heroWidth, heroHeight)
+  wash.addColorStop(0, 'rgba(85, 214, 255, 0.06)')
+  wash.addColorStop(0.5, 'rgba(255, 93, 122, 0.035)')
+  wash.addColorStop(1, 'rgba(120, 240, 168, 0.045)')
+  heroCtx.fillStyle = wash
+  heroCtx.fillRect(0, 0, heroWidth, heroHeight)
+
+  for (let i = 0; i < 9; i += 1) {
+    const offset = ((time * 0.035 + i * 170) % (heroWidth + 420)) - 260
+    heroCtx.strokeStyle = i % 2 ? 'rgba(255, 93, 122, 0.08)' : 'rgba(85, 214, 255, 0.08)'
+    heroCtx.lineWidth = i % 3 === 0 ? 2.2 : 1
+    heroCtx.beginPath()
+    heroCtx.moveTo(offset, 0)
+    heroCtx.lineTo(offset + 300, heroHeight)
+    heroCtx.stroke()
+  }
+
+  heroParticles.forEach((particle, index) => {
+    const dx = pointerX - particle.x
+    const dy = pointerY - particle.y
+    const dist = Math.hypot(dx, dy) || 1
+    const pull = Math.max(0, 1 - dist / 420)
+
+    particle.vx += (dx / dist) * pull * 0.045
+    particle.vy += (dy / dist) * pull * 0.045
+    particle.vx *= 0.988
+    particle.vy *= 0.988
+    particle.x += particle.vx
+    particle.y += particle.vy
+    particle.pulse += 0.035
+
+    if (particle.x < -30)
+      particle.x = heroWidth + 30
+    if (particle.x > heroWidth + 30)
+      particle.x = -30
+    if (particle.y < -30)
+      particle.y = heroHeight + 30
+    if (particle.y > heroHeight + 30)
+      particle.y = -30
+
+    for (let otherIndex = index + 1; otherIndex < heroParticles.length; otherIndex += 1) {
+      const other = heroParticles[otherIndex]
+      const linkDistance = Math.hypot(other.x - particle.x, other.y - particle.y)
+      if (linkDistance > 118)
+        continue
+
+      heroCtx.globalAlpha = (1 - linkDistance / 118) * 0.26
+      heroCtx.strokeStyle = particle.color
+      heroCtx.lineWidth = 0.8
+      heroCtx.beginPath()
+      heroCtx.moveTo(particle.x, particle.y)
+      heroCtx.lineTo(other.x, other.y)
+      heroCtx.stroke()
+    }
+
+    if (dist < 360) {
+      heroCtx.globalAlpha = (1 - dist / 360) * 0.36
+      heroCtx.strokeStyle = particle.color
+      heroCtx.lineWidth = 1.1
+      heroCtx.beginPath()
+      heroCtx.moveTo(particle.x, particle.y)
+      heroCtx.lineTo(pointerX, pointerY)
+      heroCtx.stroke()
+    }
+
+    heroCtx.globalAlpha = 0.72 + Math.sin(particle.pulse) * 0.22
+    heroCtx.shadowColor = particle.color
+    heroCtx.shadowBlur = 20
+    heroCtx.fillStyle = particle.color
+    heroCtx.beginPath()
+    heroCtx.arc(particle.x, particle.y, particle.size + pull * 3.5, 0, Math.PI * 2)
+    heroCtx.fill()
+  })
+
+  heroCtx.shadowBlur = 0
+  heroCtx.globalAlpha = 1
+
+  heroCtx.strokeStyle = 'rgba(245, 200, 76, 0.42)'
+  heroCtx.lineWidth = 1
+  heroCtx.beginPath()
+  heroCtx.arc(pointerX, pointerY, 52 + Math.sin(time / 130) * 10, 0, Math.PI * 2)
+  heroCtx.stroke()
+
+  if (Math.floor(time / 180) % 5 === 0) {
+    for (let i = 0; i < 5; i += 1) {
+      const y = Math.random() * heroHeight
+      const h = 8 + Math.random() * 26
+      heroCtx.fillStyle = i % 2 ? 'rgba(255, 93, 122, 0.12)' : 'rgba(85, 214, 255, 0.14)'
+      heroCtx.fillRect(Math.random() * heroWidth * 0.6, y, 140 + Math.random() * heroWidth * 0.42, h)
+    }
+  }
+
+  heroCtx.globalCompositeOperation = 'source-over'
+  heroRaf = requestAnimationFrame(drawHero)
 }
 
 function setFocusPreset(minutes: number) {
@@ -608,9 +765,13 @@ onMounted(async () => {
   clockTimer = setInterval(updateClock, 1000)
 
   await nextTick()
+  resizeHeroCanvas()
   resizePlayCanvas()
+  seedHeroParticles()
   seedPlayParticles()
+  heroRaf = requestAnimationFrame(drawHero)
   playRaf = requestAnimationFrame(drawPlay)
+  window.addEventListener('resize', resizeHeroCanvas, { passive: true })
   window.addEventListener('resize', resizePlayCanvas, { passive: true })
 })
 
@@ -619,7 +780,9 @@ onBeforeUnmount(() => {
     clearInterval(clockTimer)
   if (focusTimer)
     clearInterval(focusTimer)
+  cancelAnimationFrame(heroRaf)
   cancelAnimationFrame(playRaf)
+  window.removeEventListener('resize', resizeHeroCanvas)
   window.removeEventListener('resize', resizePlayCanvas)
 })
 </script>
@@ -632,6 +795,13 @@ onBeforeUnmount(() => {
     <div class="lab-grid-bg" aria-hidden="true" />
 
     <section class="hero-stage" aria-label="EdDYON Lab home">
+      <canvas ref="heroCanvas" class="hero-canvas" aria-hidden="true" />
+      <div class="chaos-stack" aria-hidden="true">
+        <span>RUNNING SIGNAL</span>
+        <span>NOISY INTERFACE</span>
+        <span>LIVE CONTROL</span>
+      </div>
+
       <nav class="hero-nav" aria-label="Quick status">
         <span>EdDYON LAB</span>
         <div>
@@ -647,6 +817,9 @@ onBeforeUnmount(() => {
           <p class="hero-kicker">
             PERSONAL INTERACTIVE CONTROL ROOM
           </p>
+          <div class="hero-warning" aria-hidden="true">
+            VISUAL OVERDRIVE / UNSTABLE HUD / SIGNAL LOCKED
+          </div>
           <h1>
             Signal<br>
             Playground
@@ -666,9 +839,12 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="hero-machine" aria-hidden="true">
+          <div class="machine-halo halo-a" />
+          <div class="machine-halo halo-b" />
           <div class="machine-ring ring-one" />
           <div class="machine-ring ring-two" />
           <div class="machine-ring ring-three" />
+          <div class="machine-ring ring-four" />
           <div class="machine-core">
             <span>ED</span>
           </div>
@@ -677,10 +853,19 @@ onBeforeUnmount(() => {
           <i class="node node-c" />
           <i class="node node-d" />
           <div class="scan-panel">
+            <strong>LIVE VECTOR</strong>
             <span />
             <span />
             <span />
             <span />
+          </div>
+          <div class="hero-readout readout-a">
+            <span>CORE</span>
+            <strong>{{ playStatusLabel }}</strong>
+          </div>
+          <div class="hero-readout readout-b">
+            <span>BEST</span>
+            <strong>{{ playHighScore }}</strong>
           </div>
         </div>
       </div>
@@ -1023,6 +1208,7 @@ onBeforeUnmount(() => {
 
 .hero-stage {
   position: relative;
+  isolation: isolate;
   z-index: 2;
   display: grid;
   grid-template-rows: auto 1fr auto;
@@ -1030,36 +1216,99 @@ onBeforeUnmount(() => {
   min-height: 100svh;
   margin-inline: auto;
   padding: 24px 0 28px;
+  overflow: hidden;
+  perspective: 1200px;
 }
 
 .hero-stage::before {
   position: absolute;
-  inset: 78px 0 110px;
-  z-index: -1;
+  inset: 70px -4vw 72px;
+  z-index: 0;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 26px;
+  border-radius: 34px;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.018)),
-    linear-gradient(100deg, rgba(85, 214, 255, 0.08), rgba(255, 93, 122, 0.05) 48%, rgba(245, 200, 76, 0.07));
+    linear-gradient(108deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.018) 42%, rgba(85, 214, 255, 0.1)),
+    conic-gradient(from 210deg at 66% 42%, rgba(85, 214, 255, 0.24), rgba(255, 93, 122, 0.12), rgba(245, 200, 76, 0.1), rgba(120, 240, 168, 0.16), rgba(85, 214, 255, 0.24));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 40px 120px rgba(0, 0, 0, 0.45);
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 0 88px rgba(85, 214, 255, 0.08),
+    0 50px 160px rgba(0, 0, 0, 0.58),
+    0 0 120px rgba(85, 214, 255, 0.16);
   backdrop-filter: blur(20px);
+  transform: rotate(-1.3deg) skewX(-3deg);
   content: '';
 }
 
 .hero-stage::after {
   position: absolute;
-  inset: 78px 0 110px;
-  z-index: -1;
-  border-radius: 26px;
+  inset: 48px -8vw 60px;
+  z-index: 1;
+  border-radius: 34px;
   background:
-    repeating-linear-gradient(0deg, transparent 0 24px, rgba(255, 255, 255, 0.035) 24px 25px),
-    linear-gradient(90deg, transparent 0 48%, rgba(255, 255, 255, 0.12) 50%, transparent 52% 100%);
-  opacity: 0.42;
+    repeating-linear-gradient(0deg, transparent 0 12px, rgba(255, 255, 255, 0.045) 12px 13px),
+    repeating-linear-gradient(90deg, transparent 0 78px, rgba(85, 214, 255, 0.06) 78px 79px),
+    linear-gradient(90deg, transparent 0 34%, rgba(255, 255, 255, 0.14) 36%, transparent 38% 100%);
+  opacity: 0.58;
   mask-image: linear-gradient(90deg, transparent, black 16%, black 84%, transparent);
   animation: heroInterference 7s linear infinite;
   content: '';
+}
+
+.hero-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  opacity: 0.9;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.chaos-stack {
+  position: absolute;
+  top: 12%;
+  right: -7%;
+  z-index: 3;
+  display: grid;
+  gap: 12px;
+  width: min(34vw, 520px);
+  transform: rotate(14deg);
+  pointer-events: none;
+}
+
+.chaos-stack span {
+  display: block;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(7, 9, 12, 0.42);
+  color: rgba(247, 251, 255, 0.36);
+  font-size: clamp(1rem, 2.2vw, 2.5rem);
+  font-weight: 950;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  backdrop-filter: blur(12px);
+  animation: chaosSlide 6s ease-in-out infinite;
+}
+
+.chaos-stack span:nth-child(2) {
+  margin-left: 14%;
+  color: rgba(85, 214, 255, 0.5);
+  animation-delay: 0.32s;
+}
+
+.chaos-stack span:nth-child(3) {
+  margin-left: -8%;
+  color: rgba(255, 93, 122, 0.5);
+  animation-delay: 0.64s;
+}
+
+.hero-nav,
+.hero-layout,
+.hero-dock,
+.scroll-cue {
+  position: relative;
+  z-index: 3;
 }
 
 .hero-nav {
@@ -1097,15 +1346,18 @@ onBeforeUnmount(() => {
 }
 
 .hero-layout {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(420px, 0.9fr);
+  grid-template-columns: minmax(0, 1.08fr) minmax(380px, 0.86fr);
   align-items: center;
-  gap: 40px;
-  padding: 44px clamp(18px, 4vw, 72px) 34px;
+  gap: 16px;
+  padding: 28px clamp(18px, 4vw, 72px) 10px;
+  transform: rotate(-1.4deg);
 }
 
 .hero-copy {
   position: relative;
+  transform: translateX(clamp(-34px, -2vw, -12px));
 }
 
 .hero-kicker {
@@ -1121,19 +1373,38 @@ onBeforeUnmount(() => {
   letter-spacing: 0.18em;
 }
 
+.hero-warning {
+  width: min(580px, 86vw);
+  margin: 0 0 8px;
+  padding: 8px 12px;
+  border-left: 4px solid #ff5d7a;
+  background:
+    linear-gradient(90deg, rgba(255, 93, 122, 0.2), transparent),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 12px);
+  color: #ff8bac;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+  transform: skewX(-12deg);
+  box-shadow: 0 0 24px rgba(255, 93, 122, 0.16);
+}
+
 .hero-copy h1 {
   position: relative;
-  width: min-content;
+  width: max-content;
   margin: 0;
   color: #fff;
-  font-size: clamp(4.5rem, 12vw, 12rem);
+  font-size: clamp(5.2rem, 15.4vw, 16rem);
   font-weight: 950;
-  line-height: 0.74;
-  letter-spacing: -0.08em;
+  line-height: 0.66;
+  letter-spacing: -0.12em;
   text-transform: uppercase;
+  transform: translateX(-0.06em);
   text-shadow:
-    0 0 28px rgba(85, 214, 255, 0.42),
-    0 0 72px rgba(255, 93, 122, 0.22);
+    0 0 22px rgba(255, 255, 255, 0.54),
+    0 0 56px rgba(85, 214, 255, 0.5),
+    0 0 140px rgba(255, 93, 122, 0.34);
+  filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.48));
 }
 
 .hero-copy h1::before,
@@ -1160,11 +1431,14 @@ onBeforeUnmount(() => {
 }
 
 .hero-subtitle {
-  max-width: 650px;
-  margin: 26px 0 0;
+  max-width: 720px;
+  margin: 22px 0 0;
+  padding-left: 18px;
+  border-left: 2px solid rgba(85, 214, 255, 0.55);
   color: rgba(247, 251, 255, 0.72);
   font-size: clamp(1rem, 1.5vw, 1.32rem);
   line-height: 1.85;
+  text-shadow: 0 0 18px rgba(85, 214, 255, 0.16);
 }
 
 .hero-actions {
@@ -1177,39 +1451,64 @@ onBeforeUnmount(() => {
 .hero-actions button {
   min-height: 54px;
   padding: 0 22px;
-  border-radius: 999px;
+  border-radius: 4px;
   font-weight: 950;
   letter-spacing: 0.08em;
+  transform: skewX(-10deg);
 }
 
 .hero-primary {
   border-color: transparent;
-  background: linear-gradient(90deg, #55d6ff, #78f0a8);
+  background:
+    linear-gradient(90deg, #55d6ff, #78f0a8),
+    repeating-linear-gradient(90deg, transparent 0 8px, rgba(255, 255, 255, 0.2) 8px 9px);
   color: #061015;
-  box-shadow: 0 0 34px rgba(85, 214, 255, 0.34);
+  box-shadow:
+    0 0 34px rgba(85, 214, 255, 0.34),
+    8px 8px 0 rgba(255, 93, 122, 0.26);
 }
 
 .hero-secondary {
   background: rgba(255, 255, 255, 0.08);
+  box-shadow: 8px 8px 0 rgba(85, 214, 255, 0.15);
 }
 
 .hero-machine {
   position: relative;
   display: grid;
   place-items: center;
-  min-height: min(62vw, 680px);
+  min-height: min(64vw, 720px);
   isolation: isolate;
+  transform: translate(5vw, -2vh) rotate(9deg) scale(1.08);
+}
+
+.machine-halo {
+  position: absolute;
+  width: min(54vw, 710px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: blur(18px);
+  opacity: 0.38;
+  background: conic-gradient(from 70deg, transparent, rgba(85, 214, 255, 0.56), transparent, rgba(255, 93, 122, 0.48), transparent);
+  animation: orbitSpin 18s linear infinite;
+}
+
+.halo-b {
+  width: min(42vw, 560px);
+  opacity: 0.3;
+  animation-duration: 13s;
+  animation-direction: reverse;
 }
 
 .machine-ring {
   position: absolute;
-  width: min(44vw, 560px);
+  width: min(48vw, 650px);
   aspect-ratio: 1;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   box-shadow:
-    inset 0 0 36px rgba(85, 214, 255, 0.08),
-    0 0 42px rgba(85, 214, 255, 0.12);
+    inset 0 0 58px rgba(85, 214, 255, 0.12),
+    0 0 64px rgba(85, 214, 255, 0.18);
 }
 
 .ring-one {
@@ -1220,32 +1519,41 @@ onBeforeUnmount(() => {
 }
 
 .ring-two {
-  width: min(35vw, 440px);
+  width: min(38vw, 500px);
   border-style: dashed;
   border-color: rgba(245, 200, 76, 0.3);
   animation: orbitSpin 22s linear infinite reverse;
 }
 
 .ring-three {
-  width: min(25vw, 310px);
+  width: min(27vw, 360px);
   border-color: rgba(120, 240, 168, 0.35);
   animation: pulseRing 3.4s ease-in-out infinite;
+}
+
+.ring-four {
+  width: min(58vw, 760px);
+  border-color: rgba(255, 93, 122, 0.22);
+  border-style: dotted;
+  transform: rotateX(64deg);
+  animation: orbitSpin 9s linear infinite;
 }
 
 .machine-core {
   position: relative;
   display: grid;
   place-items: center;
-  width: min(20vw, 230px);
+  width: min(22vw, 280px);
   aspect-ratio: 1;
   border: 1px solid rgba(255, 255, 255, 0.24);
-  border-radius: 28px;
+  border-radius: 38px;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03)),
     rgba(7, 9, 12, 0.76);
   box-shadow:
-    inset 0 0 44px rgba(85, 214, 255, 0.12),
-    0 0 62px rgba(255, 93, 122, 0.18);
+    inset 0 0 56px rgba(85, 214, 255, 0.18),
+    0 0 84px rgba(255, 93, 122, 0.28),
+    18px 18px 0 rgba(85, 214, 255, 0.12);
   transform: rotate(45deg);
   animation: coreFloat 5s ease-in-out infinite;
 }
@@ -1301,8 +1609,8 @@ onBeforeUnmount(() => {
 
 .scan-panel {
   position: absolute;
-  right: 0;
-  bottom: 12%;
+  right: -6%;
+  bottom: 8%;
   display: grid;
   gap: 8px;
   width: min(22vw, 260px);
@@ -1311,6 +1619,13 @@ onBeforeUnmount(() => {
   border-radius: 16px;
   background: rgba(7, 9, 12, 0.52);
   backdrop-filter: blur(18px);
+  transform: skewX(-10deg);
+}
+
+.scan-panel strong {
+  color: #f5c84c;
+  font-size: 11px;
+  letter-spacing: 0.18em;
 }
 
 .scan-panel span {
@@ -1337,22 +1652,40 @@ onBeforeUnmount(() => {
 }
 
 .hero-dock {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  display: flex;
+  align-items: end;
   gap: 10px;
-  padding: 0 clamp(18px, 4vw, 72px);
+  width: min(1180px, calc(100% - 70px));
+  margin-left: clamp(18px, 5vw, 86px);
+  padding: 0;
+  transform: translateY(-16px) rotate(-2deg);
 }
 
 .hero-dock button {
   position: relative;
   overflow: hidden;
+  flex: 1 1 0;
   min-height: 122px;
   padding: 18px;
   text-align: left;
-  border-radius: 18px;
+  border-radius: 6px;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.035)),
     rgba(7, 9, 12, 0.66);
+  clip-path: polygon(0 0, calc(100% - 28px) 0, 100% 28px, 100% 100%, 24px 100%, 0 calc(100% - 24px));
+  transform: skewX(-8deg);
+}
+
+.hero-dock button:nth-child(2) {
+  transform: translateY(28px) skewX(-8deg);
+}
+
+.hero-dock button:nth-child(3) {
+  transform: translateY(-18px) skewX(-8deg);
+}
+
+.hero-dock button:nth-child(4) {
+  transform: translateY(16px) skewX(-8deg);
 }
 
 .hero-dock button::before {
@@ -1410,6 +1743,43 @@ onBeforeUnmount(() => {
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.08);
   transform: translateX(-50%);
+}
+
+.hero-readout {
+  position: absolute;
+  display: grid;
+  min-width: 132px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(8, 10, 14, 0.56);
+  box-shadow: 0 0 28px rgba(85, 214, 255, 0.18);
+  backdrop-filter: blur(18px);
+  transform: skewX(-12deg);
+}
+
+.hero-readout span {
+  color: rgba(247, 251, 255, 0.48);
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.18em;
+}
+
+.hero-readout strong {
+  margin-top: 4px;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 950;
+  letter-spacing: -0.04em;
+}
+
+.readout-a {
+  top: 16%;
+  left: -2%;
+}
+
+.readout-b {
+  right: 9%;
+  top: 8%;
 }
 
 .scroll-cue span {
@@ -2083,18 +2453,33 @@ dd {
   }
 }
 
+@keyframes chaosSlide {
+  0%,
+  100% {
+    transform: translateX(0) skewX(-12deg);
+    filter: brightness(0.9);
+  }
+
+  50% {
+    transform: translateX(-28px) skewX(-12deg);
+    filter: brightness(1.35);
+  }
+}
+
 @media (max-width: 1100px) {
   .hero-layout {
     grid-template-columns: 1fr;
     gap: 8px;
+    transform: rotate(-0.8deg);
   }
 
   .hero-machine {
     min-height: 420px;
+    transform: translate(0, -2vh) rotate(7deg) scale(1);
   }
 
   .machine-ring {
-    width: min(72vw, 480px);
+    width: min(78vw, 520px);
   }
 
   .ring-two {
@@ -2107,7 +2492,22 @@ dd {
   }
 
   .hero-dock {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: auto;
+    margin-inline: 18px;
+  }
+
+  .hero-dock button,
+  .hero-dock button:nth-child(2),
+  .hero-dock button:nth-child(3),
+  .hero-dock button:nth-child(4) {
+    transform: skewX(-6deg);
+  }
+
+  .chaos-stack {
+    right: -22%;
+    width: min(58vw, 520px);
   }
 
   .lab-shell {
@@ -2135,6 +2535,11 @@ dd {
   .hero-stage::after {
     inset: 64px 0 88px;
     border-radius: 18px;
+    transform: none;
+  }
+
+  .chaos-stack {
+    display: none;
   }
 
   .hero-nav {
@@ -2144,6 +2549,7 @@ dd {
 
   .hero-layout {
     padding: 28px 14px 22px;
+    transform: none;
   }
 
   .hero-copy h1 {
@@ -2162,13 +2568,23 @@ dd {
 
   .hero-actions button {
     width: 100%;
+    transform: none;
   }
 
   .hero-machine {
     min-height: 300px;
+    transform: rotate(4deg) scale(1.05);
+  }
+
+  .machine-halo {
+    width: min(92vw, 400px);
   }
 
   .scan-panel {
+    display: none;
+  }
+
+  .hero-readout {
     display: none;
   }
 
@@ -2180,10 +2596,13 @@ dd {
   .hero-dock {
     grid-template-columns: 1fr;
     padding: 0 14px;
+    margin: 0;
+    transform: none;
   }
 
   .hero-dock button {
     min-height: 96px;
+    transform: none !important;
   }
 
   .scroll-cue {
