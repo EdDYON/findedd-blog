@@ -3,6 +3,7 @@
 import { motion } from 'motion/react'
 import type { VoidModule } from '@/types/void'
 import { cn } from '@/lib/cn'
+import { playVoidSound } from '@/lib/sound'
 import { useVoidStore } from '@/store/useVoidStore'
 
 const modules: Array<{ key: VoidModule; label: string; sub: string }> = [
@@ -15,16 +16,21 @@ const modules: Array<{ key: VoidModule; label: string; sub: string }> = [
 export function ModuleSelector() {
   const activeModule = useVoidStore(state => state.activeModule)
   const setActiveModule = useVoidStore(state => state.setActiveModule)
+  const soundEnabled = useVoidStore(state => state.soundEnabled)
 
   return (
-    <div className="grid gap-3">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
       {modules.map((module, index) => (
         <motion.button
           key={module.key}
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.08 * index }}
-          onClick={() => setActiveModule(module.key)}
+          onClick={() => {
+            playVoidSound('click', soundEnabled)
+            setActiveModule(module.key)
+          }}
+          onMouseEnter={() => playVoidSound('hover', soundEnabled)}
           className={cn(
             'group relative overflow-hidden border bg-white/[0.035] p-4 text-left transition hud-corners',
             'hover:-translate-y-1 hover:border-cyan-300/60 hover:bg-cyan-300/[0.06] hover:shadow-[0_0_34px_rgba(34,211,238,0.14)]',

@@ -1,8 +1,10 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { MouseEvent, ReactNode } from 'react'
 import { motion, type HTMLMotionProps } from 'motion/react'
 import { cn } from '@/lib/cn'
+import { playVoidSound } from '@/lib/sound'
+import { useVoidStore } from '@/store/useVoidStore'
 
 type NeonButtonProps = HTMLMotionProps<'button'> & {
   children: ReactNode
@@ -13,12 +15,28 @@ export function NeonButton({
   children,
   className,
   variant = 'primary',
+  onClick,
+  onMouseEnter,
   ...props
 }: NeonButtonProps) {
+  const soundEnabled = useVoidStore(state => state.soundEnabled)
+
+  function handleClick(event: MouseEvent<HTMLButtonElement>) {
+    playVoidSound('click', soundEnabled)
+    onClick?.(event)
+  }
+
+  function handleMouseEnter(event: MouseEvent<HTMLButtonElement>) {
+    playVoidSound('hover', soundEnabled)
+    onMouseEnter?.(event)
+  }
+
   return (
     <motion.button
       whileHover={{ y: -2, scale: 1.02 }}
       whileTap={{ scale: 0.96 }}
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
       className={cn(
         'group relative overflow-hidden border px-5 py-3 text-xs font-black uppercase tracking-[0.24em] transition hud-corners',
         'before:absolute before:inset-0 before:-translate-x-full before:bg-gradient-to-r before:from-transparent before:via-white/25 before:to-transparent before:transition before:duration-700 hover:before:translate-x-full',

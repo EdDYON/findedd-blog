@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { SystemLog } from '@/components/system/SystemLog'
 import { GlassPanel } from '@/components/ui/GlassPanel'
 import { useVoidStore } from '@/store/useVoidStore'
 
@@ -42,11 +43,8 @@ export function StatusPanel() {
           </div>
         ))}
       </div>
-      <div className="mt-5 h-24 overflow-hidden border border-cyan-300/15 bg-cyan-300/[0.025] p-3 font-mono text-[10px] uppercase leading-5 text-cyan-100/55">
-        <p>&gt; signal carrier stable</p>
-        <p>&gt; anomaly surface detected</p>
-        <p>&gt; observer heartbeat synced</p>
-        <p>&gt; terminal bridge sleeping</p>
+      <div className="mt-5">
+        <SystemLog />
       </div>
     </GlassPanel>
   )

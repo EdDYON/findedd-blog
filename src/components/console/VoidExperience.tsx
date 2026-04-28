@@ -9,11 +9,16 @@ import { CustomCursor } from '@/components/effects/CustomCursor'
 import { GlitchOverlay } from '@/components/effects/GlitchOverlay'
 import { NoiseOverlay } from '@/components/effects/NoiseOverlay'
 import { Scanlines } from '@/components/effects/Scanlines'
+import { AchievementToast } from '@/components/system/AchievementToast'
+import { GateResultOverlay } from '@/components/system/GateResultOverlay'
 import { Terminal } from '@/components/terminal/Terminal'
+import { playVoidSound } from '@/lib/sound'
 import { useVoidStore } from '@/store/useVoidStore'
 
 export function VoidExperience() {
   const booted = useVoidStore(state => state.booted)
+  const terminalOpen = useVoidStore(state => state.terminalOpen)
+  const soundEnabled = useVoidStore(state => state.soundEnabled)
   const toggleTerminal = useVoidStore(state => state.toggleTerminal)
   const setPerformanceMode = useVoidStore(state => state.setPerformanceMode)
 
@@ -28,13 +33,15 @@ export function VoidExperience() {
     function handleKeydown(event: KeyboardEvent) {
       if (event.key === '`' || event.key === '~') {
         event.preventDefault()
+        if (!terminalOpen)
+          playVoidSound('terminal', soundEnabled)
         toggleTerminal()
       }
     }
 
     window.addEventListener('keydown', handleKeydown)
     return () => window.removeEventListener('keydown', handleKeydown)
-  }, [toggleTerminal])
+  }, [soundEnabled, terminalOpen, toggleTerminal])
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#020207] text-zinc-100">
@@ -44,6 +51,8 @@ export function VoidExperience() {
         {!booted ? <BootScreen key="boot" /> : <VoidConsole key="console" />}
       </AnimatePresence>
       <Terminal />
+      <AchievementToast />
+      <GateResultOverlay />
       <CustomCursor />
       <ClickRipples />
       <GlitchOverlay />

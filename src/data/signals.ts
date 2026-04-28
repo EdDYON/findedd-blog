@@ -12,11 +12,13 @@ export const signalMessages = [
 export const terminalHelp = [
   '/help      show available commands',
   '/about     reveal interface identity',
+  '/status    inspect current system state',
   '/archive   open archive module',
   '/signal    open signal module',
   '/lab       open lab module',
   '/gate      open gate module',
+  '/core      force core overdrive',
   '/void      trigger anomaly pulse',
-  '/echo      print a random transmission',
+  '/achievements show unlocked achievements',
   '/clear     clear terminal',
 ]

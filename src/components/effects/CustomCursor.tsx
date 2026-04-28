@@ -13,7 +13,8 @@ export function CustomCursor() {
 
   useEffect(() => {
     const query = window.matchMedia('(pointer: fine) and (min-width: 768px)')
-    queueMicrotask(() => setEnabled(query.matches))
+    const syncEnabled = () => setEnabled(query.matches)
+    queueMicrotask(syncEnabled)
 
     function handleMove(event: MouseEvent) {
       rawX.set(event.clientX)
@@ -23,7 +24,11 @@ export function CustomCursor() {
     }
 
     window.addEventListener('mousemove', handleMove)
-    return () => window.removeEventListener('mousemove', handleMove)
+    query.addEventListener('change', syncEnabled)
+    return () => {
+      window.removeEventListener('mousemove', handleMove)
+      query.removeEventListener('change', syncEnabled)
+    }
   }, [rawX, rawY])
 
   if (!enabled)

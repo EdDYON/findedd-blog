@@ -3,11 +3,22 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { TerminalInput } from '@/components/terminal/TerminalInput'
-import { signalMessages, terminalHelp } from '@/data/signals'
-import { useVoidStore } from '@/store/useVoidStore'
 import type { TerminalCommandResult } from '@/components/terminal/terminalCommands'
+import { achievements } from '@/data/achievements'
+import { signalMessages, terminalHelp } from '@/data/signals'
+import { playVoidSound } from '@/lib/sound'
+import { useVoidStore } from '@/store/useVoidStore'
+import type { AchievementId, VoidModule } from '@/types/void'
 
-function evaluateCommand(command: string): TerminalCommandResult {
+type CommandContext = {
+  activeModule: VoidModule
+  gateOpened: boolean
+  overdrive: boolean
+  soundEnabled: boolean
+  unlockedAchievements: AchievementId[]
+}
+
+function evaluateCommand(command: string, context: CommandContext): TerminalCommandResult {
   const normalized = command.trim().toLowerCase()
 
   if (!normalized)
@@ -17,6 +28,15 @@ function evaluateCommand(command: string): TerminalCommandResult {
     return { output: terminalHelp }
   if (normalized === '/about')
     return { output: ['VOID is a private anomaly interface built for exploration, distortion, and play.'] }
+  if (normalized === '/status')
+    return {
+      output: [
+        `ACTIVE MODULE: ${context.activeModule.toUpperCase()}`,
+        `GATE STATUS: ${context.gateOpened ? 'OPENED' : 'SEALED'}`,
+        `CORE STATUS: ${context.overdrive ? 'OVERDRIVE ACTIVE' : 'ROTATION STABLE'}`,
+        `SOUND STATUS: ${context.soundEnabled ? 'ON' : 'OFF'}`,
+      ],
+    }
   if (normalized === '/archive')
     return { output: ['ARCHIVE MODULE LINKED.'], module: 'archive' }
   if (normalized === '/signal')
@@ -25,27 +45,58 @@ function evaluateCommand(command: string): TerminalCommandResult {
     return { output: ['LAB MODULE LINKED.'], module: 'lab' }
   if (normalized === '/gate')
     return { output: ['GATE MODULE LINKED. KEEP DISTANCE.'], module: 'gate' }
+  if (normalized === '/core')
+    return { output: ['VOID CORE OVERDRIVE INITIATED.'], overdrive: true }
   if (normalized === '/void')
     return { output: ['ANOMALY PULSE DISPATCHED.'], glitch: true }
-  if (normalized === '/echo')
-    return { output: [signalMessages[Math.floor(Math.random() * signalMessages.length)]] }
+  if (normalized === '/achievements') {
+    if (!context.unlockedAchievements.length)
+      return { output: ['NO ACHIEVEMENTS UNLOCKED.'] }
+    return {
+      output: context.unlockedAchievements.map(id => `${achievements[id].title}: ${achievements[id].description}`),
+    }
+  }
   if (normalized === '/clear')
     return { output: [], clear: true }
+
+  if (normalized === '/echo')
+    return { output: [signalMessages[Math.floor(Math.random() * signalMessages.length)]] }
 
   return { output: [`UNKNOWN COMMAND: ${command}`, 'TYPE /help TO REVEAL KNOWN COMMANDS.'] }
 }
 
 export function Terminal() {
   const terminalOpen = useVoidStore(state => state.terminalOpen)
+  const activeModule = useVoidStore(state => state.activeModule)
+  const gateOpened = useVoidStore(state => state.gateOpened)
+  const overdrive = useVoidStore(state => state.overdrive)
+  const soundEnabled = useVoidStore(state => state.soundEnabled)
+  const unlockedAchievements = useVoidStore(state => state.unlockedAchievements)
   const setActiveModule = useVoidStore(state => state.setActiveModule)
   const triggerGlitch = useVoidStore(state => state.triggerGlitch)
+  const triggerOverdrive = useVoidStore(state => state.triggerOverdrive)
+  const addSystemLog = useVoidStore(state => state.addSystemLog)
+  const unlockAchievement = useVoidStore(state => state.unlockAchievement)
+  const recordCommand = useVoidStore(state => state.recordCommand)
   const [input, setInput] = useState('')
   const [lines, setLines] = useState<string[]>(['VOID TERMINAL SLEEPING. PRESS ~ TO TOGGLE.', 'TYPE /help.'])
 
   function submit() {
     const command = input.trim()
-    const result = evaluateCommand(command)
+    if (!command)
+      return
+
+    const result = evaluateCommand(command, {
+      activeModule,
+      gateOpened,
+      overdrive,
+      soundEnabled,
+      unlockedAchievements,
+    })
+
     setInput('')
+    recordCommand(command)
+    playVoidSound('terminal', soundEnabled)
 
     if (result.clear) {
       setLines([])
@@ -54,10 +105,17 @@ export function Terminal() {
 
     if (result.module)
       setActiveModule(result.module)
-    if (result.glitch)
+    if (result.overdrive) {
+      playVoidSound('core', soundEnabled)
+      triggerOverdrive()
+    }
+    if (result.glitch) {
       triggerGlitch()
+      addSystemLog('ANOMALY FIELD DISTORTED')
+      unlockAchievement('VOID_TOUCHED')
+    }
 
-    setLines(current => [...current, `> ${command}`, ...result.output].slice(-18))
+    setLines(current => [...current, `> ${command}`, ...result.output].slice(-22))
   }
 
   return (

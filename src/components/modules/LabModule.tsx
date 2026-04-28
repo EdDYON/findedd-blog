@@ -3,15 +3,29 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
 import { NeonButton } from '@/components/ui/NeonButton'
+import { playVoidSound } from '@/lib/sound'
 import { useVoidStore } from '@/store/useVoidStore'
 
 export function LabModule() {
   const triggerGlitch = useVoidStore(state => state.triggerGlitch)
   const triggerOverdrive = useVoidStore(state => state.triggerOverdrive)
+  const addSystemLog = useVoidStore(state => state.addSystemLog)
+  const soundEnabled = useVoidStore(state => state.soundEnabled)
   const [burst, setBurst] = useState(0)
 
   function triggerBurst() {
     setBurst(value => value + 1)
+    addSystemLog('PARTICLE BURST DISPATCHED')
+  }
+
+  function distortField() {
+    triggerGlitch()
+    addSystemLog('ANOMALY FIELD DISTORTED')
+  }
+
+  function overdriveCore() {
+    playVoidSound('core', soundEnabled)
+    triggerOverdrive()
   }
 
   return (
@@ -21,9 +35,9 @@ export function LabModule() {
         <h2 className="mt-2 text-3xl font-black uppercase tracking-[-0.05em] text-white">Unstable Toys</h2>
       </div>
       <div className="grid gap-4 md:grid-cols-3">
-        <NeonButton onClick={triggerGlitch}>Glitch Text</NeonButton>
+        <NeonButton onClick={distortField}>Glitch Text</NeonButton>
         <NeonButton onClick={triggerBurst}>Particle Burst</NeonButton>
-        <NeonButton onClick={triggerOverdrive}>Core Overdrive</NeonButton>
+        <NeonButton onClick={overdriveCore}>Core Overdrive</NeonButton>
       </div>
       <div className="relative mt-7 min-h-[280px] overflow-hidden border border-white/[0.08] bg-black/35 hud-corners">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.22),transparent_42%)]" />

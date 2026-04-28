@@ -2,15 +2,15 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'VOID',
-  description: 'A digital anomaly beyond the screen.',
+  title: 'VOID — Digital Anomaly Interface',
+  description: 'VOID is an interactive dark sci-fi anomaly interface beyond the screen.',
   icons: {
     icon: '/favicon.jpg',
     apple: '/avatar.jpg',
   },
   openGraph: {
-    title: 'VOID',
-    description: 'This is not a website. This is an entry point.',
+    title: 'VOID — Digital Anomaly Interface',
+    description: 'VOID is an interactive dark sci-fi anomaly interface beyond the screen.',
     type: 'website',
   },
 }

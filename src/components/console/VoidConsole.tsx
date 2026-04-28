@@ -6,12 +6,16 @@ import { ModuleContent } from '@/components/console/ModuleContent'
 import { ModuleSelector } from '@/components/console/ModuleSelector'
 import { StatusPanel } from '@/components/console/StatusPanel'
 import { HudFrame } from '@/components/console/HudFrame'
+import { HudShake } from '@/components/system/HudShake'
+import { SoundToggle } from '@/components/system/SoundToggle'
 import { VoidCoreScene } from '@/components/three/VoidCoreScene'
+import { playVoidSound } from '@/lib/sound'
 import { useVoidStore } from '@/store/useVoidStore'
 
 export function VoidConsole() {
   const [time, setTime] = useState('--:--:--')
   const setTerminalOpen = useVoidStore(state => state.setTerminalOpen)
+  const soundEnabled = useVoidStore(state => state.soundEnabled)
 
   useEffect(() => {
     const update = () => setTime(new Date().toLocaleTimeString('en-US', { hour12: false }))
@@ -27,6 +31,7 @@ export function VoidConsole() {
       exit={{ opacity: 0, scale: 1.02 }}
       className="relative z-10 mx-auto min-h-screen w-full max-w-[1720px] px-3 py-4 md:px-6 md:py-7"
     >
+      <HudShake>
       <HudFrame>
         <header className="grid gap-4 border-b border-white/10 p-4 md:grid-cols-[1fr_auto] md:p-5">
           <div>
@@ -38,9 +43,13 @@ export function VoidConsole() {
           <div className="grid gap-2 text-left font-mono text-xs uppercase tracking-[0.16em] text-zinc-400 md:text-right">
             <span>{time}</span>
             <span className="text-emerald-200">SIGNAL: STABLE</span>
+            <SoundToggle />
             <button
               type="button"
-              onClick={() => setTerminalOpen(true)}
+              onClick={() => {
+                playVoidSound('click', soundEnabled)
+                setTerminalOpen(true)
+              }}
               className="border border-cyan-300/30 bg-cyan-300/[0.06] px-3 py-2 text-cyan-100 transition hover:bg-cyan-300/15"
             >
               OPEN TERMINAL
@@ -69,6 +78,7 @@ export function VoidConsole() {
           <ModuleContent />
         </div>
       </HudFrame>
+      </HudShake>
     </motion.section>
   )
 }

@@ -4,9 +4,11 @@ import { useMemo, useState } from 'react'
 import { motion } from 'motion/react'
 import { signalMessages } from '@/data/signals'
 import { NeonButton } from '@/components/ui/NeonButton'
+import { useVoidStore } from '@/store/useVoidStore'
 
 export function SignalModule() {
   const [message, setMessage] = useState(signalMessages[0])
+  const incrementSignalScan = useVoidStore(state => state.incrementSignalScan)
   const frequency = useMemo(() => {
     const index = signalMessages.indexOf(message)
     return (77.03 + Math.max(index, 0) * 1.37).toFixed(2)
@@ -15,6 +17,7 @@ export function SignalModule() {
   function scanAgain() {
     const next = signalMessages[Math.floor(Math.random() * signalMessages.length)]
     setMessage(next === message ? signalMessages[(signalMessages.indexOf(next) + 1) % signalMessages.length] : next)
+    incrementSignalScan()
   }
 
   return (
