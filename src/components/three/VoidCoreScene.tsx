@@ -6,10 +6,19 @@ import { Suspense } from 'react'
 import { VoidCore } from '@/components/three/VoidCore'
 import { playVoidSound } from '@/lib/sound'
 import { useVoidStore } from '@/store/useVoidStore'
+import type { VoidModule } from '@/types/void'
+
+const moduleGlow: Record<VoidModule, string> = {
+  archive: 'rgba(34,211,238,0.24)',
+  signal: 'rgba(167,139,250,0.26)',
+  lab: 'rgba(103,232,249,0.22)',
+  gate: 'rgba(251,44,54,0.28)',
+}
 
 export function VoidCoreScene() {
   const performanceMode = useVoidStore(state => state.performanceMode)
   const overdrive = useVoidStore(state => state.overdrive)
+  const activeModule = useVoidStore(state => state.activeModule)
   const soundEnabled = useVoidStore(state => state.soundEnabled)
   const triggerOverdrive = useVoidStore(state => state.triggerOverdrive)
 
@@ -32,7 +41,12 @@ export function VoidCoreScene() {
       }}
       className="relative h-[360px] cursor-crosshair overflow-hidden border border-cyan-300/15 bg-black/35 outline-none transition hover:border-cyan-300/40 hud-corners md:h-[640px] xl:h-[700px]"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.24),transparent_38%),radial-gradient(circle_at_50%_52%,rgba(139,92,246,0.24),transparent_52%)]" />
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `radial-gradient(circle at center, ${moduleGlow[activeModule]}, transparent 38%), radial-gradient(circle at 50% 52%, rgba(139,92,246,0.24), transparent 52%)`,
+        }}
+      />
       <div className="absolute inset-x-8 top-1/2 h-px bg-cyan-200/20 shadow-[0_0_48px_rgba(34,211,238,0.6)]" />
       <Canvas
         dpr={performanceMode === 'low' ? [1, 1.2] : [1, 1.9]}

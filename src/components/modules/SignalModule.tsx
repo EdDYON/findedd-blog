@@ -2,21 +2,21 @@
 
 import { useMemo, useState } from 'react'
 import { motion } from 'motion/react'
-import { signalMessages } from '@/data/signals'
+import { signalRecords } from '@/data/signals'
 import { NeonButton } from '@/components/ui/NeonButton'
 import { useVoidStore } from '@/store/useVoidStore'
 
 export function SignalModule() {
-  const [message, setMessage] = useState(signalMessages[0])
+  const [record, setRecord] = useState(signalRecords[0])
   const incrementSignalScan = useVoidStore(state => state.incrementSignalScan)
   const frequency = useMemo(() => {
-    const index = signalMessages.indexOf(message)
+    const index = signalRecords.indexOf(record)
     return (77.03 + Math.max(index, 0) * 1.37).toFixed(2)
-  }, [message])
+  }, [record])
 
   function scanAgain() {
-    const next = signalMessages[Math.floor(Math.random() * signalMessages.length)]
-    setMessage(next === message ? signalMessages[(signalMessages.indexOf(next) + 1) % signalMessages.length] : next)
+    const next = signalRecords[Math.floor(Math.random() * signalRecords.length)]
+    setRecord(next === record ? signalRecords[(signalRecords.indexOf(next) + 1) % signalRecords.length] : next)
     incrementSignalScan()
   }
 
@@ -26,17 +26,17 @@ export function SignalModule() {
         <p className="text-xs font-black tracking-[0.28em] text-cyan-200/70">发现信号</p>
         <h2 className="mt-3 text-4xl font-black uppercase tracking-[-0.07em] text-white">{frequency} MHz</h2>
         <div className="mt-7 space-y-3 font-mono text-sm uppercase tracking-[0.14em] text-zinc-400">
-          <p>来源：屏幕之外</p>
-          <p>频道：黑色静噪</p>
-          <p>接触：未验证</p>
+          <p>来源：{record.source}</p>
+          <p>坐标：{record.coordinate}</p>
+          <p>可信度：{record.trust}</p>
         </div>
         <motion.div
-          key={message}
+          key={record.message}
           initial={{ opacity: 0, y: 16, filter: 'blur(8px)' }}
           animate={{ opacity: 1, y: 0, filter: 'blur(0)' }}
-          className="mt-8 border border-cyan-300/20 bg-cyan-300/[0.045] p-5 text-2xl font-black uppercase leading-tight tracking-[-0.04em] text-cyan-50 hud-corners"
+          className="mt-8 border border-cyan-300/20 bg-cyan-300/[0.045] p-5 text-2xl font-black leading-tight tracking-[0.04em] text-cyan-50 hud-corners"
         >
-          {message}
+          {record.message}
         </motion.div>
         <NeonButton onClick={scanAgain} className="mt-6">
           再次扫描

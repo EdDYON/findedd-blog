@@ -6,6 +6,14 @@ import { useFrame } from '@react-three/fiber'
 import type { Group, Mesh } from 'three'
 import { AdditiveBlending } from 'three'
 import { useVoidStore } from '@/store/useVoidStore'
+import type { VoidModule } from '@/types/void'
+
+const moduleColor: Record<VoidModule, { main: string; secondary: string; danger: string; idle: string }> = {
+  archive: { main: '#22d3ee', secondary: '#60a5fa', danger: '#8b5cf6', idle: '#164e63' },
+  signal: { main: '#a78bfa', secondary: '#22d3ee', danger: '#f472b6', idle: '#3b1c72' },
+  lab: { main: '#67e8f9', secondary: '#8b5cf6', danger: '#facc15', idle: '#155e75' },
+  gate: { main: '#fb7185', secondary: '#f43f5e', danger: '#fb2c36', idle: '#4a0710' },
+}
 
 export function VoidCore() {
   const groupRef = useRef<Group>(null)
@@ -13,6 +21,8 @@ export function VoidCore() {
   const ringARef = useRef<Mesh>(null)
   const ringBRef = useRef<Mesh>(null)
   const overdrive = useVoidStore(state => state.overdrive)
+  const activeModule = useVoidStore(state => state.activeModule)
+  const colors = moduleColor[activeModule]
 
   useFrame((state, delta) => {
     const speed = overdrive ? 3.2 : 0.75
@@ -36,7 +46,7 @@ export function VoidCore() {
         <sphereGeometry args={[1.24, 56, 56]} />
         <meshStandardMaterial
           color="#03030a"
-          emissive={overdrive ? '#22d3ee' : '#3b1c72'}
+          emissive={overdrive ? colors.main : colors.idle}
           emissiveIntensity={overdrive ? 3.4 : 1.65}
           roughness={0.28}
           metalness={0.85}
@@ -45,20 +55,20 @@ export function VoidCore() {
 
       <mesh ref={ringARef} rotation={[Math.PI / 2.35, 0, 0]}>
         <torusGeometry args={[1.98, 0.028, 16, 180]} />
-        <meshBasicMaterial color={overdrive ? '#22d3ee' : '#8b5cf6'} transparent opacity={0.92} blending={AdditiveBlending} />
+        <meshBasicMaterial color={overdrive ? colors.main : colors.secondary} transparent opacity={0.92} blending={AdditiveBlending} />
       </mesh>
 
       <mesh ref={ringBRef} rotation={[0.25, Math.PI / 2, 0.2]}>
         <torusGeometry args={[2.48, 0.02, 16, 180]} />
-        <meshBasicMaterial color="#22d3ee" transparent opacity={0.72} blending={AdditiveBlending} />
+        <meshBasicMaterial color={colors.main} transparent opacity={0.72} blending={AdditiveBlending} />
       </mesh>
 
       <mesh rotation={[1.1, 0.4, 0.7]}>
         <torusGeometry args={[2.98, 0.014, 12, 200]} />
-        <meshBasicMaterial color="#fb2c36" transparent opacity={overdrive ? 0.72 : 0.38} blending={AdditiveBlending} />
+        <meshBasicMaterial color={colors.danger} transparent opacity={overdrive ? 0.78 : 0.42} blending={AdditiveBlending} />
       </mesh>
 
-      <Sparkles count={overdrive ? 180 : 92} scale={6.5} size={overdrive ? 5 : 3} speed={overdrive ? 2.2 : 0.75} color={overdrive ? '#22d3ee' : '#8b5cf6'} />
+      <Sparkles count={overdrive ? 180 : 92} scale={6.5} size={overdrive ? 5 : 3} speed={overdrive ? 2.2 : 0.75} color={overdrive ? colors.main : colors.secondary} />
     </group>
   )
 }
