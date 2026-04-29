@@ -10,6 +10,11 @@ export type AchievementId =
   | 'GATEBREAKER'
   | 'VOID_TOUCHED'
   | 'COMMAND_SEEKER'
+  | 'LOST_SIGNAL'
+  | 'NO_EXIT'
+  | 'MIRROR_ERROR'
+  | 'REDGATE_WITNESS'
+  | 'LISTENER'
 
 export type SystemLog = {
   id: string

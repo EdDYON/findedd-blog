@@ -9,6 +9,21 @@ type ArchiveCardProps = {
   item: ArchiveItem
 }
 
+const statusLabel: Record<ArchiveItem['status'], string> = {
+  Active: '活跃',
+  Dormant: '休眠',
+  Unstable: '不稳定',
+  Corrupted: '损坏',
+  Unknown: '未知',
+}
+
+const dangerLabel: Record<ArchiveItem['danger'], string> = {
+  LOW: '低风险',
+  MEDIUM: '中风险',
+  HIGH: '高风险',
+  UNKNOWN: '未知风险',
+}
+
 export function ArchiveCard({ item }: ArchiveCardProps) {
   const [style, setStyle] = useState<CSSProperties>({})
 
@@ -37,7 +52,7 @@ export function ArchiveCard({ item }: ArchiveCardProps) {
       <div className="pointer-events-none absolute inset-0 opacity-0 transition group-hover:opacity-100" style={{ background: 'radial-gradient(circle at var(--spot-x,50%) var(--spot-y,50%), rgba(34,211,238,0.18), transparent 34%)' }} />
       <div className="relative z-10 flex h-full flex-col">
         <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200/75">
-          <span>FILE {item.id}</span>
+          <span>档案 {item.id}</span>
           <span className={cn(
             'rounded-full border px-2 py-1',
             item.danger === 'HIGH' && 'border-red-400/50 text-red-200',
@@ -46,15 +61,15 @@ export function ArchiveCard({ item }: ArchiveCardProps) {
             item.danger === 'UNKNOWN' && 'border-violet-300/50 text-violet-100',
           )}
           >
-            {item.danger}
+            {dangerLabel[item.danger]}
           </span>
         </div>
 
-        <h3 className="mt-5 text-2xl font-black uppercase tracking-[-0.04em] text-white glitch-text">
+        <h3 className="mt-5 text-2xl font-black tracking-[0.04em] text-white glitch-text">
           {item.title}
         </h3>
-        <p className="mt-2 text-xs font-bold uppercase tracking-[0.18em] text-violet-200/70">
-          {item.type} / {item.status}
+        <p className="mt-2 text-xs font-bold tracking-[0.18em] text-violet-200/70">
+          {item.type} / {statusLabel[item.status]}
         </p>
         <p className="mt-5 flex-1 text-sm leading-7 text-zinc-300">
           {item.description}

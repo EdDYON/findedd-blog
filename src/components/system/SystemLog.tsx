@@ -10,7 +10,7 @@ export function SystemLog() {
   return (
     <section className="overflow-hidden border border-cyan-300/15 bg-cyan-300/[0.025] p-3 font-mono text-[10px] uppercase leading-5 text-cyan-100/65 hud-corners">
       <div className="mb-2 flex items-center justify-between border-b border-white/10 pb-2">
-        <span className="tracking-[0.22em] text-cyan-100">System Log</span>
+        <span className="tracking-[0.22em] text-cyan-100">系统日志</span>
         <span className="text-zinc-600">{recentLogs.length.toString().padStart(2, '0')}/08</span>
       </div>
       <div className="grid max-h-44 gap-1 overflow-hidden md:max-h-52">
@@ -32,7 +32,7 @@ export function SystemLog() {
               animate={{ opacity: 1 }}
               className="text-zinc-600"
             >
-              &gt; waiting for visitor input
+              &gt; 等待访客输入
             </motion.p>
           )}
         </AnimatePresence>

@@ -26,15 +26,15 @@ export function GateResultOverlay() {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,44,54,0.28),transparent_55%)]" />
             <div className="absolute inset-0 bg-[repeating-linear-gradient(135deg,rgba(251,44,54,0.12)_0_1px,transparent_1px_16px)]" />
             <div className="relative z-10">
-              <p className="font-mono text-xs font-black uppercase tracking-[0.34em] text-red-200/80">Gate Opened</p>
-              <h2 className="glitch-text mt-5 text-5xl font-black uppercase leading-[0.82] tracking-[-0.08em] text-white md:text-8xl">
-                Welcome To The Other Side.
+              <p className="font-mono text-xs font-black tracking-[0.34em] text-red-200/80">闸门已打开</p>
+              <h2 className="glitch-text mt-5 text-5xl font-black leading-[0.95] tracking-[0.02em] text-white md:text-8xl">
+                欢迎来到另一侧
               </h2>
-              <p className="mx-auto mt-6 max-w-md font-mono text-xs uppercase leading-6 tracking-[0.16em] text-zinc-400 md:text-sm">
-                You should not have done that.
+              <p className="mx-auto mt-6 max-w-md font-mono text-xs leading-6 tracking-[0.16em] text-zinc-400 md:text-sm">
+                系统不建议你这么做，但 VOID 已经记住了。
               </p>
               <NeonButton variant="danger" onClick={closeGateResult} className="mt-8">
-                Close Gate
+                关闭闸门
               </NeonButton>
             </div>
           </motion.div>

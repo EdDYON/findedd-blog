@@ -2,15 +2,15 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'VOID — Digital Anomaly Interface',
-  description: 'VOID is an interactive dark sci-fi anomaly interface beyond the screen.',
+  title: 'VOID - 数字异常界面',
+  description: 'VOID 是一个可以进入、触发和探索的暗色科幻互动界面。',
   icons: {
     icon: '/favicon.jpg',
     apple: '/avatar.jpg',
   },
   openGraph: {
-    title: 'VOID — Digital Anomaly Interface',
-    description: 'VOID is an interactive dark sci-fi anomaly interface beyond the screen.',
+    title: 'VOID - 数字异常界面',
+    description: 'VOID 是一个可以进入、触发和探索的暗色科幻互动界面。',
     type: 'website',
   },
 }
@@ -26,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="zh-CN">
       <body>{children}</body>
     </html>
   )

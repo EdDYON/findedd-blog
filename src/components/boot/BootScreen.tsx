@@ -6,11 +6,11 @@ import { NeonButton } from '@/components/ui/NeonButton'
 import { useVoidStore } from '@/store/useVoidStore'
 
 const bootLines = [
-  '[BOOT] VOID CORE AWAKENING...',
-  '[SCAN] VISITOR SIGNAL DETECTED...',
-  '[SYNC] INTERFACE LINK ESTABLISHED...',
-  '[LOAD] RENDERING ANOMALY FIELD...',
-  '[READY] ENTER THE VOID.',
+  '[启动] VOID 核心正在苏醒...',
+  '[扫描] 检测到访客信号...',
+  '[同步] 界面连接已建立...',
+  '[载入] 异常场正在展开...',
+  '[就绪] 可以接入 VOID。',
 ]
 
 export function BootScreen() {
@@ -40,13 +40,13 @@ export function BootScreen() {
         className="relative z-10 w-full px-6 text-center"
       >
         <p className="mb-4 text-xs font-black uppercase tracking-[0.42em] text-violet-200/70">
-          This is not a website
+          这不是普通网页
         </p>
         <h1 className="glitch-text text-[clamp(5rem,18vw,18rem)] font-black leading-[0.72] tracking-[-0.12em] text-white">
           VOID
         </h1>
         <p className="mx-auto mt-6 max-w-3xl text-balance text-sm font-bold uppercase tracking-[0.28em] text-cyan-100/80 md:text-base">
-          A DIGITAL ANOMALY BEYOND THE SCREEN.
+          屏幕之外的数字异常界面
         </p>
         <BootLog lines={bootLines} />
         <motion.div
@@ -56,7 +56,7 @@ export function BootScreen() {
           className="mt-10"
         >
           <NeonButton onClick={enterVoid} className="min-w-56">
-            Enter Void
+            接入 VOID
           </NeonButton>
         </motion.div>
       </motion.div>

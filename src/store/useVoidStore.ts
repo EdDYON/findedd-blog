@@ -20,6 +20,7 @@ type VoidStore = {
   gateClickCount: number
   gateOpened: boolean
   gateResultOpen: boolean
+  escapeAttemptCount: number
   setBooted: (value: boolean) => void
   setActiveModule: (module: VoidModule) => void
   toggleTerminal: () => void
@@ -34,6 +35,7 @@ type VoidStore = {
   recordCommand: (command: string) => void
   attemptGate: () => void
   closeGateResult: () => void
+  incrementEscapeAttempt: () => number
   toggleSound: () => void
   setPerformanceMode: (mode: PerformanceMode) => void
 }
@@ -48,6 +50,16 @@ function makeId(prefix: string) {
 
 function gateAttemptLabel(value: number) {
   return value.toString().padStart(2, '0')
+}
+
+function moduleLabel(module: VoidModule) {
+  const labels: Record<VoidModule, string> = {
+    archive: '档案',
+    signal: '信号',
+    lab: '实验',
+    gate: '闸门',
+  }
+  return labels[module]
 }
 
 export const useVoidStore = create<VoidStore>((set, get) => ({
@@ -67,11 +79,12 @@ export const useVoidStore = create<VoidStore>((set, get) => ({
   gateClickCount: 0,
   gateOpened: false,
   gateResultOpen: false,
+  escapeAttemptCount: 0,
 
   setBooted: value => {
     set({ booted: value })
     if (value) {
-      get().addSystemLog('VISITOR SIGNAL ACCEPTED')
+      get().addSystemLog('访客信号已接入')
       get().unlockAchievement('FIRST_CONTACT')
     }
   },
@@ -80,14 +93,14 @@ export const useVoidStore = create<VoidStore>((set, get) => ({
     const current = get().activeModule
     set({ activeModule: module })
     if (current !== module)
-      get().addSystemLog(`MODULE SWITCHED: ${module.toUpperCase()}`)
+      get().addSystemLog(`模块切换：${moduleLabel(module)}`)
   },
 
   toggleTerminal: () => {
     const next = !get().terminalOpen
     set({ terminalOpen: next })
     if (next) {
-      get().addSystemLog('TERMINAL BRIDGE OPENED')
+      get().addSystemLog('终端桥已开启')
       get().unlockAchievement('TERMINAL_USER')
     }
   },
@@ -96,7 +109,7 @@ export const useVoidStore = create<VoidStore>((set, get) => ({
     const current = get().terminalOpen
     set({ terminalOpen: value })
     if (!current && value) {
-      get().addSystemLog('TERMINAL BRIDGE OPENED')
+      get().addSystemLog('终端桥已开启')
       get().unlockAchievement('TERMINAL_USER')
     }
   },
@@ -106,7 +119,7 @@ export const useVoidStore = create<VoidStore>((set, get) => ({
       clearTimeout(overdriveTimer)
     set({ overdrive: true })
     get().triggerHudShake()
-    get().addSystemLog('VOID CORE OVERDRIVE INITIATED')
+    get().addSystemLog('虚空核心过载启动')
     get().unlockAchievement('CORE_TOUCH')
     overdriveTimer = setTimeout(() => set({ overdrive: false }), 3000)
   },
@@ -155,7 +168,7 @@ export const useVoidStore = create<VoidStore>((set, get) => ({
   incrementSignalScan: () => {
     const next = get().signalScanCount + 1
     set({ signalScanCount: next })
-    get().addSystemLog('SIGNAL SCAN COMPLETE')
+    get().addSystemLog('信号扫描完成')
     if (next >= 5)
       get().unlockAchievement('SIGNAL_HUNTER')
   },
@@ -163,7 +176,7 @@ export const useVoidStore = create<VoidStore>((set, get) => ({
   recordCommand: command => {
     const next = get().commandCount + 1
     set({ commandCount: next })
-    get().addSystemLog(`COMMAND RECEIVED: ${command || '[EMPTY]'}`)
+    get().addSystemLog(`收到终端指令：${command || '[空]'}`)
     if (next >= 5)
       get().unlockAchievement('COMMAND_SEEKER')
   },
@@ -171,11 +184,11 @@ export const useVoidStore = create<VoidStore>((set, get) => ({
   attemptGate: () => {
     const next = Math.min(get().gateClickCount + 1, 3)
     set({ gateClickCount: next })
-    get().addSystemLog(`GATE ACCESS ATTEMPT ${gateAttemptLabel(next)}`)
+    get().addSystemLog(`闸门访问尝试 ${gateAttemptLabel(next)}`)
 
     if (next >= 3 && !get().gateOpened) {
       set({ gateOpened: true, gateResultOpen: true })
-      get().addSystemLog('GATE OPENED')
+      get().addSystemLog('闸门已打开')
       get().triggerGlitch(800)
       get().triggerHudShake(720)
       get().unlockAchievement('GATEBREAKER')
@@ -183,6 +196,12 @@ export const useVoidStore = create<VoidStore>((set, get) => ({
   },
 
   closeGateResult: () => set({ gateResultOpen: false }),
+
+  incrementEscapeAttempt: () => {
+    const next = get().escapeAttemptCount + 1
+    set({ escapeAttemptCount: next })
+    return next
+  },
 
   toggleSound: () => set(state => ({ soundEnabled: !state.soundEnabled })),
 

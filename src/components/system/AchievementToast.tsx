@@ -29,7 +29,7 @@ function ToastCard({ toast }: { toast: AchievementToastType }) {
       <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent,rgba(34,211,238,0.16),transparent)] opacity-60" />
       <div className="relative z-10">
         <p className="font-mono text-[10px] font-black uppercase tracking-[0.26em] text-violet-200">
-          Achievement Unlocked
+          成就解锁
         </p>
         <h3 className="glitch-text mt-2 text-lg font-black uppercase tracking-[0.08em] text-white">{achievement.title}</h3>
         <p className="mt-2 text-xs uppercase leading-5 tracking-[0.12em] text-zinc-400">{achievement.description}</p>

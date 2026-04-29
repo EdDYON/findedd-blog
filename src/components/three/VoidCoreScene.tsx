@@ -22,7 +22,7 @@ export function VoidCoreScene() {
     <div
       role="button"
       tabIndex={0}
-      aria-label="Trigger VOID CORE overdrive"
+      aria-label="触发 VOID 核心过载"
       onClick={activateCore}
       onKeyDown={event => {
         if (event.key === 'Enter' || event.key === ' ') {
@@ -30,17 +30,19 @@ export function VoidCoreScene() {
           activateCore()
         }
       }}
-      className="relative h-[300px] cursor-crosshair overflow-hidden border border-cyan-300/10 bg-black/35 outline-none transition hover:border-cyan-300/30 hud-corners md:h-[520px]"
+      className="relative h-[360px] cursor-crosshair overflow-hidden border border-cyan-300/15 bg-black/35 outline-none transition hover:border-cyan-300/40 hud-corners md:h-[640px] xl:h-[700px]"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.16),transparent_45%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.24),transparent_38%),radial-gradient(circle_at_50%_52%,rgba(139,92,246,0.24),transparent_52%)]" />
+      <div className="absolute inset-x-8 top-1/2 h-px bg-cyan-200/20 shadow-[0_0_48px_rgba(34,211,238,0.6)]" />
       <Canvas
-        dpr={performanceMode === 'low' ? [1, 1.2] : [1, 1.8]}
+        dpr={performanceMode === 'low' ? [1, 1.2] : [1, 1.9]}
         gl={{ antialias: performanceMode === 'high', alpha: true }}
       >
-        <PerspectiveCamera makeDefault position={[0, 0, 5.8]} fov={45} />
-        <ambientLight intensity={0.45} />
-        <pointLight position={[3, 2, 4]} color="#22d3ee" intensity={5} />
-        <pointLight position={[-4, -2, 3]} color="#8b5cf6" intensity={4} />
+        <PerspectiveCamera makeDefault position={[0, 0, 4.9]} fov={42} />
+        <ambientLight intensity={0.55} />
+        <pointLight position={[3, 2, 4]} color="#22d3ee" intensity={overdrive ? 8 : 5.6} />
+        <pointLight position={[-4, -2, 3]} color="#8b5cf6" intensity={overdrive ? 7 : 4.8} />
+        <pointLight position={[0, 0, 2]} color="#ffffff" intensity={overdrive ? 2.6 : 1.2} />
         <Suspense fallback={null}>
           <Float speed={1.7} rotationIntensity={0.4} floatIntensity={0.7}>
             <VoidCore />
@@ -48,9 +50,9 @@ export function VoidCoreScene() {
         </Suspense>
       </Canvas>
       <div className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent_0_18px,rgba(255,255,255,0.035)_18px_19px)] opacity-50" />
-      <div className="pointer-events-none absolute inset-x-4 bottom-4 grid gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-cyan-100/65 md:text-xs">
-        <span>{overdrive ? 'VOID CORE / overdrive active / anomaly rising' : 'VOID CORE / rotation stable / anomaly sealed'}</span>
-        <span className="text-violet-100/55">CORE REACTS TO DIRECT CONTACT</span>
+      <div className="pointer-events-none absolute inset-x-4 bottom-4 grid gap-2 font-mono text-[10px] tracking-[0.22em] text-cyan-100/70 md:text-xs">
+        <span>{overdrive ? 'VOID 核心 / 过载中 / 异常值上升' : 'VOID 核心 / 旋转稳定 / 异常已封存'}</span>
+        <span className="text-violet-100/60">点击核心，触发回应</span>
       </div>
     </div>
   )

@@ -5,7 +5,7 @@ import { NeonButton } from '@/components/ui/NeonButton'
 import { playVoidSound } from '@/lib/sound'
 import { useVoidStore } from '@/store/useVoidStore'
 
-const gateStates = ['RESTRICTED GATE', 'ACCESS DENIED', 'GATE RESISTING', 'GATE OPENED']
+const gateStates = ['受限闸门', '访问被拒绝', '闸门正在抵抗', '闸门已打开']
 
 export function GateModule() {
   const gateClickCount = useVoidStore(state => state.gateClickCount)
@@ -31,18 +31,18 @@ export function GateModule() {
           animate={{ opacity: 1, scale: 1, filter: 'blur(0)' }}
           className="w-full max-w-3xl"
         >
-          <p className="text-xs font-black uppercase tracking-[0.32em] text-red-200/70">Restricted Sector</p>
-          <h2 className="glitch-text mt-5 text-[clamp(2.8rem,8vw,6.4rem)] font-black uppercase leading-[0.82] tracking-[-0.1em] text-white">
+          <p className="text-xs font-black tracking-[0.32em] text-red-200/70">受限区域</p>
+          <h2 className="glitch-text mt-5 text-[clamp(2.8rem,8vw,6.4rem)] font-black leading-[0.9] tracking-[0.02em] text-white">
             {message}
           </h2>
-          <div className="mx-auto mt-6 grid max-w-xl gap-3 font-mono text-xs uppercase leading-6 tracking-[0.14em] text-zinc-400 md:text-sm">
-            <p>This sector is sealed. Unauthorized opening is not recommended.</p>
+          <div className="mx-auto mt-6 grid max-w-xl gap-3 font-mono text-xs leading-6 tracking-[0.14em] text-zinc-400 md:text-sm">
+            <p>该区域已封锁。不建议进行未授权开启。</p>
             <p className={gateOpened ? 'text-red-200' : 'text-zinc-500'}>
-              GATE STATUS: {gateOpened ? 'OPENED' : 'SEALED'} / ATTEMPT {gateClickCount.toString().padStart(2, '0')}
+              闸门状态：{gateOpened ? '已打开' : '已封锁'} / 尝试 {gateClickCount.toString().padStart(2, '0')}
             </p>
           </div>
           <NeonButton variant="danger" onClick={openGate} className="mt-8">
-            Do Not Open
+            不要打开
           </NeonButton>
         </motion.div>
       </div>

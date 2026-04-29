@@ -23,12 +23,12 @@ export function SignalModule() {
   return (
     <section className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
       <div>
-        <p className="text-xs font-black uppercase tracking-[0.28em] text-cyan-200/70">Signal Found</p>
+        <p className="text-xs font-black tracking-[0.28em] text-cyan-200/70">发现信号</p>
         <h2 className="mt-3 text-4xl font-black uppercase tracking-[-0.07em] text-white">{frequency} MHz</h2>
         <div className="mt-7 space-y-3 font-mono text-sm uppercase tracking-[0.14em] text-zinc-400">
-          <p>SOURCE: OUTSIDE_SCREEN</p>
-          <p>CHANNEL: BLACK STATIC</p>
-          <p>CONTACT: UNVERIFIED</p>
+          <p>来源：屏幕之外</p>
+          <p>频道：黑色静噪</p>
+          <p>接触：未验证</p>
         </div>
         <motion.div
           key={message}
@@ -39,7 +39,7 @@ export function SignalModule() {
           {message}
         </motion.div>
         <NeonButton onClick={scanAgain} className="mt-6">
-          Scan Again
+          再次扫描
         </NeonButton>
       </div>
       <div className="relative min-h-[330px] overflow-hidden border border-white/[0.08] bg-black/35 p-5 hud-corners">

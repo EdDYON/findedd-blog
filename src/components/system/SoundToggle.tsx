@@ -22,7 +22,7 @@ export function SoundToggle() {
       aria-pressed={soundEnabled}
     >
       {soundEnabled ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
-      SOUND: {soundEnabled ? 'ON' : 'OFF'}
+      声音：{soundEnabled ? '开' : '关'}
     </button>
   )
 }

@@ -15,12 +15,12 @@ export function LabModule() {
 
   function triggerBurst() {
     setBurst(value => value + 1)
-    addSystemLog('PARTICLE BURST DISPATCHED')
+    addSystemLog('粒子爆发已释放')
   }
 
   function distortField() {
     triggerGlitch()
-    addSystemLog('ANOMALY FIELD DISTORTED')
+    addSystemLog('异常场发生扭曲')
   }
 
   function overdriveCore() {
@@ -31,13 +31,13 @@ export function LabModule() {
   return (
     <section className="relative overflow-hidden">
       <div className="mb-6">
-        <p className="text-xs font-black uppercase tracking-[0.28em] text-violet-200/70">Experimental Chamber</p>
-        <h2 className="mt-2 text-3xl font-black uppercase tracking-[-0.05em] text-white">Unstable Toys</h2>
+        <p className="text-xs font-black tracking-[0.28em] text-violet-200/70">实验舱</p>
+        <h2 className="mt-2 text-3xl font-black tracking-[0.04em] text-white">不稳定装置</h2>
       </div>
       <div className="grid gap-4 md:grid-cols-3">
-        <NeonButton onClick={distortField}>Glitch Text</NeonButton>
-        <NeonButton onClick={triggerBurst}>Particle Burst</NeonButton>
-        <NeonButton onClick={overdriveCore}>Core Overdrive</NeonButton>
+        <NeonButton onClick={distortField}>故障扰动</NeonButton>
+        <NeonButton onClick={triggerBurst}>粒子爆发</NeonButton>
+        <NeonButton onClick={overdriveCore}>核心过载</NeonButton>
       </div>
       <div className="relative mt-7 min-h-[280px] overflow-hidden border border-white/[0.08] bg-black/35 hud-corners">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.22),transparent_42%)]" />
@@ -57,8 +57,8 @@ export function LabModule() {
         ))}
         <div className="relative z-10 grid h-full place-items-center p-8 text-center">
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.24em] text-zinc-500">selected output</p>
-            <p className="mt-4 text-2xl font-black uppercase text-white">Distortion ready. Touch something.</p>
+            <p className="font-mono text-xs tracking-[0.24em] text-zinc-500">当前输出</p>
+            <p className="mt-4 text-2xl font-black text-white">扰动已待命。随便触发点什么。</p>
           </div>
         </div>
       </div>
