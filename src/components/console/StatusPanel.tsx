@@ -7,6 +7,8 @@ import { useVoidStore } from '@/store/useVoidStore'
 
 export function StatusPanel() {
   const performanceMode = useVoidStore(state => state.performanceMode)
+  const permissionLevel = useVoidStore(state => state.permissionLevel)
+  const redAlert = useVoidStore(state => state.redAlert)
   const [visitorId, setVisitorId] = useState('VIS-0000')
   const modeLabel = performanceMode === 'high' ? '完整' : '轻量'
 
@@ -25,8 +27,8 @@ export function StatusPanel() {
 
   const rows = [
     ['访客编号', visitorId],
-    ['节点状态', '在线'],
-    ['风险等级', '未知'],
+    ['节点状态', redAlert ? '红色警戒' : '在线'],
+    ['权限等级', permissionLevel],
     ['运行模式', modeLabel],
   ]
 
@@ -34,7 +36,7 @@ export function StatusPanel() {
     <GlassPanel intense className="p-5">
       <div className="mb-5 flex items-center justify-between">
         <h2 className="text-xs font-black tracking-[0.28em] text-cyan-200">状态</h2>
-        <span className="h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_18px_rgba(110,231,183,0.9)]" />
+        <span className={redAlert ? 'h-2 w-2 rounded-full bg-red-300 shadow-[0_0_18px_rgba(251,44,54,0.9)]' : 'h-2 w-2 rounded-full bg-emerald-300 shadow-[0_0_18px_rgba(110,231,183,0.9)]'} />
       </div>
       <div className="grid gap-3">
         {rows.map(([label, value]) => (

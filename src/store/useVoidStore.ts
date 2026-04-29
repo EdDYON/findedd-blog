@@ -1,7 +1,15 @@
 'use client'
 
 import { create } from 'zustand'
-import type { AchievementId, AchievementToast, PerformanceMode, SystemLog, VoidModule } from '@/types/void'
+import type {
+  AchievementId,
+  AchievementToast,
+  DecryptOverlayState,
+  PerformanceMode,
+  PermissionLevel,
+  SystemLog,
+  VoidModule,
+} from '@/types/void'
 
 type VoidStore = {
   booted: boolean
@@ -9,9 +17,12 @@ type VoidStore = {
   terminalOpen: boolean
   overdrive: boolean
   glitching: boolean
+  splitGlitching: boolean
   hudShaking: boolean
+  redAlert: boolean
   soundEnabled: boolean
   performanceMode: PerformanceMode
+  permissionLevel: PermissionLevel
   systemLogs: SystemLog[]
   unlockedAchievements: AchievementId[]
   achievementToasts: AchievementToast[]
@@ -21,13 +32,20 @@ type VoidStore = {
   gateOpened: boolean
   gateResultOpen: boolean
   escapeAttemptCount: number
+  decryptOverlay: DecryptOverlayState | null
   setBooted: (value: boolean) => void
   setActiveModule: (module: VoidModule) => void
   toggleTerminal: () => void
   setTerminalOpen: (value: boolean) => void
   triggerOverdrive: () => void
   triggerGlitch: (duration?: number) => void
+  triggerSplitGlitch: (duration?: number) => void
   triggerHudShake: (duration?: number) => void
+  triggerRedAlert: (duration?: number) => void
+  clearRedAlert: () => void
+  setPermissionLevel: (level: PermissionLevel) => void
+  triggerDecryptOverlay: (message: string) => void
+  closeDecryptOverlay: () => void
   addSystemLog: (message: string) => void
   unlockAchievement: (id: AchievementId) => void
   dismissAchievementToast: (id: string) => void
@@ -42,7 +60,9 @@ type VoidStore = {
 
 let overdriveTimer: ReturnType<typeof setTimeout> | null = null
 let glitchTimer: ReturnType<typeof setTimeout> | null = null
+let splitGlitchTimer: ReturnType<typeof setTimeout> | null = null
 let hudShakeTimer: ReturnType<typeof setTimeout> | null = null
+let redAlertTimer: ReturnType<typeof setTimeout> | null = null
 
 function makeId(prefix: string) {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`
@@ -62,15 +82,25 @@ function moduleLabel(module: VoidModule) {
   return labels[module]
 }
 
+const permissionRank: Record<PermissionLevel, number> = {
+  GUEST: 0,
+  SIGNAL: 1,
+  OPERATOR: 2,
+  ROOT: 3,
+}
+
 export const useVoidStore = create<VoidStore>((set, get) => ({
   booted: false,
   activeModule: 'archive',
   terminalOpen: false,
   overdrive: false,
   glitching: false,
+  splitGlitching: false,
   hudShaking: false,
+  redAlert: false,
   soundEnabled: false,
   performanceMode: 'high',
+  permissionLevel: 'GUEST',
   systemLogs: [],
   unlockedAchievements: [],
   achievementToasts: [],
@@ -80,6 +110,7 @@ export const useVoidStore = create<VoidStore>((set, get) => ({
   gateOpened: false,
   gateResultOpen: false,
   escapeAttemptCount: 0,
+  decryptOverlay: null,
 
   setBooted: value => {
     set({ booted: value })
@@ -131,6 +162,14 @@ export const useVoidStore = create<VoidStore>((set, get) => ({
     glitchTimer = setTimeout(() => set({ glitching: false }), duration)
   },
 
+  triggerSplitGlitch: (duration = 950) => {
+    if (splitGlitchTimer)
+      clearTimeout(splitGlitchTimer)
+    set({ splitGlitching: true })
+    get().triggerGlitch(duration)
+    splitGlitchTimer = setTimeout(() => set({ splitGlitching: false }), duration)
+  },
+
   triggerHudShake: (duration = 560) => {
     if (hudShakeTimer)
       clearTimeout(hudShakeTimer)
@@ -138,13 +177,44 @@ export const useVoidStore = create<VoidStore>((set, get) => ({
     hudShakeTimer = setTimeout(() => set({ hudShaking: false }), duration)
   },
 
+  triggerRedAlert: (duration = 9000) => {
+    if (redAlertTimer)
+      clearTimeout(redAlertTimer)
+    set({ redAlert: true })
+    get().triggerSplitGlitch(1100)
+    get().triggerHudShake(900)
+    get().addSystemLog('红色警戒模式启动')
+    redAlertTimer = setTimeout(() => set({ redAlert: false }), duration)
+  },
+
+  clearRedAlert: () => {
+    if (redAlertTimer)
+      clearTimeout(redAlertTimer)
+    set({ redAlert: false })
+    get().addSystemLog('红色警戒已终止')
+  },
+
+  setPermissionLevel: level => {
+    const current = get().permissionLevel
+    if (permissionRank[level] <= permissionRank[current])
+      return
+    set({ permissionLevel: level })
+    get().addSystemLog(`权限提升：${level}`)
+  },
+
+  triggerDecryptOverlay: message => {
+    set({ decryptOverlay: { id: makeId('decrypt'), message } })
+  },
+
+  closeDecryptOverlay: () => set({ decryptOverlay: null }),
+
   addSystemLog: message => {
     const log = {
       id: makeId('log'),
       message,
       timestamp: Date.now(),
     }
-    set(state => ({ systemLogs: [...state.systemLogs, log].slice(-32) }))
+    set(state => ({ systemLogs: [...state.systemLogs, log].slice(-42) }))
   },
 
   unlockAchievement: id => {
@@ -168,7 +238,7 @@ export const useVoidStore = create<VoidStore>((set, get) => ({
   incrementSignalScan: () => {
     const next = get().signalScanCount + 1
     set({ signalScanCount: next })
-    get().addSystemLog('信号扫描完成')
+    get().addSystemLog('数据包监听完成')
     if (next >= 5)
       get().unlockAchievement('SIGNAL_HUNTER')
   },
@@ -184,13 +254,13 @@ export const useVoidStore = create<VoidStore>((set, get) => ({
   attemptGate: () => {
     const next = Math.min(get().gateClickCount + 1, 3)
     set({ gateClickCount: next })
-    get().addSystemLog(`闸门访问尝试 ${gateAttemptLabel(next)}`)
+    get().addSystemLog(`闸门突破阶段 ${gateAttemptLabel(next)}`)
 
     if (next >= 3 && !get().gateOpened) {
       set({ gateOpened: true, gateResultOpen: true })
-      get().addSystemLog('闸门已打开')
-      get().triggerGlitch(800)
-      get().triggerHudShake(720)
+      get().setPermissionLevel('OPERATOR')
+      get().addSystemLog('闸门已接入')
+      get().triggerRedAlert(8000)
       get().unlockAchievement('GATEBREAKER')
     }
   },

@@ -2,7 +2,7 @@
 
 import { useState, type CSSProperties, type MouseEvent } from 'react'
 import { motion } from 'motion/react'
-import type { ArchiveItem } from '@/types/void'
+import type { ArchiveItem, PermissionLevel } from '@/types/void'
 import { cn } from '@/lib/cn'
 
 type ArchiveCardProps = {
@@ -24,8 +24,26 @@ const dangerLabel: Record<ArchiveItem['danger'], string> = {
   UNKNOWN: '未知风险',
 }
 
+const permissions: PermissionLevel[] = ['GUEST', 'SIGNAL', 'OPERATOR', 'ROOT']
+const leakStates = ['未泄露', '局部泄露', '镜像泄露', '红门泄露']
+
+function checksum(value: string) {
+  const sum = Array.from(value).reduce((acc, char, index) => acc + char.charCodeAt(0) * (index + 3), 0)
+  return `0x${(sum % 0xfffff).toString(16).toUpperCase().padStart(5, '0')}`
+}
+
+function blackBoxMeta(item: ArchiveItem) {
+  const index = Number(item.id) || 0
+  return {
+    permission: permissions[index % permissions.length],
+    leak: leakStates[index % leakStates.length],
+    checksum: checksum(`${item.id}:${item.title}:${item.type}`),
+  }
+}
+
 export function ArchiveCard({ item }: ArchiveCardProps) {
   const [style, setStyle] = useState<CSSProperties>({})
+  const meta = blackBoxMeta(item)
 
   function handleMove(event: MouseEvent<HTMLElement>) {
     const bounds = event.currentTarget.getBoundingClientRect()
@@ -47,12 +65,13 @@ export function ArchiveCard({ item }: ArchiveCardProps) {
       onMouseMove={handleMove}
       onMouseLeave={() => setStyle({})}
       style={style}
-      className="group relative min-h-[260px] overflow-hidden border border-white/10 bg-black/35 p-5 transition duration-200 hud-corners hover:border-cyan-300/60 hover:shadow-[0_0_44px_rgba(34,211,238,0.18)]"
+      className="group relative min-h-[300px] overflow-hidden border border-white/10 bg-black/40 p-5 transition duration-200 hud-corners hover:border-cyan-300/60 hover:shadow-[0_0_44px_rgba(34,211,238,0.18)]"
     >
-      <div className="pointer-events-none absolute inset-0 opacity-0 transition group-hover:opacity-100" style={{ background: 'radial-gradient(circle at var(--spot-x,50%) var(--spot-y,50%), rgba(34,211,238,0.18), transparent 34%)' }} />
+      <div className="pointer-events-none absolute inset-0 opacity-0 transition group-hover:opacity-100" style={{ background: 'radial-gradient(circle at var(--spot-x,50%) var(--spot-y,50%), rgba(34,211,238,0.2), transparent 34%)' }} />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-200/70 to-transparent" />
       <div className="relative z-10 flex h-full flex-col">
         <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200/75">
-          <span>档案 {item.id}</span>
+          <span>BLACKBOX {item.id}</span>
           <span className={cn(
             'rounded-full border px-2 py-1',
             item.danger === 'HIGH' && 'border-red-400/50 text-red-200',
@@ -71,6 +90,22 @@ export function ArchiveCard({ item }: ArchiveCardProps) {
         <p className="mt-2 text-xs font-bold tracking-[0.18em] text-violet-200/70">
           {item.type} / {statusLabel[item.status]}
         </p>
+
+        <div className="mt-5 grid grid-cols-3 gap-2 font-mono text-[10px] tracking-[0.14em] text-zinc-500">
+          <div className="border border-white/[0.08] bg-white/[0.03] p-2">
+            <p>权限</p>
+            <p className="mt-1 text-cyan-100">{meta.permission}</p>
+          </div>
+          <div className="border border-white/[0.08] bg-white/[0.03] p-2">
+            <p>泄露</p>
+            <p className="mt-1 text-red-100">{meta.leak}</p>
+          </div>
+          <div className="border border-white/[0.08] bg-white/[0.03] p-2">
+            <p>校验</p>
+            <p className="mt-1 text-zinc-100">{meta.checksum}</p>
+          </div>
+        </div>
+
         <p className="mt-5 flex-1 text-sm leading-7 text-zinc-300">
           {item.description}
         </p>

@@ -112,6 +112,21 @@ h3,
     #020207;
 }
 
+.deep-space-alert {
+  background:
+    radial-gradient(circle at 50% 48%, rgba(251, 44, 54, 0.25), transparent 18rem),
+    radial-gradient(circle at 42% 52%, rgba(127, 29, 29, 0.28), transparent 28rem),
+    radial-gradient(circle at 72% 16%, rgba(251, 44, 54, 0.18), transparent 22rem),
+    #050005;
+}
+
+.red-alert-vignette {
+  background:
+    radial-gradient(circle at center, transparent 0 42%, rgba(251, 44, 54, 0.15) 72%, rgba(0, 0, 0, 0.72)),
+    repeating-linear-gradient(0deg, rgba(251, 44, 54, 0.05) 0 1px, transparent 1px 9px);
+  animation: alert-pulse 0.9s ease-in-out infinite;
+}
+
 .star-drift {
   background-image:
     radial-gradient(circle, rgba(255, 255, 255, 0.75) 0 1px, transparent 1.5px),
@@ -168,6 +183,40 @@ h3,
   box-shadow: 0 0 18px rgba(251, 44, 54, 0.95);
 }
 
+.radar-danger {
+  background:
+    radial-gradient(circle, transparent 0 21%, rgba(251, 44, 54, 0.16) 22% 23%, transparent 24% 45%, rgba(251, 44, 54, 0.12) 46% 47%, transparent 48%),
+    linear-gradient(90deg, transparent 49%, rgba(251, 44, 54, 0.24) 50%, transparent 51%),
+    linear-gradient(0deg, transparent 49%, rgba(251, 44, 54, 0.24) 50%, transparent 51%);
+}
+
+.code-rain-column {
+  text-shadow: 0 0 12px currentColor;
+  animation-name: code-rain-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.edge-scanner-panel {
+  mask-image: linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
+}
+
+.edge-scanner-track {
+  animation: scanner-scroll 10s linear infinite;
+}
+
+.split-glitch-cyan {
+  background:
+    linear-gradient(90deg, rgba(34, 211, 238, 0.18), transparent 22%, rgba(139, 92, 246, 0.14), transparent 66%, rgba(34, 211, 238, 0.18)),
+    repeating-linear-gradient(0deg, transparent 0 9px, rgba(255, 255, 255, 0.08) 10px 11px);
+}
+
+.split-glitch-red {
+  background:
+    linear-gradient(90deg, rgba(251, 44, 54, 0.26), transparent 22%, rgba(127, 29, 29, 0.22), transparent 66%, rgba(251, 44, 54, 0.26)),
+    repeating-linear-gradient(0deg, transparent 0 8px, rgba(251, 44, 54, 0.12) 9px 10px);
+}
+
 @keyframes noise-drift {
   0% {
     transform: translate3d(0, 0, 0);
@@ -175,6 +224,37 @@ h3,
 
   100% {
     transform: translate3d(-2%, 2%, 0);
+  }
+}
+
+@keyframes alert-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 0.95;
+  }
+}
+
+@keyframes code-rain-fall {
+  0% {
+    transform: translate3d(0, -10vh, 0);
+  }
+
+  100% {
+    transform: translate3d(0, 138vh, 0);
+  }
+}
+
+@keyframes scanner-scroll {
+  0% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(-50%);
   }
 }
 

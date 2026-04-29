@@ -7,10 +7,10 @@ import { playVoidSound } from '@/lib/sound'
 import { useVoidStore } from '@/store/useVoidStore'
 
 const modules: Array<{ key: VoidModule; label: string; sub: string; tone: string }> = [
-  { key: 'archive', label: '档案', sub: '异常记录', tone: 'cyan' },
-  { key: 'signal', label: '信号', sub: '未知回声', tone: 'violet' },
-  { key: 'lab', label: '实验', sub: '不稳定装置', tone: 'cyan' },
-  { key: 'gate', label: '闸门', sub: '请勿开启', tone: 'red' },
+  { key: 'archive', label: '档案', sub: '黑箱报告', tone: 'cyan' },
+  { key: 'signal', label: '信号', sub: '数据包监听', tone: 'violet' },
+  { key: 'lab', label: '实验', sub: '破解器玩具', tone: 'cyan' },
+  { key: 'gate', label: '闸门', sub: '权限突破', tone: 'red' },
 ]
 
 const offsets = [

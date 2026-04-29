@@ -2,6 +2,8 @@ export type VoidModule = 'archive' | 'signal' | 'lab' | 'gate'
 
 export type PerformanceMode = 'high' | 'low'
 
+export type PermissionLevel = 'GUEST' | 'SIGNAL' | 'OPERATOR' | 'ROOT'
+
 export type AchievementId =
   | 'FIRST_CONTACT'
   | 'TERMINAL_USER'
@@ -15,6 +17,16 @@ export type AchievementId =
   | 'MIRROR_ERROR'
   | 'REDGATE_WITNESS'
   | 'LISTENER'
+  | 'TRACE_COMPLETE'
+  | 'DECRYPTED_SIGNAL'
+  | 'BREACH_INITIATED'
+  | 'ROOT_GRANTED'
+  | 'KILL_SWITCH'
+
+export type DecryptOverlayState = {
+  id: string
+  message: string
+}
 
 export type SystemLog = {
   id: string

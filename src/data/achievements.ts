@@ -49,4 +49,24 @@ export const achievements: Record<AchievementId, { title: string; description: s
     title: '静噪倾听者',
     description: '你听见了静噪背后的回声。',
   },
+  TRACE_COMPLETE: {
+    title: '节点追踪',
+    description: '追踪链路最终指向 VOID_CORE。',
+  },
+  DECRYPTED_SIGNAL: {
+    title: '解密完成',
+    description: '一段密文被还原成可读信号。',
+  },
+  BREACH_INITIATED: {
+    title: '突破启动',
+    description: '红色警戒被你短暂唤醒。',
+  },
+  ROOT_GRANTED: {
+    title: 'ROOT 权限',
+    description: 'VOID 暂时承认了你的最高权限。',
+  },
+  KILL_SWITCH: {
+    title: '终止开关',
+    description: '你关闭了一次红色警戒。',
+  },
 }
