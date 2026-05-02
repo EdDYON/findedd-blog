@@ -1,53 +1,32 @@
-# VOID
+# Doorway
 
-VOID is not a website.  
-It is an entry point.
+A private mobile-first entry built with Next.js. The public `/` route renders only the key gate. The protected `/void` route renders the private experience only after the server verifies an HttpOnly access cookie.
 
-A dark sci-fi interactive web experience built with Next.js, Motion, Tailwind CSS, and React Three Fiber.
+## Setup
 
-## Features
+Generate hashes for both keys:
 
-- Boot sequence animation
-- Dark HUD interface
-- 3D VOID CORE
-- Custom cursor
-- Click ripple effects
-- Interactive modules
-- Hidden terminal commands
-- Glitch overlays
-- Gate easter egg
+```bash
+node scripts/hash-key.mjs "your owner key"
+node scripts/hash-key.mjs "her key"
+```
 
-## Stack
+Add the results to `.env.local` or Vercel environment variables:
 
-- Next.js App Router
-- React
-- TypeScript
-- Tailwind CSS
-- Motion
-- Three.js
-- React Three Fiber
-- Drei
-- Zustand
+```bash
+OWNER_KEY_HASH=scrypt.salt.hash
+HER_KEY_HASH=scrypt.salt.hash
+ACCESS_COOKIE_SECRET=replace-with-a-long-random-secret
+NEXT_PUBLIC_SITE_URL=https://findedd.cn
+```
+
+`OWNER_KEY_HASH` unlocks owner mode. `HER_KEY_HASH` unlocks the normal private experience. The real keys are never shipped to the browser.
 
 ## Commands
 
 ```bash
 npm install
 npm run dev
-npm run build
 npm run lint
-```
-
-## Terminal Commands
-
-```txt
-/help
-/about
-/archive
-/signal
-/lab
-/gate
-/void
-/echo
-/clear
+npm run build
 ```

@@ -16,13 +16,13 @@ export function TerminalInput({ value, onChange, onSubmit }: TerminalInputProps)
 
   return (
     <form onSubmit={handleSubmit} className="flex items-center gap-2 border-t border-white/10 p-3 font-mono">
-      <span className="text-cyan-200">&gt;</span>
+      <span className="neon-text text-cyan-200">&gt;</span>
       <input
-        aria-label="VOID 终端指令"
+        aria-label="VOID 终端命令"
         value={value}
         onChange={event => onChange(event.target.value)}
-        className="min-w-0 flex-1 bg-transparent text-sm uppercase tracking-[0.12em] text-zinc-100 outline-none placeholder:text-zinc-600"
-        placeholder="输入 /帮助"
+        className="min-w-0 flex-1 bg-transparent text-sm tracking-[0.08em] text-cyan-50 outline-none placeholder:text-zinc-600"
+        placeholder="whoami / projects / scan / contact"
         autoComplete="off"
       />
     </form>

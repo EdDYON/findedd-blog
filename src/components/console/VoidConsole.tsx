@@ -39,7 +39,7 @@ export function VoidConsole() {
           <header className={cn('grid gap-4 border-b border-white/10 p-4 md:grid-cols-[1fr_auto] md:p-5', redAlert && 'bg-red-950/10')}>
             <div>
               <p className="font-mono text-xs font-black uppercase tracking-[0.36em] text-cyan-200/70">VOID</p>
-              <h1 className="mt-2 text-4xl font-black tracking-[0.08em] text-white md:text-7xl">
+              <h1 className="glitch-text mt-2 text-4xl font-black tracking-[0.04em] text-white md:text-7xl" data-text="数字异常界面">
                 数字异常界面
               </h1>
               <p className="mt-3 max-w-2xl font-mono text-xs tracking-[0.16em] text-zinc-500">
@@ -57,9 +57,10 @@ export function VoidConsole() {
                   playVoidSound('click', soundEnabled)
                   setTerminalOpen(true)
                 }}
-                className="border border-cyan-300/30 bg-cyan-300/[0.06] px-3 py-2 text-cyan-100 transition hover:bg-cyan-300/15 hud-corners"
+                data-text="接入 VOID"
+                className="glitch-hover border border-cyan-300/30 bg-cyan-300/[0.06] px-3 py-2 text-cyan-100 shadow-[0_0_24px_rgba(34,211,238,0.14)] transition hover:bg-cyan-300/15 hud-corners"
               >
-                打开终端
+                接入 VOID
               </button>
             </div>
           </header>
@@ -77,7 +78,7 @@ export function VoidConsole() {
                 <VoidCoreScene />
               </div>
               <div className="border border-white/[0.07] bg-white/[0.025] p-3 font-mono text-[10px] tracking-[0.18em] text-zinc-500 hud-corners md:text-xs">
-                &gt; 按 ~ 打开终端。试试 /扫描、/追踪、/解密、/突破。
+                &gt; 按 ~ 打开终端。试试 whoami、projects、scan、contact。
               </div>
             </section>
 

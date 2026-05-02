@@ -50,7 +50,7 @@ export function VoidExperience() {
   }, [soundEnabled, terminalOpen, toggleTerminal])
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#020207] text-zinc-100">
+    <main className="crt-screen min-h-screen overflow-hidden bg-[#020207] text-zinc-100">
       <DeepSpaceBackground />
       <CodeRain />
       <div className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_20%_20%,rgba(139,92,246,0.18),transparent_32rem),radial-gradient(circle_at_78%_28%,rgba(34,211,238,0.14),transparent_34rem),radial-gradient(circle_at_50%_90%,rgba(251,44,54,0.11),transparent_28rem)]" />

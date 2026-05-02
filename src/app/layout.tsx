@@ -2,22 +2,27 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'VOID - 数字异常控制台',
-  description: 'VOID 是一个可以进入、扫描、解密、触发和探索的暗色科幻互动界面。',
+  title: '门后',
+  description: '一个需要密钥进入的私人入口。',
   icons: {
     icon: '/favicon.jpg',
     apple: '/avatar.jpg',
   },
   openGraph: {
-    title: 'VOID - 数字异常控制台',
-    description: 'VOID 是一个可以进入、扫描、解密、触发和探索的暗色科幻互动界面。',
+    title: '门后',
+    description: '一个需要密钥进入的私人入口。',
     type: 'website',
+  },
+  robots: {
+    index: true,
+    follow: false,
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#020207',
-  colorScheme: 'dark',
+  themeColor: '#fff7fb',
+  colorScheme: 'light',
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({
