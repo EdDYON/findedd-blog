@@ -1,6 +1,8 @@
 import type { AccessRole } from '@/lib/access'
 
 export type LetterType = 'normal' | 'goodnight' | 'missing' | 'hug' | 'praise' | 'sorry' | 'safe' | 'future'
+export type WishCategory = 'todo' | 'food' | 'place' | 'tiny'
+export type LetterReactionAction = 'received' | 'hug_again' | 'miss_too'
 
 export type MoodValue =
   | '开心 😊'
@@ -64,6 +66,15 @@ export const letterTypes: Array<{ value: LetterType, label: string, description:
   { value: 'future', label: '未来的信', description: '写给未来某个时间的对方。' },
 ]
 
+export const stampTypes: Array<{ value: LetterType, label: string, locked: string }> = [
+  { value: 'goodnight', label: '晚安邮票', locked: '还没有晚安信。' },
+  { value: 'missing', label: '想你邮票', locked: '还没有想你信。' },
+  { value: 'hug', label: '抱抱邮票', locked: '还没有抱抱信。' },
+  { value: 'future', label: '未来邮票', locked: '还没有未来的信。' },
+  { value: 'safe', label: '安全感邮票', locked: '还没有安全感信。' },
+  { value: 'praise', label: '夸夸邮票', locked: '还没有夸夸信。' },
+]
+
 export const moodOptions: MoodValue[] = [
   '开心 😊',
   '想你 🥺',
@@ -85,8 +96,56 @@ export const notePlaceholders = [
   '写给那个正在远方的人。',
 ]
 
+export const dailyQuestions = [
+  '今天有没有一瞬间想我？',
+  '今天最想被我抱一下的时刻是什么？',
+  '今天有什么小事，想第一时间告诉我？',
+  '如果今晚能一起散步，你想走到哪里？',
+  '今天有没有一句话，想被我认真听见？',
+  '今天最需要我靠近你的哪一刻？',
+  '下次见面第一件想做的小事是什么？',
+]
+
+export const assuranceResponses = [
+  '我在',
+  '我没有走远',
+  '今天也喜欢你',
+]
+
+export const wishCategories: Array<{ value: WishCategory, label: string, placeholder: string }> = [
+  { value: 'todo', label: '想一起做的事', placeholder: '比如：下次见面一起看一场电影。' },
+  { value: 'food', label: '想一起吃的东西', placeholder: '比如：一起吃热乎乎的火锅。' },
+  { value: 'place', label: '想一起去的地方', placeholder: '比如：去一条很安静的小路散步。' },
+  { value: 'tiny', label: '很小的愿望', placeholder: '比如：想被牵着手多走一会儿。' },
+]
+
+export const reactionOptions: Array<{ value: LetterReactionAction, label: string }> = [
+  { value: 'received', label: '我收到啦' },
+  { value: 'hug_again', label: '再抱一下' },
+  { value: 'miss_too', label: '我也想你' },
+]
+
+export const futureJarPresets = [
+  { label: '写给一周后的你', days: 7 },
+  { label: '写给见面前一天的你', days: 1 },
+  { label: '写给不开心那天的你', days: 3 },
+]
+
+export function questionForDate(dateKey: string) {
+  const seed = dateKey.split('').reduce((total, char) => total + char.charCodeAt(0), 0)
+  return dailyQuestions[seed % dailyQuestions.length]
+}
+
 export function letterTypeLabel(type: string) {
   return letterTypes.find(item => item.value === type)?.label ?? '普通信'
+}
+
+export function wishCategoryLabel(category: string) {
+  return wishCategories.find(item => item.value === category)?.label ?? '很小的愿望'
+}
+
+export function reactionLabel(action: string) {
+  return reactionOptions.find(item => item.value === action)?.label ?? '我收到啦'
 }
 
 export function formatDateTime(value: string | Date) {
@@ -142,4 +201,20 @@ export function previewText(content: string, length = 42) {
     return normalized
 
   return `${normalized.slice(0, length)}...`
+}
+
+export function moodTemperatureText(moods: string[], subject = '对方') {
+  if (moods.length === 0)
+    return '这几天的状态，还在等一小格像素亮起来。'
+
+  if (moods.some(item => item.includes('累') || item.includes('委屈') || item.includes('安静')))
+    return `这几天，${subject}好像有点累，适合被轻轻抱住。`
+
+  if (moods.some(item => item.includes('想你') || item.includes('见面') || item.includes('消息')))
+    return '这几天，想念一直在小小发光。'
+
+  if (moods.some(item => item.includes('开心')))
+    return '这几天，有几格像素是亮晶晶的。'
+
+  return '这几天的心情，被安静地保存下来了。'
 }

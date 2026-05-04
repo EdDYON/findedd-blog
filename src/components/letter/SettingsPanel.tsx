@@ -1,26 +1,32 @@
 'use client'
 
 import type { AccessRole } from '@/lib/access'
-import type { MeetingInfo } from '@/lib/letter-store'
+import type { MeetingInfo, StampCollectionItem } from '@/lib/letter-store'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Bell, CalendarDays, Info, LogOut, MonitorDown, RotateCcw, ShieldCheck, UserRound } from 'lucide-react'
+import { StampCollection } from '@/components/letter/StampCollection'
 import { formatFullDateTime, personName } from '@/lib/letter-copy'
 
 type SettingsPanelProps = {
   role: AccessRole
   meeting: MeetingInfo
+  stamps: StampCollectionItem[]
 }
 
-export function SettingsPanel({ role, meeting }: SettingsPanelProps) {
+export function SettingsPanel({ role, meeting, stamps }: SettingsPanelProps) {
   const router = useRouter()
   const [toast, setToast] = useState('')
   const [showExit, setShowExit] = useState(false)
   const [meetingTime, setMeetingTime] = useState(meeting.time ? meeting.time.slice(0, 16) : '')
   const [meetingPlace, setMeetingPlace] = useState(meeting.place ?? '')
   const [meetingNote, setMeetingNote] = useState(meeting.note ?? '')
+  const [meetingPlan, setMeetingPlan] = useState(meeting.plan ?? '')
+  const [meetingBring, setMeetingBring] = useState(meeting.bring ?? '')
+  const [meetingFirstWords, setMeetingFirstWords] = useState(meeting.firstWords ?? '')
+  const [meetingFirstThing, setMeetingFirstThing] = useState(meeting.firstThing ?? '')
   const [newHerKey, setNewHerKey] = useState('')
 
   async function leave() {
@@ -37,6 +43,10 @@ export function SettingsPanel({ role, meeting }: SettingsPanelProps) {
         time: meetingTime,
         place: meetingPlace,
         note: meetingNote,
+        plan: meetingPlan,
+        bring: meetingBring,
+        firstWords: meetingFirstWords,
+        firstThing: meetingFirstThing,
       }),
     })
 
@@ -106,9 +116,15 @@ export function SettingsPanel({ role, meeting }: SettingsPanelProps) {
           <input id="meeting-time" className="letter-input" type="datetime-local" value={meetingTime} onChange={event => setMeetingTime(event.target.value)} />
           <input className="letter-input" value={meetingPlace} onChange={event => setMeetingPlace(event.target.value)} placeholder="地点" />
           <textarea className="letter-textarea letter-textarea-small" value={meetingNote} onChange={event => setMeetingNote(event.target.value)} placeholder="备注" />
+          <textarea className="letter-textarea letter-textarea-small" value={meetingPlan} onChange={event => setMeetingPlan(event.target.value)} placeholder="见面当天计划" />
+          <input className="letter-input" value={meetingBring} onChange={event => setMeetingBring(event.target.value)} placeholder="要带给对方的东西" />
+          <input className="letter-input" value={meetingFirstWords} onChange={event => setMeetingFirstWords(event.target.value)} placeholder="第一句话" />
+          <input className="letter-input" value={meetingFirstThing} onChange={event => setMeetingFirstThing(event.target.value)} placeholder="第一件想做的事" />
           <button className="letter-primary-button" type="button" onClick={() => void saveMeeting()}>保存见面信息</button>
         </section>
       )}
+
+      <StampCollection stamps={stamps} />
 
       <section className="letter-card">
         <div className="letter-card-head">

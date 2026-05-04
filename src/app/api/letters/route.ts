@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
     content?: string
     deliverMode?: string
     deliverAt?: string
+    readOnce?: boolean
   }
 
   const content = body.content?.trim() ?? ''
@@ -49,6 +50,7 @@ export async function POST(request: NextRequest) {
     type,
     content,
     deliverAt,
+    readOnce: Boolean(body.readOnce),
   })
 
   return NextResponse.json({ ok: true, letter })

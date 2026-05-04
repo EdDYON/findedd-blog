@@ -1,12 +1,24 @@
 'use client'
 
 import type { AccessRole } from '@/lib/access'
-import type { DailyStatus, HugRecord, Letter, MeetingInfo } from '@/lib/letter-store'
+import type {
+  AssuranceRequest,
+  DailyQuestionState,
+  DailyStatus,
+  HugRecord,
+  Letter,
+  MeetingInfo,
+  Wish,
+} from '@/lib/letter-store'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { Heart, Inbox, PenLine, Send, SmilePlus } from 'lucide-react'
+import { AssuranceCard } from '@/components/letter/AssuranceCard'
+import { DailyQuestionCard } from '@/components/letter/DailyQuestionCard'
+import { MoodTemperatureCard } from '@/components/letter/MoodTemperatureCard'
+import { WishDrawerCard } from '@/components/letter/WishDrawerCard'
 import {
   countdownSubtitles,
   formatDateTime,
@@ -21,19 +33,39 @@ import {
 type HomeDashboardProps = {
   role: AccessRole
   latestLetter: Letter | null
+  futureLetter: Letter | null
   otherStatus: DailyStatus | null
+  recentOtherStatuses: DailyStatus[]
   latestHug: HugRecord | null
   meeting: MeetingInfo
+  dailyQuestion: DailyQuestionState
+  openAssurance: AssuranceRequest | null
+  latestAssurance: AssuranceRequest | null
+  homeWish: Wish | null
   nowIso: string
 }
 
-export function HomeDashboard({ role, latestLetter, otherStatus, latestHug, meeting, nowIso }: HomeDashboardProps) {
+export function HomeDashboard({
+  role,
+  latestLetter,
+  futureLetter,
+  otherStatus,
+  recentOtherStatuses,
+  latestHug,
+  meeting,
+  dailyQuestion,
+  openAssurance,
+  latestAssurance,
+  homeWish,
+  nowIso,
+}: HomeDashboardProps) {
   const router = useRouter()
   const [toast, setToast] = useState('')
   const [sendingHug, setSendingHug] = useState(false)
   const countdown = getCountdownParts(meeting.time)
   const countdownHint = useMemo(() => countdownSubtitles[new Date().getDate() % countdownSubtitles.length], [])
   const latestLetterLocked = latestLetter ? latestLetter.deliverAt > nowIso : false
+  const hasMeetingPlan = Boolean(meeting.plan || meeting.bring || meeting.firstWords || meeting.firstThing)
 
   async function sendHug() {
     setSendingHug(true)
@@ -65,6 +97,18 @@ export function HomeDashboard({ role, latestLetter, otherStatus, latestHug, meet
       </section>
 
       <AnimatePresence>
+        {futureLetter && (
+          <motion.section
+            className="letter-card letter-pixel-alert"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+          >
+            <p className="letter-card-title">有一封未来的信可以打开了。</p>
+            <p className="letter-soft-copy">{`${personName[futureLetter.sender]}寄来的未来，已经到达。`}</p>
+            <Link className="letter-primary-button" href={`/void/letters/${futureLetter.id}`}>打开未来的信</Link>
+          </motion.section>
+        )}
         {latestHug && (
           <motion.section
             className="letter-card letter-pixel-alert"
@@ -102,6 +146,22 @@ export function HomeDashboard({ role, latestLetter, otherStatus, latestHug, meet
           : <p className="letter-empty">下一次见面，还在等待被写进这封信。</p>}
       </section>
 
+      {hasMeetingPlan && (
+        <section className="letter-card">
+          <div className="letter-card-head">
+            <p className="letter-card-title">见面计划卡</p>
+            <span>PLAN</span>
+          </div>
+          {meeting.plan && <p className="letter-meta">{`见面当天计划：${meeting.plan}`}</p>}
+          {meeting.bring && <p className="letter-meta">{`要带给对方的东西：${meeting.bring}`}</p>}
+          {meeting.firstWords && <p className="letter-meta">{`第一句话：${meeting.firstWords}`}</p>}
+          {meeting.firstThing && <p className="letter-meta">{`第一件想做的事：${meeting.firstThing}`}</p>}
+        </section>
+      )}
+
+      <DailyQuestionCard role={role} state={dailyQuestion} />
+      <AssuranceCard role={role} openRequest={openAssurance} latestRequest={latestAssurance} />
+
       <section className="letter-card">
         <div className="letter-card-head">
           <p className="letter-card-title">{role === 'owner' ? '杨婷婷今天' : '杜一今天'}</p>
@@ -131,6 +191,8 @@ export function HomeDashboard({ role, latestLetter, otherStatus, latestHug, meet
         <Link className="letter-secondary-button" href="/void/status">更新我的状态</Link>
       </section>
 
+      <MoodTemperatureCard statuses={recentOtherStatuses} subject={otherName(role)} />
+
       <section className="letter-card">
         <div className="letter-card-head">
           <p className="letter-card-title">最新一封信</p>
@@ -143,7 +205,7 @@ export function HomeDashboard({ role, latestLetter, otherStatus, latestHug, meet
                 <p className="letter-preview">
                   {`${personName[latestLetter.sender]}寄给你：`}
                   <br />
-                  {`「${previewText(latestLetter.content)}」`}
+                  {latestLetter.readOnce && latestLetter.readAt ? '这封信已经被认真读过了。' : `「${previewText(latestLetter.content)}」`}
                 </p>
                 <p className="letter-meta">{formatDateTime(latestLetter.createdAt)}</p>
                 <Link className="letter-primary-button" href={`/void/letters/${latestLetter.id}`}>打开看看</Link>
@@ -157,6 +219,8 @@ export function HomeDashboard({ role, latestLetter, otherStatus, latestHug, meet
               </>
             )}
       </section>
+
+      <WishDrawerCard wish={homeWish} />
 
       <section className="letter-card">
         <div className="letter-card-head">

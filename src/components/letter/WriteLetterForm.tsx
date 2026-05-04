@@ -5,10 +5,16 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'motion/react'
 import { Send } from 'lucide-react'
-import { letterTypes, notePlaceholders, otherName } from '@/lib/letter-copy'
+import { futureJarPresets, letterTypes, notePlaceholders, otherName } from '@/lib/letter-copy'
 
 type WriteLetterFormProps = {
   role: AccessRole
+}
+
+function toDateTimeLocal(date: Date) {
+  const offset = date.getTimezoneOffset()
+  const local = new Date(date.getTime() - offset * 60 * 1000)
+  return local.toISOString().slice(0, 16)
 }
 
 export function WriteLetterForm({ role }: WriteLetterFormProps) {
@@ -18,8 +24,17 @@ export function WriteLetterForm({ role }: WriteLetterFormProps) {
   const [content, setContent] = useState('')
   const [deliverMode, setDeliverMode] = useState<'now' | 'scheduled'>('now')
   const [deliverAt, setDeliverAt] = useState('')
+  const [readOnce, setReadOnce] = useState(false)
   const [toast, setToast] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+  function applyFuturePreset(days: number) {
+    const date = new Date()
+    date.setDate(date.getDate() + days)
+    setType('future')
+    setDeliverMode('scheduled')
+    setDeliverAt(toDateTimeLocal(date))
+  }
 
   async function submit() {
     setSubmitting(true)
@@ -29,7 +44,7 @@ export function WriteLetterForm({ role }: WriteLetterFormProps) {
       const response = await fetch('/api/letters', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, content, deliverMode, deliverAt }),
+        body: JSON.stringify({ type, content, deliverMode, deliverAt, readOnce }),
       })
       const data = await response.json().catch(() => ({})) as { message?: string }
 
@@ -40,6 +55,7 @@ export function WriteLetterForm({ role }: WriteLetterFormProps) {
       setContent('')
       setDeliverMode('now')
       setDeliverAt('')
+      setReadOnce(false)
       window.setTimeout(() => router.push('/void/letters'), 900)
     }
     catch (error) {
@@ -61,6 +77,18 @@ export function WriteLetterForm({ role }: WriteLetterFormProps) {
       <section className="letter-card">
         <p className="letter-card-title">{`寄给：${otherName(role)}`}</p>
         <p className="letter-soft-copy">把今天想说的话，慢慢写下来。</p>
+      </section>
+
+      <section className="letter-card">
+        <p className="letter-card-title">未来信罐子</p>
+        <p className="letter-soft-copy">有些话，可以先放进未来某一天。</p>
+        <div className="letter-chip-row">
+          {futureJarPresets.map(item => (
+            <button key={item.label} className="letter-mini-chip" type="button" onClick={() => applyFuturePreset(item.days)}>
+              {item.label}
+            </button>
+          ))}
+        </div>
       </section>
 
       <section className="letter-card">
@@ -111,6 +139,19 @@ export function WriteLetterForm({ role }: WriteLetterFormProps) {
             />
           </div>
         )}
+      </section>
+
+      <section className="letter-card">
+        <p className="letter-card-title">只显示一次的信</p>
+        <p className="letter-soft-copy">打开后会变成：这封信已经被认真读过了。</p>
+        <label className="letter-toggle-row">
+          <input
+            type="checkbox"
+            checked={readOnce}
+            onChange={event => setReadOnce(event.target.checked)}
+          />
+          <span>让这封信只显示一次</span>
+        </label>
       </section>
 
       <button className="letter-primary-button" type="submit" disabled={submitting}>
