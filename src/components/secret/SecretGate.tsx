@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { MobileShell } from '@/components/secret/MobileShell'
+import { SecretPixelDecor } from '@/components/secret/SecretPixelDecor'
 
 type AccessResponse = {
   ok: boolean
@@ -71,6 +72,7 @@ export function SecretGate() {
 
   return (
     <MobileShell>
+      <SecretPixelDecor />
       <motion.section
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
