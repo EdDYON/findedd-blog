@@ -1,6 +1,7 @@
 'use client'
 
 import type { AccessRole } from '@/lib/access'
+import type { DailySpark } from '@/lib/daily-spark'
 import type {
   AssuranceRequest,
   DailyQuestionState,
@@ -17,6 +18,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { Heart, Inbox, PenLine, Send, SmilePlus } from 'lucide-react'
 import { AssuranceCard } from '@/components/letter/AssuranceCard'
 import { DailyQuestionCard } from '@/components/letter/DailyQuestionCard'
+import { DailySparkCard } from '@/components/letter/DailySparkCard'
 import { MoodTemperatureCard } from '@/components/letter/MoodTemperatureCard'
 import { WishDrawerCard } from '@/components/letter/WishDrawerCard'
 import {
@@ -42,6 +44,7 @@ type HomeDashboardProps = {
   openAssurance: AssuranceRequest | null
   latestAssurance: AssuranceRequest | null
   homeWish: Wish | null
+  dailySpark: DailySpark | null
   nowIso: string
 }
 
@@ -57,6 +60,7 @@ export function HomeDashboard({
   openAssurance,
   latestAssurance,
   homeWish,
+  dailySpark,
   nowIso,
 }: HomeDashboardProps) {
   const router = useRouter()
@@ -160,6 +164,7 @@ export function HomeDashboard({
       )}
 
       <DailyQuestionCard role={role} state={dailyQuestion} />
+      <DailySparkCard spark={dailySpark} />
       <AssuranceCard role={role} openRequest={openAssurance} latestRequest={latestAssurance} />
 
       <section className="letter-card">

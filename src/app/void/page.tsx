@@ -1,4 +1,5 @@
 import { HomeDashboard } from '@/components/letter/HomeDashboard'
+import { getDailySparkForHome } from '@/lib/daily-spark'
 import {
   getAvailableFutureLetter,
   getDailyQuestionState,
@@ -28,6 +29,7 @@ export default async function VoidPage() {
     openAssurance,
     latestAssurance,
     homeWish,
+    dailySpark,
   ] = await Promise.all([
     getLatestReceivedLetter(session.role),
     getAvailableFutureLetter(session.role),
@@ -39,6 +41,7 @@ export default async function VoidPage() {
     getOpenAssuranceFor(session.role),
     getLatestAssuranceFor(session.role),
     getWishForHome(session.role),
+    getDailySparkForHome(),
   ])
 
   return (
@@ -54,6 +57,7 @@ export default async function VoidPage() {
       openAssurance={openAssurance}
       latestAssurance={latestAssurance}
       homeWish={homeWish}
+      dailySpark={dailySpark}
       nowIso={new Date().toISOString()}
     />
   )

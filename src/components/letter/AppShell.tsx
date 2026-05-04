@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Home, Mailbox, PenLine, SmilePlus, UserRound } from 'lucide-react'
 import { motion } from 'motion/react'
 import { PixelDecor } from '@/components/letter/PixelDecor'
+import { PixelCat } from '@/components/pixel/PixelCat'
 
 const navItems = [
   { href: '/void', label: '首页', hint: 'HOME', icon: Home },
@@ -25,6 +26,7 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <main className="letter-page">
       <PixelDecor />
+      <PixelCat mode="inside" />
       <motion.div
         className="letter-shell"
         initial={{ opacity: 0, y: 12 }}

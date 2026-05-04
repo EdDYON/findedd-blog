@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
+import { PixelCat } from '@/components/pixel/PixelCat'
 import { MobileShell } from '@/components/secret/MobileShell'
 import { SecretPixelDecor } from '@/components/secret/SecretPixelDecor'
 
@@ -73,6 +74,7 @@ export function SecretGate() {
   return (
     <MobileShell>
       <SecretPixelDecor />
+      <PixelCat mode="gate" />
       <motion.section
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
