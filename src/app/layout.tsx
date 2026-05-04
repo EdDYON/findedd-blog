@@ -2,15 +2,15 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: '门后',
-  description: '一个需要密钥进入的私人入口。',
+  title: '有一封信',
+  description: '等待被打开。',
   icons: {
     icon: '/favicon.jpg',
     apple: '/avatar.jpg',
   },
   openGraph: {
-    title: '门后',
-    description: '一个需要密钥进入的私人入口。',
+    title: '有一封信',
+    description: '等待被打开。',
     type: 'website',
   },
   robots: {

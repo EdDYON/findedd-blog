@@ -9,12 +9,14 @@ type AccessResponse = {
   ok: boolean
 }
 
-const GATE_ERROR = '这不是打开它的密钥。'
+const WRONG_KEY = '这不是打开它的密钥。'
+const COOLDOWN = '现在暂时打不开它。\n请稍等一会儿再试。'
+const NETWORK_ERROR = '好像有点慢。\n这封信正在路上。'
 
 export function SecretGate() {
   const router = useRouter()
   const [key, setKey] = useState('')
-  const [error, setError] = useState('')
+  const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [spark, setSpark] = useState(false)
   const redirectTimer = useRef<number | null>(null)
@@ -30,12 +32,12 @@ export function SecretGate() {
     const trimmedKey = key.trim()
 
     if (!trimmedKey) {
-      setError(GATE_ERROR)
+      setMessage(WRONG_KEY)
       return
     }
 
     setLoading(true)
-    setError('')
+    setMessage('')
 
     try {
       const response = await fetch('/api/access', {
@@ -45,16 +47,22 @@ export function SecretGate() {
       })
       const data = await response.json().catch(() => ({ ok: false })) as AccessResponse
 
-      if (!response.ok || !data.ok) {
-        setError(GATE_ERROR)
+      if (response.status === 429) {
+        setMessage(COOLDOWN)
         return
       }
 
+      if (!response.ok || !data.ok) {
+        setMessage(WRONG_KEY)
+        return
+      }
+
+      setMessage('信打开了。')
       setSpark(true)
-      redirectTimer.current = window.setTimeout(() => router.replace('/void'), 520)
+      redirectTimer.current = window.setTimeout(() => router.replace('/void'), 680)
     }
     catch {
-      setError(GATE_ERROR)
+      setMessage(NETWORK_ERROR)
     }
     finally {
       setLoading(false)
@@ -70,7 +78,7 @@ export function SecretGate() {
         className="secret-card"
       >
         <div className="secret-orbit" aria-hidden />
-        <h1 className="secret-title">有一封信。</h1>
+        <h1 className="secret-title">有一封信</h1>
         <p className="secret-copy">等待被打开。</p>
 
         <form
@@ -91,14 +99,14 @@ export function SecretGate() {
           />
 
           <AnimatePresence>
-            {error && (
+            {message && (
               <motion.p
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                className="secret-error"
+                className={spark ? 'secret-success' : 'secret-error'}
               >
-                {error}
+                {message.split('\n').map(line => <span key={line}>{line}</span>)}
               </motion.p>
             )}
           </AnimatePresence>
@@ -110,9 +118,11 @@ export function SecretGate() {
             aria-busy={loading}
             className="secret-primary-button"
           >
-            打开
+            {loading ? '正在确认这封信属于谁...' : '打开'}
           </motion.button>
         </form>
+
+        <p className="secret-footnote">不是所有人，都能打开这封信。</p>
       </motion.section>
 
       <AnimatePresence>

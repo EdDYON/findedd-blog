@@ -5,8 +5,8 @@ import {
   getAccessCookieMaxAge,
   getAccessCookieName,
   getAccessCookieSecret,
-  resolveAccessRole,
 } from '@/lib/access'
+import { resolveStoredAccessRole } from '@/lib/letter-store'
 
 type AttemptState = {
   failures: number
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
   }
 
   const key = await readSubmittedKey(request)
-  const role = key ? resolveAccessRole(key) : null
+  const role = key ? await resolveStoredAccessRole(key) : null
 
   if (!role) {
     markMemoryFailure(attemptKeys)
