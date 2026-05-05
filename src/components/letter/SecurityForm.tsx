@@ -50,7 +50,6 @@ export function SecurityForm() {
     >
       <section className="letter-card">
         <p className="letter-card-title">修改我的密钥</p>
-        <p className="letter-soft-copy">密钥只属于你自己，请好好保存。</p>
 
         <label className="letter-field-label" htmlFor="current-key">当前密钥</label>
         <input
@@ -86,9 +85,9 @@ export function SecurityForm() {
         />
 
         <div className="letter-rule-list">
-          <p>新密钥至少 8 位。</p>
-          <p>不要使用太容易猜到的内容。</p>
-          <p>新的密钥保存后，下次打开需要使用它。</p>
+          <p>至少 8 位</p>
+          <p>避免常见词</p>
+          <p>保存后即生效</p>
         </div>
       </section>
 

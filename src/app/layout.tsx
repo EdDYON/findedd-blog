@@ -5,8 +5,12 @@ export const metadata: Metadata = {
   title: '有一封信',
   description: '等待被打开。',
   icons: {
-    icon: '/favicon.jpg',
-    apple: '/avatar.jpg',
+    icon: [
+      { url: '/pixel/pixel-letter.svg', type: 'image/svg+xml' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/favicon.svg',
+    apple: '/pixel/pixel-letter.svg',
   },
   openGraph: {
     title: '有一封信',

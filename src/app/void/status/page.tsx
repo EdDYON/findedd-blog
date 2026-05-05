@@ -12,7 +12,6 @@ export default async function StatusPage() {
       <PageHeader
         eyebrow="STATUS"
         title="今天的状态"
-        subtitle="不用写很多，只留下一点点今天的你。"
       />
       <StatusForm initialStatus={status} />
     </>

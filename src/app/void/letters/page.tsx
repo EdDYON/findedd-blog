@@ -12,7 +12,6 @@ export default async function LettersPage() {
       <PageHeader
         eyebrow="LETTER BOX"
         title="信箱"
-        subtitle="所有慢慢写下来的话，都被放在这里。"
       />
       <LetterTabs role={session.role} letters={letters} nowIso={new Date().toISOString()} />
     </>

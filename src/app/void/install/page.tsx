@@ -10,7 +10,6 @@ export default async function InstallPage() {
       <PageHeader
         eyebrow="INSTALL"
         title="把一封信放到桌面"
-        subtitle="这样以后就可以像 App 一样打开它。"
       />
       <InstallGuide />
     </>

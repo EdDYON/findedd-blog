@@ -10,7 +10,6 @@ export default async function SecurityPage() {
       <PageHeader
         eyebrow="SECURITY"
         title="安全设置"
-        subtitle="密钥只属于你自己，请好好保存。"
       />
       <SecurityForm />
     </>

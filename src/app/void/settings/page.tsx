@@ -15,7 +15,6 @@ export default async function SettingsPage() {
       <PageHeader
         eyebrow="ME"
         title="我的"
-        subtitle="这里放着关于这封信的小设置。"
       />
       <SettingsPanel role={session.role} meeting={meeting} stamps={stamps} />
     </>

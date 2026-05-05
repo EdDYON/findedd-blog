@@ -89,11 +89,11 @@ export const moodOptions: MoodValue[] = [
 ]
 
 export const notePlaceholders = [
-  '今天想写些什么呢？',
-  '把想说的话留在这里。',
-  '慢慢写，不着急。',
-  '有些想念，可以写成一封信。',
-  '写给屏幕那边的人。',
+  '写在这里',
+  '今天的小片段',
+  '一句也可以',
+  '给屏幕那边',
+  '像素邮差待命',
 ]
 
 export const dailyQuestions = [

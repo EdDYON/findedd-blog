@@ -9,6 +9,9 @@ export function PixelDecor() {
       <span className="pixel-spark pixel-spark-one" />
       <span className="pixel-spark pixel-spark-two" />
       <span className="pixel-ribbon" />
+      <span className="pixel-letter-float pixel-letter-float-one" />
+      <span className="pixel-letter-float pixel-letter-float-two" />
+      <span className="pixel-dot-matrix" />
     </div>
   )
 }

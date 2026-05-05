@@ -45,8 +45,7 @@ export default async function LetterDetailPage(
           : contentHidden
             ? (
                 <div className="letter-locked">
-                  <p className="letter-card-title">这封信已经被认真读过了。</p>
-                  <p className="letter-soft-copy">它没有消失，只是被好好收起来了。</p>
+                  <p className="letter-card-title">已读藏起</p>
                 </div>
               )
             : (

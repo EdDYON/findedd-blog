@@ -4,7 +4,7 @@ import type { AccessRole } from '@/lib/access'
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'motion/react'
-import { Send } from 'lucide-react'
+import { Send, Sparkles } from 'lucide-react'
 import { futureJarPresets, letterTypes, notePlaceholders, otherName } from '@/lib/letter-copy'
 
 type WriteLetterFormProps = {
@@ -27,6 +27,7 @@ export function WriteLetterForm({ role }: WriteLetterFormProps) {
   const [readOnce, setReadOnce] = useState(false)
   const [toast, setToast] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [askingCat, setAskingCat] = useState(false)
 
   function applyFuturePreset(days: number) {
     const date = new Date()
@@ -66,6 +67,35 @@ export function WriteLetterForm({ role }: WriteLetterFormProps) {
     }
   }
 
+  async function askCat() {
+    setAskingCat(true)
+    setToast('')
+
+    try {
+      const response = await fetch('/api/cat-whisper', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind: 'letter' }),
+      })
+      const data = await response.json().catch(() => ({})) as {
+        whisper?: { content?: string }
+      }
+      const nextLine = data.whisper?.content?.trim()
+
+      if (!response.ok || !nextLine)
+        throw new Error('小猫暂时没有翻到灵感。')
+
+      setContent(current => current.trim() ? `${current.trim()}\n${nextLine}` : nextLine)
+      setToast('灵感已放入正文。')
+    }
+    catch (error) {
+      setToast(error instanceof Error ? error.message : '小猫暂时没有翻到灵感。')
+    }
+    finally {
+      setAskingCat(false)
+    }
+  }
+
   return (
     <form
       className="letter-form"
@@ -76,12 +106,10 @@ export function WriteLetterForm({ role }: WriteLetterFormProps) {
     >
       <section className="letter-card">
         <p className="letter-card-title">{`寄给：${otherName(role)}`}</p>
-        <p className="letter-soft-copy">把今天想说的话，慢慢写下来。</p>
       </section>
 
       <section className="letter-card">
         <p className="letter-card-title">未来信罐子</p>
-        <p className="letter-soft-copy">有些话，可以先放进未来某一天。</p>
         <div className="letter-chip-row">
           {futureJarPresets.map(item => (
             <button key={item.label} className="letter-mini-chip" type="button" onClick={() => applyFuturePreset(item.days)}>
@@ -102,7 +130,6 @@ export function WriteLetterForm({ role }: WriteLetterFormProps) {
               onClick={() => setType(item.value)}
             >
               <span>{item.label}</span>
-              <small>{item.description}</small>
             </button>
           ))}
         </div>
@@ -110,6 +137,10 @@ export function WriteLetterForm({ role }: WriteLetterFormProps) {
 
       <section className="letter-card">
         <label className="letter-field-label" htmlFor="letter-content">信的内容</label>
+        <button className="letter-pixel-tool-button" type="button" onClick={() => void askCat()} disabled={askingCat}>
+          <Sparkles size={14} aria-hidden />
+          {askingCat ? '小猫翻口袋...' : '抽灵感'}
+        </button>
         <textarea
           id="letter-content"
           value={content}
@@ -128,7 +159,6 @@ export function WriteLetterForm({ role }: WriteLetterFormProps) {
         </div>
         {deliverMode === 'scheduled' && (
           <div className="letter-field-stack">
-            <p className="letter-soft-copy">适合生日、纪念日、晚安，或者未来某一天。</p>
             <label className="letter-field-label" htmlFor="deliver-at">送达时间</label>
             <input
               id="deliver-at"
@@ -143,7 +173,6 @@ export function WriteLetterForm({ role }: WriteLetterFormProps) {
 
       <section className="letter-card">
         <p className="letter-card-title">只显示一次的信</p>
-        <p className="letter-soft-copy">打开后会变成：这封信已经被认真读过了。</p>
         <label className="letter-toggle-row">
           <input
             type="checkbox"

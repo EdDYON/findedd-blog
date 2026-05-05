@@ -17,11 +17,9 @@ export default async function NotificationsPage() {
       <PageHeader
         eyebrow="NOTICE"
         title="消息提醒"
-        subtitle="有些信，应该被及时看见。"
       />
       <section className="letter-card">
-        <p className="letter-card-title">需要先把一封信添加到 iPhone 主屏幕，才能开启提醒。</p>
-        <p className="letter-soft-copy">开启后，你可能会收到这些提醒：</p>
+        <p className="letter-card-title">主屏幕模式</p>
         <div className="letter-rule-list">
           {items.map(item => <p key={item}>{item}</p>)}
         </div>

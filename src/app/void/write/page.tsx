@@ -10,7 +10,6 @@ export default async function WritePage() {
       <PageHeader
         eyebrow="WRITE"
         title="写一封信"
-        subtitle="把今天想说的话，慢慢写下来。"
       />
       <WriteLetterForm role={session.role} />
     </>

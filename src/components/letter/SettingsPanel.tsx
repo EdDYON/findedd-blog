@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Bell, CalendarDays, Info, LogOut, MonitorDown, RotateCcw, ShieldCheck, UserRound } from 'lucide-react'
+import { Bell, CalendarDays, LogOut, MonitorDown, RotateCcw, ShieldCheck, UserRound } from 'lucide-react'
 import { StampCollection } from '@/components/letter/StampCollection'
 import { formatFullDateTime, personName } from '@/lib/letter-copy'
 
@@ -84,7 +84,6 @@ export function SettingsPanel({ role, meeting, stamps }: SettingsPanelProps) {
           <UserRound size={18} aria-hidden />
         </div>
         <p className="letter-mood">{personName[role]}</p>
-        <p className="letter-soft-copy">{`正在以${personName[role]}的身份读这封信。`}</p>
       </section>
 
       <section className="letter-card">
@@ -92,7 +91,6 @@ export function SettingsPanel({ role, meeting, stamps }: SettingsPanelProps) {
           <p className="letter-card-title">安全设置</p>
           <ShieldCheck size={18} aria-hidden />
         </div>
-        <p className="letter-soft-copy">可以修改自己的密钥，或者退出这封信。</p>
         <Link className="letter-secondary-button" href="/void/settings/security">修改我的密钥</Link>
         <button className="letter-danger-button" type="button" onClick={() => setShowExit(true)}>退出这封信</button>
       </section>
@@ -111,7 +109,7 @@ export function SettingsPanel({ role, meeting, stamps }: SettingsPanelProps) {
                   {meeting.note && <p className="letter-meta">{`备注：${meeting.note}`}</p>}
                 </div>
               )
-            : <p className="letter-empty">下一次见面还没有被写进来。</p>}
+            : <p className="letter-empty">未设置</p>}
           <label className="letter-field-label" htmlFor="meeting-time">修改见面信息</label>
           <input id="meeting-time" className="letter-input" type="datetime-local" value={meetingTime} onChange={event => setMeetingTime(event.target.value)} />
           <input className="letter-input" value={meetingPlace} onChange={event => setMeetingPlace(event.target.value)} placeholder="地点" />
@@ -131,7 +129,6 @@ export function SettingsPanel({ role, meeting, stamps }: SettingsPanelProps) {
           <p className="letter-card-title">把一封信放到桌面</p>
           <MonitorDown size={18} aria-hidden />
         </div>
-        <p className="letter-soft-copy">添加到 iPhone 主屏幕后，就可以像 App 一样打开。</p>
         <Link className="letter-secondary-button" href="/void/install">查看安装方法</Link>
       </section>
 
@@ -150,7 +147,7 @@ export function SettingsPanel({ role, meeting, stamps }: SettingsPanelProps) {
             <p className="letter-card-title">维护模式</p>
             <RotateCcw size={18} aria-hidden />
           </div>
-          <p className="letter-soft-copy">可以重置杨婷婷的密钥。新密钥只会显示一次，请认真保存。</p>
+          <p className="letter-soft-copy">重置密钥，仅显示一次。</p>
           <button className="letter-danger-button" type="button" onClick={() => void resetKey()}>重新生成她的密钥</button>
           {newHerKey && (
             <div className="letter-code-block">
@@ -159,18 +156,6 @@ export function SettingsPanel({ role, meeting, stamps }: SettingsPanelProps) {
           )}
         </section>
       )}
-
-      <section className="letter-card">
-        <div className="letter-card-head">
-          <p className="letter-card-title">关于一封信</p>
-          <Info size={18} aria-hidden />
-        </div>
-        <p className="letter-soft-copy">
-          一封信，是一个只属于两个人的私密信箱。
-          <br />
-          有些想念，不急着说出口，也可以慢慢写下来。
-        </p>
-      </section>
 
       <AnimatePresence>
         {showExit && (
