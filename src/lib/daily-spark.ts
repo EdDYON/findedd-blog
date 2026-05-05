@@ -44,7 +44,7 @@ const fallbackSparks: Array<Omit<DailySpark, 'id' | 'dateKey' | 'releaseAt' | 'c
   {
     kind: 'sweet',
     title: '今日甜话',
-    content: '远方不是空白，是我们把想念慢慢寄过去的地方。',
+    content: '今天的小格子亮了一下，适合留一句只给对方看的话。',
     actionLabel: '收下这句',
   },
   {

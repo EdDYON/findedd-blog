@@ -6,6 +6,9 @@ export function PixelDecor() {
       <span className="pixel-chip pixel-chip-one" />
       <span className="pixel-chip pixel-chip-two" />
       <span className="pixel-chip pixel-chip-three" />
+      <span className="pixel-spark pixel-spark-one" />
+      <span className="pixel-spark pixel-spark-two" />
+      <span className="pixel-ribbon" />
     </div>
   )
 }

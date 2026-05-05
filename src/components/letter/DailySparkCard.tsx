@@ -20,7 +20,7 @@ export function DailySparkCard({ spark }: DailySparkCardProps) {
         <span>{spark ? kindLabel[spark.kind] : 'WAIT'}</span>
       </div>
       <p className="letter-soft-copy">
-        {spark?.content ?? '今天的小纸条还在像素小猫的口袋里。它会在随机时刻轻轻出现。'}
+        {spark?.content ?? '今日未刷新。'}
       </p>
       <div className="letter-spark-footer">
         <span>

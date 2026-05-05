@@ -56,7 +56,7 @@ export function WishDrawerCard({ wish }: WishDrawerCardProps) {
             <div className="letter-wish-preview">
               <span>{wishCategoryLabel(wish.category)}</span>
               <p>{wish.content}</p>
-              <small>下次见面，也许可以一起做这个。</small>
+              <small>下次见面候选</small>
             </div>
           )
         : <p className="letter-empty">抽屉里还没有小愿望。</p>}

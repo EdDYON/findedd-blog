@@ -93,11 +93,11 @@ export function AssuranceCard({ role, openRequest, latestRequest }: AssuranceCar
           )
         : (
             <>
-              <p className="letter-soft-copy">有时候不需要解释很多，只需要一句“我在”。</p>
+              <p className="letter-soft-copy">发出一个很轻的确认信号。</p>
               {latestRequest?.requester === role && latestRequest.response
                 ? <p className="letter-pixel-note">{`${otherName(role)}回应你：${latestRequest.response}`}</p>
                 : latestRequest?.requester === role && !latestRequest.response
-                  ? <p className="letter-empty">已经送出啦，正在等对方靠近一点。</p>
+                  ? <p className="letter-empty">已送出</p>
                   : null}
               <button className="letter-secondary-button" type="button" onClick={() => void requestAssurance()} disabled={busy}>
                 给我一点安全感

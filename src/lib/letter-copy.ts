@@ -93,7 +93,7 @@ export const notePlaceholders = [
   '把想说的话留在这里。',
   '慢慢写，不着急。',
   '有些想念，可以写成一封信。',
-  '写给那个正在远方的人。',
+  '写给屏幕那边的人。',
 ]
 
 export const dailyQuestions = [
@@ -107,8 +107,8 @@ export const dailyQuestions = [
 ]
 
 export const assuranceResponses = [
-  '我在',
-  '我没有走远',
+  '抱住你',
+  '认真听见',
   '今天也喜欢你',
 ]
 

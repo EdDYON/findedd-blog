@@ -45,7 +45,7 @@ const fallbackWhispers: Record<CatWhisperKind, Omit<CatWhisper, 'source'>> = {
   random: {
     kind: 'random',
     title: '小猫口袋',
-    content: '今天的像素口袋里有一颗很小的星星，适合寄给正在远方的人。',
+    content: '今天的像素口袋里有一颗小星星，适合放进一封短短的信。',
     actionLabel: '放进口袋',
   },
 }

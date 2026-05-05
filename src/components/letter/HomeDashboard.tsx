@@ -15,14 +15,13 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { Heart, Inbox, PenLine, Send, SmilePlus } from 'lucide-react'
+import { Inbox, PenLine, Send, SmilePlus } from 'lucide-react'
 import { AssuranceCard } from '@/components/letter/AssuranceCard'
 import { DailyQuestionCard } from '@/components/letter/DailyQuestionCard'
 import { DailySparkCard } from '@/components/letter/DailySparkCard'
 import { MoodTemperatureCard } from '@/components/letter/MoodTemperatureCard'
 import { WishDrawerCard } from '@/components/letter/WishDrawerCard'
 import {
-  countdownSubtitles,
   formatDateTime,
   getCountdownParts,
   letterTypeLabel,
@@ -67,9 +66,17 @@ export function HomeDashboard({
   const [toast, setToast] = useState('')
   const [sendingHug, setSendingHug] = useState(false)
   const countdown = getCountdownParts(meeting.time)
-  const countdownHint = useMemo(() => countdownSubtitles[new Date().getDate() % countdownSubtitles.length], [])
   const latestLetterLocked = latestLetter ? latestLetter.deliverAt > nowIso : false
   const hasMeetingPlan = Boolean(meeting.plan || meeting.bring || meeting.firstWords || meeting.firstThing)
+  const togetherDays = useMemo(() => {
+    const start = new Date('2025-12-22T00:00:00+08:00').getTime()
+    const now = new Date(nowIso).getTime()
+
+    if (!Number.isFinite(now) || now < start)
+      return 1
+
+    return Math.floor((now - start) / 86400000) + 1
+  }, [nowIso])
 
   async function sendHug() {
     setSendingHug(true)
@@ -94,10 +101,26 @@ export function HomeDashboard({
 
   return (
     <>
-      <section className="letter-hero-card">
-        <p className="letter-eyebrow">HOME</p>
-        <h1>{`欢迎回来，${personName[role]}。`}</h1>
-        <p>{stableHomeSubtitle(role)}</p>
+      <section className="letter-hero-card letter-hero-console">
+        <div>
+          <p className="letter-eyebrow">HOME / POCKET</p>
+          <h1>{`欢迎回来，${personName[role]}。`}</h1>
+          <p>{stableHomeSubtitle(role)}</p>
+        </div>
+        <div className="letter-hero-stats">
+          <span>
+            <small>SINCE</small>
+            <strong>2025.12.22</strong>
+          </span>
+          <span>
+            <small>DAYS</small>
+            <strong>{togetherDays}</strong>
+          </span>
+          <span>
+            <small>MEET</small>
+            <strong>{countdown ? `${countdown.days}天` : '未设置'}</strong>
+          </span>
+        </div>
       </section>
 
       <AnimatePresence>
@@ -127,133 +150,95 @@ export function HomeDashboard({
         )}
       </AnimatePresence>
 
-      <section className="letter-card">
-        <div className="letter-card-head">
-          <p className="letter-card-title">下一次见面</p>
-          <span>PIXEL TRAIN</span>
-        </div>
-        {meeting.time && countdown
-          ? (
-              <div className="letter-countdown-block">
-                <p className="letter-muted">距离下次见面还有</p>
-                <div className="letter-big-count">
-                  <strong>{countdown.days}</strong>
-                  <span>天</span>
-                  <strong>{countdown.hours}</strong>
-                  <span>小时</span>
-                </div>
-                {meeting.place && <p className="letter-meta">{`地点：${meeting.place}`}</p>}
-                {meeting.note && <p className="letter-meta">{`备注：${meeting.note}`}</p>}
-                <p className="letter-soft-copy">{countdownHint}</p>
-              </div>
-            )
-          : <p className="letter-empty">下一次见面，还在等待被写进这封信。</p>}
-      </section>
-
-      {hasMeetingPlan && (
-        <section className="letter-card">
+      <div className="letter-home-grid">
+        <section className="letter-card letter-mini-panel">
           <div className="letter-card-head">
-            <p className="letter-card-title">见面计划卡</p>
-            <span>PLAN</span>
+            <p className="letter-card-title">最新信件</p>
+            <span>MAIL</span>
           </div>
-          {meeting.plan && <p className="letter-meta">{`见面当天计划：${meeting.plan}`}</p>}
-          {meeting.bring && <p className="letter-meta">{`要带给对方的东西：${meeting.bring}`}</p>}
+          {latestLetter && !latestLetterLocked
+            ? (
+                <>
+                  <p className="letter-soft-copy">{latestLetter.readAt ? `${letterTypeLabel(latestLetter.type)} 已打开` : '新信待开'}</p>
+                  <p className="letter-preview">
+                    {latestLetter.readOnce && latestLetter.readAt ? '已认真读过' : `「${previewText(latestLetter.content, 28)}」`}
+                  </p>
+                  <p className="letter-meta">{formatDateTime(latestLetter.createdAt)}</p>
+                  <Link className="letter-secondary-button letter-button-compact" href={`/void/letters/${latestLetter.id}`}>打开</Link>
+                </>
+              )
+            : (
+                <>
+                  <p className="letter-empty">暂无新信</p>
+                  <Link className="letter-secondary-button letter-button-compact" href="/void/write">写一封</Link>
+                </>
+              )}
+        </section>
+
+        <section className="letter-card letter-mini-panel">
+          <div className="letter-card-head">
+            <p className="letter-card-title">{role === 'owner' ? '杨婷婷今天' : '杜一今天'}</p>
+            <span>MOOD</span>
+          </div>
+          {otherStatus
+            ? (
+                <>
+                  <p className="letter-mood">{otherStatus.mood}</p>
+                  {otherStatus.note && <p className="letter-soft-copy">{otherStatus.note}</p>}
+                </>
+              )
+            : <p className="letter-empty">今日待机</p>}
+          <Link className="letter-secondary-button letter-button-compact" href="/void/status">更新状态</Link>
+        </section>
+
+        <DailySparkCard spark={dailySpark} />
+        <MoodTemperatureCard statuses={recentOtherStatuses} subject={otherName(role)} />
+      </div>
+
+      {(meeting.time || hasMeetingPlan) && (
+        <section className="letter-card letter-meeting-panel">
+          <div className="letter-card-head">
+            <p className="letter-card-title">见面计划</p>
+            <span>TRAIN</span>
+          </div>
+          {meeting.time && countdown && (
+            <div className="letter-countdown-inline">
+              <span>{countdown.days} 天</span>
+              <span>{countdown.hours} 小时</span>
+            </div>
+          )}
+          {meeting.place && <p className="letter-meta">{`地点：${meeting.place}`}</p>}
+          {meeting.note && <p className="letter-meta">{`备注：${meeting.note}`}</p>}
+          {meeting.plan && <p className="letter-meta">{`计划：${meeting.plan}`}</p>}
+          {meeting.bring && <p className="letter-meta">{`带给对方：${meeting.bring}`}</p>}
           {meeting.firstWords && <p className="letter-meta">{`第一句话：${meeting.firstWords}`}</p>}
-          {meeting.firstThing && <p className="letter-meta">{`第一件想做的事：${meeting.firstThing}`}</p>}
+          {meeting.firstThing && <p className="letter-meta">{`第一件事：${meeting.firstThing}`}</p>}
         </section>
       )}
 
-      <DailyQuestionCard role={role} state={dailyQuestion} />
-      <DailySparkCard spark={dailySpark} />
-      <AssuranceCard role={role} openRequest={openAssurance} latestRequest={latestAssurance} />
+      <div className="letter-wide-stack">
+        <DailyQuestionCard role={role} state={dailyQuestion} />
+        <WishDrawerCard wish={homeWish} />
+      </div>
 
-      <section className="letter-card">
-        <div className="letter-card-head">
-          <p className="letter-card-title">{role === 'owner' ? '杨婷婷今天' : '杜一今天'}</p>
-          <span>STATUS</span>
-        </div>
-        {otherStatus
-          ? (
-              <>
-                <p className="letter-mood">{otherStatus.mood}</p>
-                {otherStatus.note && (
-                  <p className="letter-soft-copy">
-                    {`${personName[otherStatus.role]}留下了一句话：`}
-                    <br />
-                    {otherStatus.note}
-                  </p>
-                )}
-              </>
-            )
-          : (
-              <>
-                <p className="letter-empty">今天还没有留下状态。</p>
-                <p className="letter-soft-copy">
-                  {role === 'owner' ? '也许可以给杨婷婷写一封信。' : '也许可以看看杜一有没有寄来什么。'}
-                </p>
-              </>
-            )}
-        <Link className="letter-secondary-button" href="/void/status">更新我的状态</Link>
-      </section>
-
-      <MoodTemperatureCard statuses={recentOtherStatuses} subject={otherName(role)} />
-
-      <section className="letter-card">
-        <div className="letter-card-head">
-          <p className="letter-card-title">最新一封信</p>
-          <span>LETTER</span>
-        </div>
-        {latestLetter && !latestLetterLocked
-          ? (
-              <>
-                <p className="letter-soft-copy">{latestLetter.readAt ? `${letterTypeLabel(latestLetter.type)} 已打开` : '有一封新信在等你。'}</p>
-                <p className="letter-preview">
-                  {`${personName[latestLetter.sender]}寄给你：`}
-                  <br />
-                  {latestLetter.readOnce && latestLetter.readAt ? '这封信已经被认真读过了。' : `「${previewText(latestLetter.content)}」`}
-                </p>
-                <p className="letter-meta">{formatDateTime(latestLetter.createdAt)}</p>
-                <Link className="letter-primary-button" href={`/void/letters/${latestLetter.id}`}>打开看看</Link>
-              </>
-            )
-          : (
-              <>
-                <p className="letter-empty">还没有新的信。</p>
-                <p className="letter-soft-copy">要不要先写一封寄过去？</p>
-                <Link className="letter-secondary-button" href="/void/letters">去信箱</Link>
-              </>
-            )}
-      </section>
-
-      <WishDrawerCard wish={homeWish} />
-
-      <section className="letter-card">
-        <div className="letter-card-head">
-          <p className="letter-card-title">抱抱信</p>
-          <span>HUG</span>
-        </div>
-        <p className="letter-soft-copy">有些抱抱暂时到不了，但可以先寄出去。</p>
-        <button className="letter-primary-button" type="button" onClick={() => void sendHug()} disabled={sendingHug}>
-          <Heart size={17} aria-hidden />
-          寄一个抱抱
-        </button>
-      </section>
-
-      <section className="letter-card">
-        <div className="letter-card-head">
-          <p className="letter-card-title">今天可以做的小事</p>
-          <span>QUEST</span>
-        </div>
-        <div className="letter-action-grid">
-          <Link href="/void/write"><PenLine size={17} aria-hidden />写一封信</Link>
-          <Link href="/void/letters"><Inbox size={17} aria-hidden />查看信箱</Link>
-          <Link href="/void/status"><SmilePlus size={17} aria-hidden />更新状态</Link>
-          <button type="button" onClick={() => void sendHug()} disabled={sendingHug}>
-            <Send size={17} aria-hidden />
-            寄一个抱抱
-          </button>
-        </div>
-      </section>
+      <div className="letter-home-grid">
+        <AssuranceCard role={role} openRequest={openAssurance} latestRequest={latestAssurance} />
+        <section className="letter-card letter-quest-panel">
+          <div className="letter-card-head">
+            <p className="letter-card-title">快捷动作</p>
+            <span>PAD</span>
+          </div>
+          <div className="letter-action-grid">
+            <Link href="/void/write"><PenLine size={17} aria-hidden />写信</Link>
+            <Link href="/void/letters"><Inbox size={17} aria-hidden />信箱</Link>
+            <Link href="/void/status"><SmilePlus size={17} aria-hidden />状态</Link>
+            <button type="button" onClick={() => void sendHug()} disabled={sendingHug}>
+              <Send size={17} aria-hidden />
+              抱抱
+            </button>
+          </div>
+        </section>
+      </div>
 
       <AnimatePresence>
         {toast && (
