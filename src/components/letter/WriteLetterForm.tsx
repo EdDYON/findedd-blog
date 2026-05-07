@@ -28,6 +28,8 @@ export function WriteLetterForm({ role }: WriteLetterFormProps) {
   const [toast, setToast] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [askingCat, setAskingCat] = useState(false)
+  const [catDesk, setCatDesk] = useState(false)
+  const [catBubble, setCatBubble] = useState('小猫正在绕着信纸找灵感...')
 
   function applyFuturePreset(days: number) {
     const date = new Date()
@@ -69,7 +71,10 @@ export function WriteLetterForm({ role }: WriteLetterFormProps) {
 
   async function askCat() {
     setAskingCat(true)
+    setCatDesk(true)
+    setCatBubble('小猫正在绕着信纸找灵感...')
     setToast('')
+    const minimumRitual = new Promise(resolve => window.setTimeout(resolve, 2800))
 
     try {
       const response = await fetch('/api/cat-whisper', {
@@ -85,14 +90,20 @@ export function WriteLetterForm({ role }: WriteLetterFormProps) {
       if (!response.ok || !nextLine)
         throw new Error('小猫暂时没有翻到灵感。')
 
+      setCatBubble(nextLine)
+      await minimumRitual
       setContent(current => current.trim() ? `${current.trim()}\n${nextLine}` : nextLine)
       setToast('灵感已放入正文。')
     }
     catch (error) {
-      setToast(error instanceof Error ? error.message : '小猫暂时没有翻到灵感。')
+      const fallback = error instanceof Error ? error.message : '小猫暂时没有翻到灵感。'
+      setCatBubble(fallback)
+      await minimumRitual
+      setToast(fallback)
     }
     finally {
       setAskingCat(false)
+      window.setTimeout(() => setCatDesk(false), 420)
     }
   }
 
@@ -190,6 +201,25 @@ export function WriteLetterForm({ role }: WriteLetterFormProps) {
       <button className="letter-secondary-button" type="button" onClick={() => router.push('/void')}>先不写了</button>
 
       <AnimatePresence>
+        {catDesk && (
+          <motion.div
+            className="write-cat-ritual"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            aria-live="polite"
+          >
+            <div className="write-cat-desk-paper" aria-hidden />
+            <div className="write-cat-sprite" aria-hidden>
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className="write-cat-bubble">{catBubble}</div>
+          </motion.div>
+        )}
+
         {toast && (
           <motion.div
             className="letter-toast"

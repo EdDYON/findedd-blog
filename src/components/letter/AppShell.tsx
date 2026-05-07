@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Mailbox, PenLine, SmilePlus, UserRound } from 'lucide-react'
@@ -20,13 +21,54 @@ type AppShellProps = {
   children: ReactNode
 }
 
+type CatPresence = {
+  coPresent: boolean
+  moodBubble?: string
+}
+
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname()
+  const [catPresence, setCatPresence] = useState<CatPresence | null>(null)
+
+  const refreshCatPresence = useCallback(async () => {
+    try {
+      const response = await fetch('/api/cat-presence')
+      const data = await response.json().catch(() => ({})) as {
+        ok?: boolean
+        coPresent?: boolean
+        moodBubble?: string
+      }
+
+      if (response.ok && data.ok) {
+        setCatPresence({
+          coPresent: Boolean(data.coPresent),
+          moodBubble: data.moodBubble,
+        })
+      }
+    }
+    catch {
+      // Presence is decorative, so failures should not interrupt the app.
+    }
+  }, [])
+
+  useEffect(() => {
+    const initial = window.setTimeout(() => {
+      void refreshCatPresence()
+    }, 0)
+    const timer = window.setInterval(() => {
+      void refreshCatPresence()
+    }, 45_000)
+
+    return () => {
+      window.clearTimeout(initial)
+      window.clearInterval(timer)
+    }
+  }, [refreshCatPresence])
 
   return (
     <main className="letter-page">
       <PixelDecor />
-      <InteractivePixelCat />
+      <InteractivePixelCat presence={catPresence} />
       <motion.div
         className="letter-shell"
         initial={{ opacity: 0, y: 12 }}

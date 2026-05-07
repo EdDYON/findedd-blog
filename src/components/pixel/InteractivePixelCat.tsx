@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Heart, PenLine, ShieldCheck, Sparkles, Wand2, X } from 'lucide-react'
 import { PixelCat } from '@/components/pixel/PixelCat'
 
@@ -30,10 +30,33 @@ const defaultWhisper: CatWhisper = {
   source: 'fallback',
 }
 
-export function InteractivePixelCat() {
+type InteractivePixelCatProps = {
+  presence?: {
+    coPresent: boolean
+    moodBubble?: string
+  } | null
+}
+
+export function InteractivePixelCat({ presence }: InteractivePixelCatProps) {
   const [open, setOpen] = useState(false)
   const [loadingKind, setLoadingKind] = useState<CatKind | null>(null)
   const [whisper, setWhisper] = useState<CatWhisper>(defaultWhisper)
+  const [presenceBubble, setPresenceBubble] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!presence?.coPresent)
+      return
+
+    const showTimer = window.setTimeout(() => {
+      setPresenceBubble(presence.moodBubble ?? '🤍')
+    }, 0)
+    const hideTimer = window.setTimeout(() => setPresenceBubble(null), 4000)
+
+    return () => {
+      window.clearTimeout(showTimer)
+      window.clearTimeout(hideTimer)
+    }
+  }, [presence?.coPresent, presence?.moodBubble])
 
   async function askCat(kind: CatKind) {
     setOpen(true)
@@ -68,15 +91,27 @@ export function InteractivePixelCat() {
     }
   }
 
+  const className = [
+    'pixel-cat-companion',
+    open ? 'pixel-cat-companion-open' : '',
+    presenceBubble ? 'pixel-cat-companion-copresent' : '',
+    !presenceBubble && presence?.coPresent ? 'pixel-cat-companion-peeking' : '',
+  ].filter(Boolean).join(' ')
+
   return (
-    <div className={open ? 'pixel-cat-companion pixel-cat-companion-open' : 'pixel-cat-companion'}>
+    <div className={className}>
       <PixelCat
         mode="inside"
         button
-        active={open}
+        active={open || Boolean(presenceBubble)}
         label={open ? '收起像素小猫' : '打开像素小猫'}
         onClick={() => setOpen(value => !value)}
       />
+      {presenceBubble && (
+        <span className="pixel-cat-presence-bubble" aria-label="对方也在线">
+          {presenceBubble}
+        </span>
+      )}
 
       <section className="pixel-cat-panel" aria-label="像素小猫小信使">
         <div className="pixel-cat-panel-head">

@@ -3,9 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { PixelCat } from '@/components/pixel/PixelCat'
 import { MobileShell } from '@/components/secret/MobileShell'
-import { SecretPixelDecor } from '@/components/secret/SecretPixelDecor'
 
 type AccessResponse = {
   ok: boolean
@@ -20,7 +18,7 @@ export function SecretGate() {
   const [key, setKey] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
-  const [spark, setSpark] = useState(false)
+  const [opening, setOpening] = useState(false)
   const redirectTimer = useRef<number | null>(null)
 
   useEffect(() => {
@@ -60,8 +58,8 @@ export function SecretGate() {
       }
 
       setMessage('信打开了。')
-      setSpark(true)
-      redirectTimer.current = window.setTimeout(() => router.replace('/void'), 680)
+      setOpening(true)
+      redirectTimer.current = window.setTimeout(() => router.replace('/void'), 720)
     }
     catch {
       setMessage(NETWORK_ERROR)
@@ -73,15 +71,33 @@ export function SecretGate() {
 
   return (
     <MobileShell>
-      <SecretPixelDecor />
-      <PixelCat mode="gate" />
+      <div className="secret-night-sky" aria-hidden>
+        {Array.from({ length: 5 }).map((_, index) => (
+          <span key={index} />
+        ))}
+      </div>
       <motion.section
         initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="secret-card"
+        animate={opening ? { opacity: 0, y: -28, scale: 1.035, filter: 'blur(10px)' } : { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+        transition={{ duration: opening ? 0.62 : 0.58, ease: 'easeOut' }}
+        className={opening ? 'secret-card secret-gate-card secret-gate-card-opening' : 'secret-card secret-gate-card'}
       >
-        <div className="secret-orbit" aria-hidden />
+        <div className={opening ? 'secret-envelope secret-envelope-opening' : 'secret-envelope'} aria-hidden>
+          <div className="secret-envelope-back" />
+          <div className="secret-envelope-paper" />
+          <div className="secret-envelope-flap secret-envelope-flap-left" />
+          <div className="secret-envelope-flap secret-envelope-flap-right" />
+          <div className="secret-envelope-flap secret-envelope-flap-top" />
+          <div className="secret-envelope-seal" />
+          <div className="secret-envelope-paw" />
+          <div className="secret-envelope-crack" />
+          <div className="secret-envelope-pixels">
+            {Array.from({ length: 12 }).map((_, index) => (
+              <span key={index} />
+            ))}
+          </div>
+        </div>
+
         <h1 className="secret-title">有一封信</h1>
         <p className="secret-copy">等待被打开。</p>
 
@@ -97,10 +113,14 @@ export function SecretGate() {
             value={key}
             onChange={event => setKey(event.target.value)}
             className="secret-input"
-            placeholder="输入密钥"
+            placeholder="神秘密钥"
             autoComplete="off"
-            aria-label="输入密钥"
+            aria-label="神秘密钥"
           />
+
+          <p className={key.trim() || loading ? 'secret-opening-hint secret-opening-hint-visible' : 'secret-opening-hint'}>
+            信封正在为你打开...
+          </p>
 
           <AnimatePresence>
             {message && (
@@ -108,7 +128,7 @@ export function SecretGate() {
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                className={spark ? 'secret-success' : 'secret-error'}
+                className={opening ? 'secret-success' : 'secret-error'}
               >
                 {message.split('\n').map(line => <span key={line}>{line}</span>)}
               </motion.p>
@@ -122,36 +142,12 @@ export function SecretGate() {
             aria-busy={loading}
             className="secret-primary-button"
           >
-            {loading ? '正在确认这封信属于谁...' : '打开'}
+            {loading ? '正在打开这封信...' : '打开'}
           </motion.button>
         </form>
 
         <p className="secret-footnote">不是所有人，都能打开这封信。</p>
       </motion.section>
-
-      <AnimatePresence>
-        {spark && (
-          <motion.div
-            className="secret-stars"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            aria-hidden
-          >
-            {Array.from({ length: 9 }).map((_, index) => (
-              <motion.span
-                key={index}
-                initial={{ opacity: 0, y: 0, scale: 0.4 }}
-                animate={{ opacity: [0, 1, 0], y: -44 - index * 3, scale: [0.4, 1, 0.7] }}
-                transition={{ duration: 0.85, delay: index * 0.035 }}
-                style={{ left: `${18 + index * 8}%` }}
-              >
-                ✦
-              </motion.span>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
     </MobileShell>
   )
 }
