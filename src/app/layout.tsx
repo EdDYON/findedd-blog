@@ -3,7 +3,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: '汉堡',
-  description: '一个在线汉堡大全图鉴。',
+  description: '一个会动的汉堡网站。',
 }
 
 export const viewport: Viewport = {
