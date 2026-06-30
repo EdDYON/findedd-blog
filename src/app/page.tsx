@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 const menuItems = [
   { name: '经典牛肉', note: '牛肉 / 芝士 / 酸黄瓜' },
   { name: '辣鸡腿', note: '脆皮鸡腿 / 辣酱 / 生菜' },
@@ -93,6 +95,7 @@ export default function Home() {
           </a>
           <div className="nav-links">
             <a href="#menu">菜单</a>
+            <Link href="/cook">厨房</Link>
             <a href="#story">计划</a>
           </div>
         </nav>
@@ -103,11 +106,11 @@ export default function Home() {
             <h1 id="site-title">汉堡</h1>
             <p className="lead">把全世界好吃的汉堡，做成一本轻巧、有趣、会动的在线菜单。</p>
             <div className="hero-actions">
-              <a className="button button-red" href="#menu">
+              <Link className="button button-red" href="/cook">
+                开始组装
+              </Link>
+              <a className="button button-light" href="#menu">
                 看菜单
-              </a>
-              <a className="button button-light" href="#story">
-                了解计划
               </a>
             </div>
           </div>
