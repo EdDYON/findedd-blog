@@ -29,13 +29,18 @@ type Recipe = {
   steps: string[]
 }
 
+type VisualLayer = Ingredient & {
+  role?: 'top' | 'bottom'
+  visualKey: string
+}
+
 const categories: Category[] = [
-  { key: 'bun', title: '汉堡胚', hint: '可选一个，也可以选择不要胚。' },
+  { key: 'bun', title: '汉堡胚', hint: '也可以选择无胚，做成盘餐或生菜包。' },
   { key: 'protein', title: '主体', hint: '肉饼、鸡腿、鱼排或植物肉。' },
-  { key: 'cheese', title: '芝士', hint: '让它融化，或者保持清爽。' },
-  { key: 'vegetable', title: '蔬菜', hint: '负责脆感、酸度和清新感。' },
+  { key: 'cheese', title: '芝士', hint: '负责融化、拉丝和幸福感。' },
+  { key: 'vegetable', title: '蔬菜', hint: '增加脆感、酸度和清爽感。' },
   { key: 'sauce', title: '酱料', hint: '汉堡真正的性格开关。' },
-  { key: 'extra', title: '加料', hint: '培根、鸡蛋、洋葱圈，快乐但危险。' },
+  { key: 'extra', title: '加料', hint: '培根、煎蛋、洋葱圈，快乐但危险。' },
 ]
 
 const ingredients: Ingredient[] = [
@@ -134,9 +139,15 @@ const recipes: Recipe[] = [
 ]
 
 const initialSelected = new Set(['sesame-bun', 'beef-patty', 'american-cheese', 'lettuce', 'tomato', 'pickle', 'ketchup'])
-
 const ingredientById = new Map(ingredients.map((ingredient) => [ingredient.id, ingredient]))
 const bunIds = ingredients.filter((ingredient) => ingredient.category === 'bun').map((ingredient) => ingredient.id)
+
+function byIds(ids: string[], selected: Set<string>) {
+  return ids
+    .filter((id) => selected.has(id))
+    .map((id) => ingredientById.get(id))
+    .filter((item): item is Ingredient => Boolean(item))
+}
 
 function getMissing(recipe: Recipe, selected: Set<string>) {
   return recipe.required.filter((ingredientId) => !selected.has(ingredientId))
@@ -146,31 +157,36 @@ function getIngredientName(ingredientId: string) {
   return ingredientById.get(ingredientId)?.name ?? ingredientId
 }
 
-function getStackLayers(selected: Set<string>) {
-  const selectedIngredients = [...selected].map((id) => ingredientById.get(id)).filter((item): item is Ingredient => Boolean(item))
-  const bun = selectedIngredients.find((item) => item.category === 'bun')
-  const middle = selectedIngredients.filter((item) => item.category !== 'bun')
-  const order: CategoryKey[] = ['sauce', 'vegetable', 'protein', 'cheese', 'extra']
-  const layers: Array<Ingredient & { layerName?: string }> = []
+function getVisualLayers(selected: Set<string>): VisualLayer[] {
+  const bun = [...selected].map((id) => ingredientById.get(id)).find((item) => item?.category === 'bun')
+  const hasBread = bun && bun.id !== 'no-bun'
+  const topBun = hasBread ? [{ ...bun, role: 'top' as const, visualKey: `${bun.id}-top` }] : []
+  const bottomBun = hasBread ? [{ ...bun, role: 'bottom' as const, visualKey: `${bun.id}-bottom` }] : []
 
-  if (bun && bun.id !== 'no-bun') {
-    layers.push({ ...bun, layerName: bun.id === 'lettuce-wrap' ? '生菜包底' : '胚底' })
-  }
+  const topSauces = byIds(['mayo', 'spicy-mayo', 'ketchup', 'mustard', 'bbq'], selected).slice(0, 2)
+  const vegetables = byIds(['lettuce', 'tomato', 'pickle', 'onion', 'jalapeno'], selected)
+  const extras = byIds(['egg', 'bacon', 'onion-ring'], selected)
+  const cheeses = byIds(['american-cheese', 'cheddar', 'mozzarella'], selected)
+  const proteins = byIds(['double-beef', 'beef-patty', 'fried-chicken', 'fish-fillet', 'mushroom-patty'], selected)
 
-  for (const category of order) {
-    const items = middle.filter((item) => item.category === category)
-    if (category === 'sauce') {
-      layers.push(...items.slice(0, 2))
-    } else {
-      layers.push(...items)
-    }
-  }
+  const layers: Array<Ingredient & Partial<Pick<VisualLayer, 'role' | 'visualKey'>>> = [
+    ...topBun,
+    ...topSauces,
+    ...vegetables,
+    ...extras,
+    ...cheeses,
+    ...proteins,
+    ...bottomBun,
+  ]
 
-  if (bun && bun.id !== 'no-bun') {
-    layers.push({ ...bun, layerName: bun.id === 'lettuce-wrap' ? '生菜包顶' : '胚顶' })
-  }
+  return layers.map((layer, index) => ({ ...layer, visualKey: layer.visualKey ?? `${layer.id}-${index}` }))
+}
 
-  return layers.slice(-10)
+function getPreviewTitle(selected: Set<string>, activeRecipe: Recipe, recipeStates: Array<{ recipe: Recipe; canMake: boolean }>) {
+  const readyRecipe = recipeStates.find((item) => item.canMake)?.recipe
+  if (readyRecipe) return readyRecipe.name
+  if (selected.has('no-bun')) return '无胚自由盘'
+  return activeRecipe.name
 }
 
 export default function BurgerKitchen() {
@@ -191,8 +207,10 @@ export default function BurgerKitchen() {
     [selected],
   )
 
-  const stackLayers = useMemo(() => getStackLayers(selected), [selected])
+  const visualLayers = useMemo(() => getVisualLayers(selected), [selected])
   const canMakeCount = recipeStates.filter((item) => item.canMake).length
+  const previewTitle = getPreviewTitle(selected, activeRecipe, recipeStates)
+  const selectedIngredients = [...selected].map(getIngredientName).filter((name) => name !== '不要胚')
 
   function toggleIngredient(ingredient: Ingredient) {
     setSelected((current) => {
@@ -217,17 +235,19 @@ export default function BurgerKitchen() {
   }
 
   function clearBasket() {
-    setSelected(new Set(['no-bun']))
+    setSelected(new Set(['sesame-bun']))
   }
 
   return (
-    <section className="kitchen" id="basket">
+    <section className="kitchen kitchen-refined" id="basket">
       <div className="ingredient-panel">
-        <div className="panel-heading">
-          <p className="eyebrow">MY INGREDIENTS</p>
-          <h2>我的食材篮</h2>
+        <div className="panel-heading refined-heading">
+          <div>
+            <p className="eyebrow">BUILD YOUR BURGER</p>
+            <h2>选择食材</h2>
+          </div>
           <button type="button" onClick={clearBasket}>
-            清空
+            重置
           </button>
         </div>
 
@@ -261,36 +281,48 @@ export default function BurgerKitchen() {
       </div>
 
       <aside className="burger-preview" aria-label="当前汉堡预览">
-        <div className="preview-card">
-          <p className="eyebrow">LIVE STACK</p>
-          <h2>当前汉堡</h2>
-          <div className="stack-stage">
-            {stackLayers.length === 0 ? (
-              <p className="empty-stack">先选一点材料，汉堡会在这里堆起来。</p>
+        <div className="preview-card refined-preview-card">
+          <p className="eyebrow">FRESHLY BUILT</p>
+          <h2>{previewTitle}</h2>
+          <div className={selected.has('no-bun') ? 'dish-stage no-bun-stage' : 'dish-stage'}>
+            <div className="plate-glow" />
+            {visualLayers.length <= 1 ? (
+              <p className="empty-stack">再加肉饼、蔬菜和酱料，汉堡就会变得好吃。</p>
             ) : (
-              <div className="stack-layers">
-                {stackLayers.map((layer, index) => (
+              <div className="crafted-burger" aria-hidden="true">
+                {visualLayers.map((layer, index) => (
                   <div
-                    className={`stack-layer layer-${layer.category}`}
-                    key={`${layer.id}-${index}`}
-                    style={{ '--layer-color': layer.color, '--delay': `${index * 45}ms` } as CSSProperties}
+                    className={`visual-layer visual-${layer.category} visual-${layer.id} ${layer.role ? `visual-${layer.role}` : ''}`}
+                    key={layer.visualKey}
+                    style={{ '--layer-color': layer.color, '--delay': `${index * 38}ms` } as CSSProperties}
                   >
-                    {layer.layerName ?? layer.short}
+                    {layer.category === 'bun' && layer.role === 'top' && layer.id !== 'lettuce-wrap' ? (
+                      <span className="sesame-dots" />
+                    ) : null}
                   </div>
                 ))}
               </div>
             )}
           </div>
-          <p className="preview-note">
-            已选择 <strong>{selected.size}</strong> 种材料，可直接做 <strong>{canMakeCount}</strong> 款汉堡。
-          </p>
+          <div className="preview-meta">
+            <p>
+              已选择 <strong>{selectedIngredients.length}</strong> 种材料，可直接做 <strong>{canMakeCount}</strong> 款汉堡。
+            </p>
+            <div className="selected-mini-list">
+              {selectedIngredients.slice(0, 8).map((name) => (
+                <span key={name}>{name}</span>
+              ))}
+            </div>
+          </div>
         </div>
       </aside>
 
       <div className="recipes" id="recipes">
-        <div className="panel-heading">
-          <p className="eyebrow">CAN I COOK?</p>
-          <h2>可制作配方</h2>
+        <div className="panel-heading refined-heading">
+          <div>
+            <p className="eyebrow">CAN I COOK?</p>
+            <h2>可制作配方</h2>
+          </div>
           <span>{canMakeCount} / {recipes.length} 可做</span>
         </div>
 
