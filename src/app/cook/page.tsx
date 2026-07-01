@@ -20,6 +20,7 @@ export default function CookPage() {
           <Link href="/">首页</Link>
           <a href="#recipes">配方</a>
           <a href="#basket">食材</a>
+          <a href="#atlas">图鉴</a>
         </div>
       </nav>
 
@@ -27,7 +28,7 @@ export default function CookPage() {
         <p className="eyebrow">BURGER COOKBOOK</p>
         <h1>汉堡厨房</h1>
         <p>
-          像整理冰箱一样选择你手上的材料：汉堡胚可以有，也可以没有；酱料、肉饼、蔬菜和加料会自动拼出可做的汉堡。
+          像整理冰箱一样选择你手上的材料：汉堡胚可以有，也可以没有；酱料、肉饼、蔬菜和加料会自动拼出可做的汉堡，下面还有完整像素食材图鉴。
         </p>
       </section>
 

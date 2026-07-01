@@ -1,7 +1,9 @@
 'use client'
 
+import Image from 'next/image'
 import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
+import { pixelIngredients, type PixelIngredient } from '@/data/pixelIngredients'
 
 type CategoryKey = 'bun' | 'protein' | 'cheese' | 'vegetable' | 'sauce' | 'extra'
 
@@ -11,6 +13,9 @@ type Ingredient = {
   category: CategoryKey
   color: string
   short: string
+  assetName?: string
+  assetId?: string
+  bottomAssetId?: string
 }
 
 type Category = {
@@ -32,6 +37,7 @@ type Recipe = {
 type VisualLayer = Ingredient & {
   role?: 'top' | 'bottom'
   visualKey: string
+  asset?: PixelIngredient
 }
 
 const categories: Category[] = [
@@ -44,32 +50,59 @@ const categories: Category[] = [
 ]
 
 const ingredients: Ingredient[] = [
-  { id: 'sesame-bun', name: '芝麻胚', category: 'bun', color: '#d9822b', short: '芝麻' },
-  { id: 'brioche-bun', name: '黄油布里欧修胚', category: 'bun', color: '#f0a23a', short: '黄油胚' },
-  { id: 'whole-bun', name: '全麦胚', category: 'bun', color: '#9f6a35', short: '全麦' },
-  { id: 'lettuce-wrap', name: '生菜包', category: 'bun', color: '#54a848', short: '生菜包' },
+  {
+    id: 'sesame-bun',
+    name: '芝麻胚',
+    category: 'bun',
+    color: '#d9822b',
+    short: '芝麻',
+    assetName: '芝麻汉堡胚',
+    assetId: 'ingredient-001',
+    bottomAssetId: 'ingredient-007',
+  },
+  {
+    id: 'brioche-bun',
+    name: '黄油布里欧修胚',
+    category: 'bun',
+    color: '#f0a23a',
+    short: '黄油胚',
+    assetName: '布里欧修胚',
+    assetId: 'ingredient-002',
+    bottomAssetId: 'ingredient-008',
+  },
+  {
+    id: 'whole-bun',
+    name: '全麦胚',
+    category: 'bun',
+    color: '#9f6a35',
+    short: '全麦',
+    assetName: '全麦多谷物胚',
+    assetId: 'ingredient-006',
+    bottomAssetId: 'ingredient-012',
+  },
+  { id: 'lettuce-wrap', name: '生菜包', category: 'bun', color: '#54a848', short: '生菜包', assetName: '卷叶生菜' },
   { id: 'no-bun', name: '不要胚', category: 'bun', color: '#fff5e3', short: '无胚' },
-  { id: 'beef-patty', name: '牛肉饼', category: 'protein', color: '#5a2514', short: '牛肉' },
-  { id: 'double-beef', name: '双层牛肉饼', category: 'protein', color: '#482012', short: '双牛' },
-  { id: 'fried-chicken', name: '炸鸡腿排', category: 'protein', color: '#c57523', short: '炸鸡' },
-  { id: 'fish-fillet', name: '鳕鱼排', category: 'protein', color: '#ead29b', short: '鱼排' },
-  { id: 'mushroom-patty', name: '蘑菇排', category: 'protein', color: '#6e4a2e', short: '蘑菇' },
-  { id: 'american-cheese', name: '美式芝士', category: 'cheese', color: '#ffc329', short: '美式芝士' },
-  { id: 'cheddar', name: '切达芝士', category: 'cheese', color: '#f6a51f', short: '切达' },
-  { id: 'mozzarella', name: '马苏里拉', category: 'cheese', color: '#fff0b9', short: '马苏' },
-  { id: 'lettuce', name: '生菜', category: 'vegetable', color: '#4b9d42', short: '生菜' },
-  { id: 'tomato', name: '番茄片', category: 'vegetable', color: '#f93b32', short: '番茄' },
-  { id: 'pickle', name: '酸黄瓜', category: 'vegetable', color: '#8ca63a', short: '酸瓜' },
-  { id: 'onion', name: '洋葱圈', category: 'vegetable', color: '#f5e0ed', short: '洋葱' },
-  { id: 'jalapeno', name: '墨西哥辣椒', category: 'vegetable', color: '#2f8d38', short: '辣椒' },
-  { id: 'ketchup', name: '番茄酱', category: 'sauce', color: '#f71918', short: '番茄酱' },
-  { id: 'mustard', name: '黄芥末', category: 'sauce', color: '#ffc329', short: '芥末' },
-  { id: 'mayo', name: '蛋黄酱', category: 'sauce', color: '#fff0cc', short: '蛋黄酱' },
-  { id: 'bbq', name: '烟熏 BBQ 酱', category: 'sauce', color: '#6f2418', short: 'BBQ' },
-  { id: 'spicy-mayo', name: '辣味蛋黄酱', category: 'sauce', color: '#ff7a25', short: '辣蛋黄' },
-  { id: 'bacon', name: '培根', category: 'extra', color: '#b23a22', short: '培根' },
-  { id: 'egg', name: '煎蛋', category: 'extra', color: '#fff3b4', short: '煎蛋' },
-  { id: 'onion-ring', name: '炸洋葱圈', category: 'extra', color: '#d9902f', short: '洋葱圈' },
+  { id: 'beef-patty', name: '牛肉饼', category: 'protein', color: '#5a2514', short: '牛肉', assetName: '经典牛肉饼' },
+  { id: 'double-beef', name: '双层牛肉饼', category: 'protein', color: '#482012', short: '双牛', assetName: '手打厚牛肉饼' },
+  { id: 'fried-chicken', name: '炸鸡腿排', category: 'protein', color: '#c57523', short: '炸鸡', assetName: '脆皮炸鸡排' },
+  { id: 'fish-fillet', name: '鳕鱼排', category: 'protein', color: '#ead29b', short: '鱼排', assetName: '鱼排' },
+  { id: 'mushroom-patty', name: '蘑菇排', category: 'protein', color: '#6e4a2e', short: '蘑菇', assetName: '蘑菇素饼' },
+  { id: 'american-cheese', name: '美式芝士', category: 'cheese', color: '#ffc329', short: '美式芝士', assetName: '美式芝士片' },
+  { id: 'cheddar', name: '切达芝士', category: 'cheese', color: '#f6a51f', short: '切达', assetName: '切达芝士' },
+  { id: 'mozzarella', name: '马苏里拉', category: 'cheese', color: '#fff0b9', short: '马苏', assetName: '马苏里拉芝士' },
+  { id: 'lettuce', name: '生菜', category: 'vegetable', color: '#4b9d42', short: '生菜', assetName: '卷叶生菜' },
+  { id: 'tomato', name: '番茄片', category: 'vegetable', color: '#f93b32', short: '番茄', assetName: '番茄片' },
+  { id: 'pickle', name: '酸黄瓜', category: 'vegetable', color: '#8ca63a', short: '酸瓜', assetName: '酸黄瓜片' },
+  { id: 'onion', name: '洋葱圈', category: 'vegetable', color: '#f5e0ed', short: '洋葱', assetName: '红洋葱圈' },
+  { id: 'jalapeno', name: '墨西哥辣椒', category: 'vegetable', color: '#2f8d38', short: '辣椒', assetName: '墨西哥辣椒圈' },
+  { id: 'ketchup', name: '番茄酱', category: 'sauce', color: '#f71918', short: '番茄酱', assetName: '番茄酱' },
+  { id: 'mustard', name: '黄芥末', category: 'sauce', color: '#ffc329', short: '芥末', assetName: '黄芥末酱' },
+  { id: 'mayo', name: '蛋黄酱', category: 'sauce', color: '#fff0cc', short: '蛋黄酱', assetName: '蛋黄酱' },
+  { id: 'bbq', name: '烟熏 BBQ 酱', category: 'sauce', color: '#6f2418', short: 'BBQ', assetName: '烧烤酱' },
+  { id: 'spicy-mayo', name: '辣味蛋黄酱', category: 'sauce', color: '#ff7a25', short: '辣蛋黄', assetName: '辣蛋黄酱' },
+  { id: 'bacon', name: '培根', category: 'extra', color: '#b23a22', short: '培根', assetName: '培根条' },
+  { id: 'egg', name: '煎蛋', category: 'extra', color: '#fff3b4', short: '煎蛋', assetName: '煎蛋' },
+  { id: 'onion-ring', name: '炸洋葱圈', category: 'extra', color: '#d9902f', short: '洋葱圈', assetName: '炸洋葱圈' },
 ]
 
 const recipes: Recipe[] = [
@@ -141,6 +174,23 @@ const recipes: Recipe[] = [
 const initialSelected = new Set(['sesame-bun', 'beef-patty', 'american-cheese', 'lettuce', 'tomato', 'pickle', 'ketchup'])
 const ingredientById = new Map(ingredients.map((ingredient) => [ingredient.id, ingredient]))
 const bunIds = ingredients.filter((ingredient) => ingredient.category === 'bun').map((ingredient) => ingredient.id)
+const pixelById = new Map(pixelIngredients.map((ingredient) => [ingredient.id, ingredient]))
+const pixelByName = pixelIngredients.reduce((map, ingredient) => {
+  if (!map.has(ingredient.name)) map.set(ingredient.name, ingredient)
+  return map
+}, new Map<string, PixelIngredient>())
+
+const atlasGroups = Array.from(
+  pixelIngredients.reduce((map, ingredient) => {
+    const group = map.get(ingredient.category)
+    if (group) {
+      group.push(ingredient)
+    } else {
+      map.set(ingredient.category, [ingredient])
+    }
+    return map
+  }, new Map<string, PixelIngredient[]>()),
+).map(([category, items]) => ({ category, items }))
 
 function byIds(ids: string[], selected: Set<string>) {
   return ids
@@ -155,6 +205,13 @@ function getMissing(recipe: Recipe, selected: Set<string>) {
 
 function getIngredientName(ingredientId: string) {
   return ingredientById.get(ingredientId)?.name ?? ingredientId
+}
+
+function getIngredientAsset(ingredient: Ingredient, role?: VisualLayer['role']) {
+  if (role === 'bottom' && ingredient.bottomAssetId) return pixelById.get(ingredient.bottomAssetId)
+  if (ingredient.assetId) return pixelById.get(ingredient.assetId)
+  if (ingredient.assetName) return pixelByName.get(ingredient.assetName)
+  return undefined
 }
 
 function getVisualLayers(selected: Set<string>): VisualLayer[] {
@@ -179,7 +236,11 @@ function getVisualLayers(selected: Set<string>): VisualLayer[] {
     ...bottomBun,
   ]
 
-  return layers.map((layer, index) => ({ ...layer, visualKey: layer.visualKey ?? `${layer.id}-${index}` }))
+  return layers.map((layer, index) => ({
+    ...layer,
+    visualKey: layer.visualKey ?? `${layer.id}-${index}`,
+    asset: getIngredientAsset(layer, layer.role),
+  }))
 }
 
 function getPreviewTitle(selected: Set<string>, activeRecipe: Recipe, recipeStates: Array<{ recipe: Recipe; canMake: boolean }>) {
@@ -262,6 +323,7 @@ export default function BurgerKitchen() {
                 .filter((ingredient) => ingredient.category === category.key)
                 .map((ingredient) => {
                   const active = selected.has(ingredient.id)
+                  const asset = getIngredientAsset(ingredient)
                   return (
                     <button
                       className={active ? 'ingredient-chip active' : 'ingredient-chip'}
@@ -270,8 +332,20 @@ export default function BurgerKitchen() {
                       style={{ '--chip-color': ingredient.color } as CSSProperties}
                       type="button"
                     >
-                      <span />
-                      {ingredient.name}
+                      {asset ? (
+                        <Image
+                          alt=""
+                          aria-hidden="true"
+                          className="ingredient-chip-art"
+                          height={52}
+                          src={asset.image}
+                          unoptimized
+                          width={72}
+                        />
+                      ) : (
+                        <span className="ingredient-color-dot" />
+                      )}
+                      <span className="ingredient-chip-label">{ingredient.name}</span>
                     </button>
                   )
                 })}
@@ -292,11 +366,21 @@ export default function BurgerKitchen() {
               <div className="crafted-burger" aria-hidden="true">
                 {visualLayers.map((layer, index) => (
                   <div
-                    className={`visual-layer visual-${layer.category} visual-${layer.id} ${layer.role ? `visual-${layer.role}` : ''}`}
+                    className={`visual-layer ${layer.asset ? 'has-sprite' : ''} visual-${layer.category} visual-${layer.id} ${layer.role ? `visual-${layer.role}` : ''}`}
                     key={layer.visualKey}
                     style={{ '--layer-color': layer.color, '--delay': `${index * 38}ms` } as CSSProperties}
                   >
-                    {layer.category === 'bun' && layer.role === 'top' && layer.id !== 'lettuce-wrap' ? (
+                    {layer.asset ? (
+                      <Image
+                        alt=""
+                        aria-hidden="true"
+                        className="sprite-layer-image"
+                        height={130}
+                        src={layer.asset.image}
+                        unoptimized
+                        width={280}
+                      />
+                    ) : layer.category === 'bun' && layer.role === 'top' && layer.id !== 'lettuce-wrap' ? (
                       <span className="sesame-dots" />
                     ) : null}
                   </div>
@@ -355,6 +439,45 @@ export default function BurgerKitchen() {
             </article>
           ))}
         </div>
+      </div>
+
+      <div className="ingredient-atlas" id="atlas">
+        <div className="panel-heading refined-heading">
+          <div>
+            <p className="eyebrow">PIXEL PANTRY</p>
+            <h2>汉堡食材图鉴</h2>
+          </div>
+          <span>{pixelIngredients.length} 枚素材</span>
+        </div>
+
+        <p className="atlas-intro">
+          按你给的文件名 1–9 顺序拆图，单张图内按从左到右、从上到下排序。每个素材都保留透明背景，后续可以继续拿来做配方、菜单和动画。
+        </p>
+
+        {atlasGroups.map((group) => (
+          <section className="atlas-group" key={group.category}>
+            <div className="atlas-group-heading">
+              <h3>{group.category}</h3>
+              <span>{group.items.length} 枚</span>
+            </div>
+            <div className="atlas-grid">
+              {group.items.map((item) => (
+                <article className="atlas-card" key={`${item.id}-${item.sheet}-${item.index}`}>
+                  <div className="atlas-art">
+                    <Image alt={item.name} height={120} src={item.image} unoptimized width={150} />
+                  </div>
+                  <div>
+                    <h4>{item.name}</h4>
+                    <p>{item.description}</p>
+                    <span>
+                      #{item.sheet}-{item.row}-{item.column}
+                    </span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        ))}
       </div>
     </section>
   )
