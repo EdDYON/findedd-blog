@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import BurgerKitchen from './BurgerKitchen'
+import './hybrid-burger.css'
 
 export const metadata: Metadata = {
   title: '汉堡厨房｜汉堡',
