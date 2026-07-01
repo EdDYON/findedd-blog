@@ -1,8 +1,8 @@
 'use client'
 
 import Image from 'next/image'
-import type { CSSProperties } from 'react'
-import { useMemo, useState } from 'react'
+import type { CSSProperties, KeyboardEvent, PointerEvent } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { pixelIngredients, type PixelIngredient } from '@/data/pixelIngredients'
 
 type CategoryKey = 'bun' | 'protein' | 'cheese' | 'vegetable' | 'sauce' | 'extra'
@@ -38,6 +38,24 @@ type VisualLayer = Ingredient & {
   role?: 'top' | 'bottom'
   visualKey: string
   asset?: PixelIngredient
+}
+
+type LayerOffset = {
+  x: number
+  y: number
+}
+
+type DragState = {
+  key: string
+  pointerId: number
+  startX: number
+  startY: number
+  originX: number
+  originY: number
+  minX: number
+  maxX: number
+  minY: number
+  maxY: number
 }
 
 const categories: Category[] = [
@@ -253,6 +271,10 @@ function getPreviewTitle(selected: Set<string>, activeRecipe: Recipe, recipeStat
 export default function BurgerKitchen() {
   const [selected, setSelected] = useState(() => new Set(initialSelected))
   const [activeRecipeId, setActiveRecipeId] = useState(recipes[0].id)
+  const [layerOffsets, setLayerOffsets] = useState<Record<string, LayerOffset>>({})
+  const [layerDepths, setLayerDepths] = useState<Record<string, number>>({})
+  const [dragState, setDragState] = useState<DragState | null>(null)
+  const depthCounter = useRef(100)
   const activeRecipe = recipes.find((recipe) => recipe.id === activeRecipeId) ?? recipes[0]
 
   const recipeStates = useMemo(
@@ -293,10 +315,103 @@ export default function BurgerKitchen() {
   function applyRecipe(recipe: Recipe) {
     setActiveRecipeId(recipe.id)
     setSelected(new Set([...recipe.required, ...recipe.optional]))
+    resetLayerLayout()
   }
 
   function clearBasket() {
     setSelected(new Set(['sesame-bun']))
+    resetLayerLayout()
+  }
+
+  function resetLayerLayout() {
+    setLayerOffsets({})
+    setLayerDepths({})
+    setDragState(null)
+    depthCounter.current = 100
+  }
+
+  function bringLayerToFront(key: string) {
+    depthCounter.current += 1
+    setLayerDepths((current) => ({ ...current, [key]: depthCounter.current }))
+  }
+
+  function startLayerDrag(event: PointerEvent<HTMLDivElement>, key: string) {
+    if (event.button !== 0) return
+
+    const stage = event.currentTarget.closest('.dish-stage')
+    if (!(stage instanceof HTMLElement)) return
+
+    event.preventDefault()
+    event.currentTarget.setPointerCapture(event.pointerId)
+    bringLayerToFront(key)
+
+    const origin = layerOffsets[key] ?? { x: 0, y: 0 }
+    const stageRect = stage.getBoundingClientRect()
+    const layerRect = event.currentTarget.getBoundingClientRect()
+    const padding = 8
+
+    setDragState({
+      key,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: origin.x,
+      originY: origin.y,
+      minX: origin.x + stageRect.left + padding - layerRect.left,
+      maxX: origin.x + stageRect.right - padding - layerRect.right,
+      minY: origin.y + stageRect.top + padding - layerRect.top,
+      maxY: origin.y + stageRect.bottom - padding - layerRect.bottom,
+    })
+  }
+
+  function moveLayer(event: PointerEvent<HTMLDivElement>, key: string) {
+    if (!dragState || dragState.key !== key || dragState.pointerId !== event.pointerId) return
+
+    event.preventDefault()
+    const nextX = Math.min(dragState.maxX, Math.max(dragState.minX, dragState.originX + event.clientX - dragState.startX))
+    const nextY = Math.min(dragState.maxY, Math.max(dragState.minY, dragState.originY + event.clientY - dragState.startY))
+
+    setLayerOffsets((current) => ({ ...current, [key]: { x: nextX, y: nextY } }))
+  }
+
+  function finishLayerDrag(event: PointerEvent<HTMLDivElement>, key: string) {
+    if (!dragState || dragState.key !== key || dragState.pointerId !== event.pointerId) return
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
+    setDragState(null)
+  }
+
+  function nudgeLayer(event: KeyboardEvent<HTMLDivElement>, key: string) {
+    const amount = event.shiftKey ? 12 : 4
+    const delta =
+      event.key === 'ArrowLeft'
+        ? { x: -amount, y: 0 }
+        : event.key === 'ArrowRight'
+          ? { x: amount, y: 0 }
+          : event.key === 'ArrowUp'
+            ? { x: 0, y: -amount }
+            : event.key === 'ArrowDown'
+              ? { x: 0, y: amount }
+              : null
+
+    if (event.key === 'Escape' || event.key === 'Home') {
+      event.preventDefault()
+      setLayerOffsets((current) => ({ ...current, [key]: { x: 0, y: 0 } }))
+      return
+    }
+
+    if (!delta) return
+    event.preventDefault()
+    bringLayerToFront(key)
+    setLayerOffsets((current) => {
+      const origin = current[key] ?? { x: 0, y: 0 }
+      return {
+        ...current,
+        [key]: {
+          x: Math.min(110, Math.max(-110, origin.x + delta.x)),
+          y: Math.min(110, Math.max(-110, origin.y + delta.y)),
+        },
+      }
+    })
   }
 
   return (
@@ -359,32 +474,61 @@ export default function BurgerKitchen() {
           <p className="eyebrow">FRESHLY BUILT</p>
           <h2>{previewTitle}</h2>
           <div className={selected.has('no-bun') ? 'dish-stage no-bun-stage' : 'dish-stage'}>
+            <div className="stage-toolbar">
+              <span>拖动食材，自由叠放</span>
+              <button type="button" onClick={resetLayerLayout}>
+                恢复整齐
+              </button>
+            </div>
             <div className="plate-glow" />
             {visualLayers.length <= 1 ? (
               <p className="empty-stack">再加肉饼、蔬菜和酱料，汉堡就会变得好吃。</p>
             ) : (
-              <div className="crafted-burger" aria-hidden="true">
-                {visualLayers.map((layer, index) => (
-                  <div
-                    className={`visual-layer ${layer.asset ? 'has-sprite' : ''} visual-${layer.category} visual-${layer.id} ${layer.role ? `visual-${layer.role}` : ''}`}
-                    key={layer.visualKey}
-                    style={{ '--layer-color': layer.color, '--delay': `${index * 38}ms` } as CSSProperties}
-                  >
-                    {layer.asset ? (
-                      <Image
-                        alt=""
-                        aria-hidden="true"
-                        className="sprite-layer-image"
-                        height={130}
-                        src={layer.asset.image}
-                        unoptimized
-                        width={280}
-                      />
-                    ) : layer.category === 'bun' && layer.role === 'top' && layer.id !== 'lettuce-wrap' ? (
-                      <span className="sesame-dots" />
-                    ) : null}
-                  </div>
-                ))}
+              <div className="crafted-burger" aria-label="可自由拖动食材的汉堡工作区">
+                {visualLayers.map((layer, index) => {
+                  const offset = layerOffsets[layer.visualKey] ?? { x: 0, y: 0 }
+                  const roleName = layer.role === 'top' ? '上层' : layer.role === 'bottom' ? '下层' : ''
+                  const isDragging = dragState?.key === layer.visualKey
+
+                  return (
+                    <div
+                      aria-label={`拖动${roleName}${layer.name}`}
+                      className={`visual-layer draggable-layer ${isDragging ? 'is-dragging' : ''} ${layer.asset ? 'has-sprite' : ''} visual-${layer.category} visual-${layer.id} ${layer.role ? `visual-${layer.role}` : ''}`}
+                      key={layer.visualKey}
+                      onKeyDown={(event) => nudgeLayer(event, layer.visualKey)}
+                      onPointerCancel={(event) => finishLayerDrag(event, layer.visualKey)}
+                      onPointerDown={(event) => startLayerDrag(event, layer.visualKey)}
+                      onPointerMove={(event) => moveLayer(event, layer.visualKey)}
+                      onPointerUp={(event) => finishLayerDrag(event, layer.visualKey)}
+                      role="button"
+                      style={
+                        {
+                          '--layer-color': layer.color,
+                          '--delay': `${index * 38}ms`,
+                          '--drag-x': `${offset.x}px`,
+                          '--drag-y': `${offset.y}px`,
+                          zIndex: layerDepths[layer.visualKey],
+                        } as CSSProperties
+                      }
+                      tabIndex={0}
+                    >
+                      {layer.asset ? (
+                        <Image
+                          alt=""
+                          aria-hidden="true"
+                          className="sprite-layer-image"
+                          draggable={false}
+                          height={130}
+                          src={layer.asset.image}
+                          unoptimized
+                          width={280}
+                        />
+                      ) : layer.category === 'bun' && layer.role === 'top' && layer.id !== 'lettuce-wrap' ? (
+                        <span className="sesame-dots" />
+                      ) : null}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>
