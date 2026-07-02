@@ -14,8 +14,7 @@ type Ingredient = {
   color: string
   short: string
   assetName?: string
-  assetId?: string
-  bottomAssetId?: string
+  bottomAssetName?: string
 }
 
 type Category = {
@@ -74,9 +73,8 @@ const ingredients: Ingredient[] = [
     category: 'bun',
     color: '#d9822b',
     short: '芝麻',
-    assetName: '芝麻汉堡胚',
-    assetId: 'ingredient-001',
-    bottomAssetId: 'ingredient-007',
+    assetName: '芝麻面包顶',
+    bottomAssetName: '芝麻面包底',
   },
   {
     id: 'brioche-bun',
@@ -84,9 +82,8 @@ const ingredients: Ingredient[] = [
     category: 'bun',
     color: '#f0a23a',
     short: '黄油胚',
-    assetName: '布里欧修胚',
-    assetId: 'ingredient-002',
-    bottomAssetId: 'ingredient-008',
+    assetName: '布里欧修面包顶',
+    bottomAssetName: '布里欧修面包底',
   },
   {
     id: 'whole-bun',
@@ -94,31 +91,30 @@ const ingredients: Ingredient[] = [
     category: 'bun',
     color: '#9f6a35',
     short: '全麦',
-    assetName: '全麦多谷物胚',
-    assetId: 'ingredient-006',
-    bottomAssetId: 'ingredient-012',
+    assetName: '全麦面包顶',
+    bottomAssetName: '全麦面包底',
   },
-  { id: 'lettuce-wrap', name: '生菜包', category: 'bun', color: '#54a848', short: '生菜包', assetName: '卷叶生菜' },
+  { id: 'lettuce-wrap', name: '生菜包', category: 'bun', color: '#54a848', short: '生菜包', assetName: '卷心生菜' },
   { id: 'no-bun', name: '不要胚', category: 'bun', color: '#fff5e3', short: '无胚' },
   { id: 'beef-patty', name: '牛肉饼', category: 'protein', color: '#5a2514', short: '牛肉', assetName: '经典牛肉饼' },
-  { id: 'double-beef', name: '双层牛肉饼', category: 'protein', color: '#482012', short: '双牛', assetName: '手打厚牛肉饼' },
-  { id: 'fried-chicken', name: '炸鸡腿排', category: 'protein', color: '#c57523', short: '炸鸡', assetName: '脆皮炸鸡排' },
+  { id: 'double-beef', name: '双层牛肉饼', category: 'protein', color: '#482012', short: '双牛', assetName: '厚切牛肉饼' },
+  { id: 'fried-chicken', name: '炸鸡腿排', category: 'protein', color: '#c57523', short: '炸鸡', assetName: '脆炸鸡排' },
   { id: 'fish-fillet', name: '鳕鱼排', category: 'protein', color: '#ead29b', short: '鱼排', assetName: '鱼排' },
-  { id: 'mushroom-patty', name: '蘑菇排', category: 'protein', color: '#6e4a2e', short: '蘑菇', assetName: '蘑菇素饼' },
+  { id: 'mushroom-patty', name: '蘑菇排', category: 'protein', color: '#6e4a2e', short: '蘑菇', assetName: '蘑菇肉饼' },
   { id: 'american-cheese', name: '美式芝士', category: 'cheese', color: '#ffc329', short: '美式芝士', assetName: '美式芝士片' },
-  { id: 'cheddar', name: '切达芝士', category: 'cheese', color: '#f6a51f', short: '切达', assetName: '切达芝士' },
+  { id: 'cheddar', name: '切达芝士', category: 'cheese', color: '#f6a51f', short: '切达', assetName: '切达芝士片' },
   { id: 'mozzarella', name: '马苏里拉', category: 'cheese', color: '#fff0b9', short: '马苏', assetName: '马苏里拉芝士' },
-  { id: 'lettuce', name: '生菜', category: 'vegetable', color: '#4b9d42', short: '生菜', assetName: '卷叶生菜' },
+  { id: 'lettuce', name: '生菜', category: 'vegetable', color: '#4b9d42', short: '生菜', assetName: '生菜' },
   { id: 'tomato', name: '番茄片', category: 'vegetable', color: '#f93b32', short: '番茄', assetName: '番茄片' },
   { id: 'pickle', name: '酸黄瓜', category: 'vegetable', color: '#8ca63a', short: '酸瓜', assetName: '酸黄瓜片' },
   { id: 'onion', name: '洋葱圈', category: 'vegetable', color: '#f5e0ed', short: '洋葱', assetName: '红洋葱圈' },
   { id: 'jalapeno', name: '墨西哥辣椒', category: 'vegetable', color: '#2f8d38', short: '辣椒', assetName: '墨西哥辣椒圈' },
   { id: 'ketchup', name: '番茄酱', category: 'sauce', color: '#f71918', short: '番茄酱', assetName: '番茄酱' },
-  { id: 'mustard', name: '黄芥末', category: 'sauce', color: '#ffc329', short: '芥末', assetName: '黄芥末酱' },
+  { id: 'mustard', name: '黄芥末', category: 'sauce', color: '#ffc329', short: '芥末', assetName: '黄芥末' },
   { id: 'mayo', name: '蛋黄酱', category: 'sauce', color: '#fff0cc', short: '蛋黄酱', assetName: '蛋黄酱' },
-  { id: 'bbq', name: '烟熏 BBQ 酱', category: 'sauce', color: '#6f2418', short: 'BBQ', assetName: '烧烤酱' },
-  { id: 'spicy-mayo', name: '辣味蛋黄酱', category: 'sauce', color: '#ff7a25', short: '辣蛋黄', assetName: '辣蛋黄酱' },
-  { id: 'bacon', name: '培根', category: 'extra', color: '#b23a22', short: '培根', assetName: '培根条' },
+  { id: 'bbq', name: '烟熏 BBQ 酱', category: 'sauce', color: '#6f2418', short: 'BBQ', assetName: 'BBQ酱' },
+  { id: 'spicy-mayo', name: '辣味蛋黄酱', category: 'sauce', color: '#ff7a25', short: '辣蛋黄', assetName: '辣味蛋黄酱' },
+  { id: 'bacon', name: '培根', category: 'extra', color: '#b23a22', short: '培根', assetName: '培根' },
   { id: 'egg', name: '煎蛋', category: 'extra', color: '#fff3b4', short: '煎蛋', assetName: '煎蛋' },
   { id: 'onion-ring', name: '炸洋葱圈', category: 'extra', color: '#d9902f', short: '洋葱圈', assetName: '炸洋葱圈' },
 ]
@@ -192,7 +188,6 @@ const recipes: Recipe[] = [
 const initialSelected = new Set(['sesame-bun', 'beef-patty', 'american-cheese', 'lettuce', 'tomato', 'pickle', 'ketchup'])
 const ingredientById = new Map(ingredients.map((ingredient) => [ingredient.id, ingredient]))
 const bunIds = ingredients.filter((ingredient) => ingredient.category === 'bun').map((ingredient) => ingredient.id)
-const pixelById = new Map(pixelIngredients.map((ingredient) => [ingredient.id, ingredient]))
 const pixelByName = pixelIngredients.reduce((map, ingredient) => {
   if (!map.has(ingredient.name)) map.set(ingredient.name, ingredient)
   return map
@@ -226,8 +221,7 @@ function getIngredientName(ingredientId: string) {
 }
 
 function getIngredientAsset(ingredient: Ingredient, role?: VisualLayer['role']) {
-  if (role === 'bottom' && ingredient.bottomAssetId) return pixelById.get(ingredient.bottomAssetId)
-  if (ingredient.assetId) return pixelById.get(ingredient.assetId)
+  if (role === 'bottom' && ingredient.bottomAssetName) return pixelByName.get(ingredient.bottomAssetName)
   if (ingredient.assetName) return pixelByName.get(ingredient.assetName)
   return undefined
 }
@@ -595,7 +589,7 @@ export default function BurgerKitchen() {
         </div>
 
         <p className="atlas-intro">
-          按你给的文件名 1–9 顺序拆图，单张图内按从左到右、从上到下排序。每个素材都保留透明背景，后续可以继续拿来做配方、菜单和动画。
+          按食材贴图表.xlsx 的行顺序导入，名称与图片逐行对应。每个素材都保留透明背景，后续可以继续拿来做配方、菜单和动画。
         </p>
 
         {atlasGroups.map((group) => (
@@ -614,7 +608,7 @@ export default function BurgerKitchen() {
                     <h4>{item.name}</h4>
                     <p>{item.description}</p>
                     <span>
-                      #{item.sheet}-{item.row}-{item.column}
+                      #{item.index}
                     </span>
                   </div>
                 </article>
