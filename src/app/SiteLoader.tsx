@@ -106,6 +106,45 @@ function LoaderStickers() {
       </div>
 
       <div
+        className="loader-sticker loader-sticker-tiny-tiger"
+        style={{ '--sticker-rotate': '8deg' } as CSSProperties}
+      >
+        <svg viewBox="0 0 210 230" role="img">
+          <path
+            className="sticker-paper"
+            d="M33 28C58 10 143 8 169 31C194 53 198 165 177 194C154 225 58 224 31 195C6 168 7 47 33 28Z"
+          />
+          <path
+            className="sticker-hair"
+            d="M52 77C58 38 91 24 122 33C155 42 176 71 169 113C158 96 144 87 130 87C104 87 86 99 64 122C55 107 49 92 52 77Z"
+          />
+          <path
+            className="sticker-face"
+            d="M62 93C74 55 146 54 160 94C174 134 147 168 111 169C75 170 49 134 62 93Z"
+          />
+          <path className="sticker-bang" d="M72 66L91 103L111 62L124 105L147 73" />
+          <path className="sticker-eye" d="M82 119L101 113" />
+          <path className="sticker-eye" d="M127 113L145 120" />
+          <path className="sticker-mouth" d="M101 143C110 150 121 150 130 143" />
+          <path
+            className="sticker-mini-burger"
+            d="M136 42C147 31 175 35 181 49C169 54 148 55 136 42Z"
+          />
+          <path
+            className="sticker-mini-lettuce"
+            d="M138 50L181 50L171 60L160 55L151 62Z"
+          />
+          <path
+            className="sticker-jacket"
+            d="M55 187C74 171 146 170 166 188L151 213H70Z"
+          />
+          <text x="105" y="211" textAnchor="middle">
+            TINY TIGER
+          </text>
+        </svg>
+      </div>
+
+      <div
         className="loader-sticker loader-sticker-ticket"
         style={{ '--sticker-rotate': '7deg' } as CSSProperties}
       >
