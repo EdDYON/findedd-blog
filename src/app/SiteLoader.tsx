@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
 
 type LoaderLayer = {
   id: string
@@ -84,16 +84,50 @@ export default function SiteLoader() {
   const [isExiting, setIsExiting] = useState(false)
   const previousOverflow = useRef('')
   const exitTimer = useRef<number | null>(null)
+  const readyAt = useRef<number | null>(null)
+  const interactionArmed = useRef(false)
 
   const enterSite = useCallback(() => {
-    if (!isReady || isExiting || exitTimer.current) return
+    if (!isReady || isExiting || exitTimer.current || !interactionArmed.current) return
+    if (readyAt.current && performance.now() - readyAt.current < 380) {
+      interactionArmed.current = false
+      return
+    }
 
+    interactionArmed.current = false
     setIsExiting(true)
     exitTimer.current = window.setTimeout(() => {
       document.documentElement.style.overflow = previousOverflow.current
       setVisible(false)
     }, 1080)
   }, [isExiting, isReady])
+
+  const markReady = useCallback(() => {
+    readyAt.current = performance.now()
+    interactionArmed.current = false
+    setIsReady(true)
+  }, [])
+
+  const armPointerInteraction = useCallback(
+    (event: PointerEvent<HTMLButtonElement>) => {
+      if (!isReady || isExiting || event.button !== 0) return
+      if (readyAt.current && performance.now() - readyAt.current < 380) return
+      interactionArmed.current = true
+    },
+    [isExiting, isReady],
+  )
+
+  const enterFromKeyboard = useCallback(
+    (event: KeyboardEvent<HTMLButtonElement>) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return
+      if (!isReady || isExiting) return
+
+      event.preventDefault()
+      interactionArmed.current = true
+      enterSite()
+    },
+    [enterSite, isExiting, isReady],
+  )
 
   useEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -105,7 +139,7 @@ export default function SiteLoader() {
       const reducedProgressTimer = window.setTimeout(() => setProgress(100), 0)
       const reducedReadyTimer = window.setTimeout(() => {
         setMessageIndex(messages.length - 1)
-        setIsReady(true)
+        markReady()
       }, 260)
 
       return () => {
@@ -129,7 +163,7 @@ export default function SiteLoader() {
       window.clearInterval(progressTimer)
       setProgress(100)
       setMessageIndex(messages.length - 1)
-      setIsReady(true)
+      markReady()
     }, 2420)
 
     return () => {
@@ -139,20 +173,7 @@ export default function SiteLoader() {
       if (exitTimer.current) window.clearTimeout(exitTimer.current)
       root.style.overflow = previousOverflow.current
     }
-  }, [])
-
-  useEffect(() => {
-    function handleKeyDown(event: globalThis.KeyboardEvent) {
-      if (event.key !== 'Enter' && event.key !== ' ') return
-      if (!isReady || isExiting) return
-
-      event.preventDefault()
-      enterSite()
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [enterSite, isExiting, isReady])
+  }, [markReady])
 
   if (!visible) return null
 
@@ -192,6 +213,8 @@ export default function SiteLoader() {
           className="site-loader-stage"
           disabled={!isReady || isExiting}
           onClick={enterSite}
+          onKeyDown={enterFromKeyboard}
+          onPointerDown={armPointerInteraction}
           type="button"
         >
           <div className="site-loader-shadow" />
@@ -262,6 +285,8 @@ export default function SiteLoader() {
           className="site-loader-enter"
           disabled={!isReady || isExiting}
           onClick={enterSite}
+          onKeyDown={enterFromKeyboard}
+          onPointerDown={armPointerInteraction}
           type="button"
         >
           {isReady ? '点一下，开饭！' : '正在画汉堡...'}
