@@ -215,15 +215,10 @@ export default function SiteLoader() {
   const [isExiting, setIsExiting] = useState(false)
   const previousOverflow = useRef('')
   const exitTimer = useRef<number | null>(null)
-  const readyAt = useRef<number | null>(null)
   const interactionArmed = useRef(false)
 
   const enterSite = useCallback(() => {
     if (!isReady || isExiting || exitTimer.current || !interactionArmed.current) return
-    if (readyAt.current && performance.now() - readyAt.current < 380) {
-      interactionArmed.current = false
-      return
-    }
 
     interactionArmed.current = false
     setIsExiting(true)
@@ -234,7 +229,6 @@ export default function SiteLoader() {
   }, [isExiting, isReady])
 
   const markReady = useCallback(() => {
-    readyAt.current = performance.now()
     interactionArmed.current = false
     setIsReady(true)
   }, [])
@@ -242,10 +236,14 @@ export default function SiteLoader() {
   const enterFromToggle = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       if (!event.currentTarget.checked) return
+      if (!isReady || isExiting) {
+        event.currentTarget.checked = false
+        return
+      }
       interactionArmed.current = true
       enterSite()
     },
-    [enterSite],
+    [enterSite, isExiting, isReady],
   )
 
   const enterFromKeyboard = useCallback(
@@ -320,6 +318,7 @@ export default function SiteLoader() {
       <div className="site-loader-wipe site-loader-wipe-yellow" aria-hidden="true" />
       <div className="site-loader-wipe site-loader-wipe-orange" aria-hidden="true" />
       <div className="site-loader-wipe site-loader-wipe-red" aria-hidden="true" />
+      <div className="site-loader-texture" aria-hidden="true" />
       <div className="site-loader-brand-bands" aria-hidden="true">
         {brandBands.map((band, index) => (
           <span key={band} style={{ '--band-delay': `${index * -7}s` } as CSSProperties}>
@@ -362,7 +361,7 @@ export default function SiteLoader() {
           htmlFor={loaderToggleId}
           onKeyDown={enterFromKeyboard}
           role="button"
-          tabIndex={0}
+          tabIndex={isReady ? 0 : -1}
         >
           <div className="site-loader-shadow" />
           <div className="site-loader-stack">
@@ -377,6 +376,8 @@ export default function SiteLoader() {
                     '--burst-x': burstVectors[index].x,
                     '--burst-y': burstVectors[index].y,
                     '--loader-delay': `${110 + index * 235}ms`,
+                    '--hover-tilt': `${index % 2 === 0 ? -0.8 : 0.8}deg`,
+                    '--hover-y': `${index * -5}px`,
                     '--loader-mobile-y': `${index * 35}px`,
                     '--loader-y': `${index * 42}px`,
                   } as CSSProperties
@@ -396,30 +397,34 @@ export default function SiteLoader() {
         </label>
 
         <div className="site-loader-copy" aria-live="polite">
-          <strong>{messages[messageIndex]}</strong>
-          <span>{String(progress).padStart(3, '0')}%</span>
+          <strong>{isReady ? 'ORDER UP!' : messages[messageIndex]}</strong>
+          <span>{isReady ? 'READY' : `${String(progress).padStart(3, '0')}%`}</span>
         </div>
 
-        <div
-          aria-label="加载进度"
-          aria-valuemax={100}
-          aria-valuemin={0}
-          aria-valuenow={progress}
-          className="site-loader-progress"
-          role="progressbar"
-        >
-          <div style={{ width: `${progress}%` }} />
-        </div>
+        <div className="site-loader-action">
+          <div
+            aria-hidden={isReady}
+            aria-label="加载进度"
+            aria-valuemax={100}
+            aria-valuemin={0}
+            aria-valuenow={progress}
+            className="site-loader-progress"
+            role="progressbar"
+          >
+            <div style={{ width: `${progress}%` }} />
+          </div>
 
-        <label
-          className="site-loader-enter"
-          htmlFor={loaderToggleId}
-          onKeyDown={enterFromKeyboard}
-          role="button"
-          tabIndex={0}
-        >
-          开饭！！！
-        </label>
+          <label
+            aria-label="开饭，进入 Find Burger"
+            className="site-loader-enter"
+            htmlFor={loaderToggleId}
+            onKeyDown={enterFromKeyboard}
+            role="button"
+            tabIndex={isReady ? 0 : -1}
+          >
+            开饭！！！
+          </label>
+        </div>
       </div>
     </div>
   )
