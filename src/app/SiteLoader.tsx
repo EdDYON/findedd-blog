@@ -91,23 +91,8 @@ function LoaderStickers() {
   return (
     <div className="site-loader-stickers" aria-hidden="true">
       <div
-        className="loader-sticker loader-sticker-mascot"
-        style={{ '--sticker-rotate': '-8deg' } as CSSProperties}
-      >
-        <Image
-          alt=""
-          aria-hidden="true"
-          height={585}
-          priority
-          src="/assets/loader/taiga-burger-sticker.png"
-          unoptimized
-          width={560}
-        />
-      </div>
-
-      <div
         className="loader-sticker loader-sticker-tiny-tiger"
-        style={{ '--sticker-rotate': '8deg' } as CSSProperties}
+        style={{ '--sticker-rotate': '-8deg' } as CSSProperties}
       >
         <svg viewBox="0 0 210 230" role="img">
           <path

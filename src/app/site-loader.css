@@ -163,23 +163,10 @@
   stroke-width: 4;
 }
 
-.loader-sticker-mascot {
-  top: 18%;
-  left: clamp(24px, 5vw, 96px);
-  width: clamp(210px, 18vw, 320px);
-  animation-delay: -2s;
-}
-
-.loader-sticker-mascot img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
 .loader-sticker-tiny-tiger {
-  top: 16%;
-  right: clamp(26px, 5vw, 96px);
-  width: clamp(126px, 10vw, 178px);
+  top: 18%;
+  left: clamp(26px, 7vw, 132px);
+  width: clamp(145px, 12vw, 205px);
   animation-delay: -5s;
 }
 
@@ -953,16 +940,10 @@
     display: none;
   }
 
-  .loader-sticker-mascot {
-    top: 23%;
-    left: 8px;
-    width: 110px;
-  }
-
   .loader-sticker-tiny-tiger {
-    top: 31%;
-    right: 8px;
-    width: 76px;
+    top: 23%;
+    left: 10px;
+    width: 88px;
   }
 
   .loader-sticker-fries {
