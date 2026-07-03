@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { Check, ChevronRight, Plus, Refrigerator, RotateCcw, Search, Sparkles, Trash2, X } from 'lucide-react'
+import { Check, Plus, Refrigerator, RotateCcw, Search, Sparkles, Trash2, X } from 'lucide-react'
 import type { CSSProperties, DragEvent, KeyboardEvent, PointerEvent } from 'react'
 import { useMemo, useRef, useState } from 'react'
 import { pixelIngredients, type PixelIngredient } from '@/data/pixelIngredients'
@@ -274,18 +274,6 @@ const pantryDrawerViews = pantryDrawers.map((drawer) => ({
   items: kitchenIngredients.filter(drawer.match),
 }))
 
-const atlasGroups = Array.from(
-  kitchenIngredients.reduce((map, ingredient) => {
-    const group = map.get(ingredient.category)
-    if (group) {
-      group.push(ingredient)
-    } else {
-      map.set(ingredient.category, [ingredient])
-    }
-    return map
-  }, new Map<string, KitchenIngredient[]>()),
-).map(([category, items]) => ({ category, items }))
-
 function groupIngredients(items: KitchenIngredient[]) {
   const grouped = new Map<string, KitchenIngredient[]>()
   items.forEach((ingredient) => {
@@ -461,14 +449,6 @@ export default function BurgerKitchen() {
   const visualLayers = useMemo(() => getVisualLayers(selected), [selected])
   const previewTitle = useMemo(() => getPreviewTitle(selectedIngredients), [selectedIngredients])
   const activeDrawerSelectedCount = activeDrawer.items.filter((ingredient) => selected.has(ingredient.id)).length
-  const kindCounts = useMemo(
-    () =>
-      selectedIngredients.reduce((map, ingredient) => {
-        map.set(ingredient.kind, (map.get(ingredient.kind) ?? 0) + 1)
-        return map
-      }, new Map<LayerKind, number>()),
-    [selectedIngredients],
-  )
 
   function flashIngredient(id: string) {
     setRecentlyTouchedId(id)
@@ -504,15 +484,6 @@ export default function BurgerKitchen() {
       return next
     })
     flashIngredient(ingredient.id)
-  }
-
-  function addActiveDrawerIngredients() {
-    setSelected((current) => {
-      const next = new Set(current)
-      activeDrawer.items.forEach((ingredient) => next.add(ingredient.id))
-      return next
-    })
-    if (activeDrawer.items[0]) flashIngredient(activeDrawer.items[0].id)
   }
 
   function clearBasket() {
@@ -665,7 +636,7 @@ export default function BurgerKitchen() {
     if (event.key === 'Escape') closeSearch()
   }
 
-  function renderIngredientCard(ingredient: KitchenIngredient, mode: 'drawer' | 'search') {
+  function renderIngredientCard(ingredient: KitchenIngredient, mode: 'dock' | 'search') {
     const active = selected.has(ingredient.id)
     const touched = recentlyTouchedId === ingredient.id
 
@@ -697,139 +668,34 @@ export default function BurgerKitchen() {
   }
 
   return (
-    <section className="kitchen kitchen-refined kitchen-drawer-mode" id="basket">
-      <div className="ingredient-panel fridge-panel">
-        <div className="panel-heading refined-heading">
-          <div>
-            <p className="eyebrow">BUILD YOUR BURGER</p>
-            <h2>冰箱抽屉</h2>
-          </div>
-          <div className="panel-title-actions">
-            <button type="button" onClick={() => applyPreset(initialSelectedIds)}>
-              <RotateCcw aria-hidden="true" size={17} strokeWidth={3} />
-              默认
-            </button>
-            <button type="button" onClick={openSearch}>
-              <Search aria-hidden="true" size={17} strokeWidth={3} />
-              搜索
-            </button>
-          </div>
+    <section className="burger-workbench" id="basket">
+      <header className="workbench-heading">
+        <div>
+          <p className="workbench-kicker"><span aria-hidden="true" /> OPEN KITCHEN</p>
+          <h1>今天叠什么？</h1>
         </div>
+        <div className="workbench-heading-actions">
+          <button type="button" onClick={() => applyPreset(initialSelectedIds)}>
+            <RotateCcw aria-hidden="true" size={18} strokeWidth={3} />
+            重新开一单
+          </button>
+          <button className="is-primary" type="button" onClick={openSearch}>
+            <Search aria-hidden="true" size={18} strokeWidth={3} />
+            找食材
+          </button>
+        </div>
+      </header>
 
-        <section className="prep-tray" aria-label="当前备料盘">
-          <div className="prep-tray-head">
+      <div className="workbench-main">
+        <section className="burger-station" aria-labelledby="burger-station-title">
+          <div className="station-title">
             <div>
-              <p>PREP TRAY</p>
-              <h3>备料盘</h3>
+              <p>YOUR BUILD</p>
+              <h2 id="burger-station-title">{previewTitle}</h2>
             </div>
-            <div className="prep-tray-actions">
-              <span>{selectedIngredients.length} / {kitchenIngredients.length}</span>
-              <button type="button" onClick={clearBasket}>
-                <Trash2 aria-hidden="true" size={16} strokeWidth={3} />
-                清空
-              </button>
-            </div>
-          </div>
-          <div className="prep-tray-strip">
-            {selectedIngredients.length === 0 ? (
-              <p className="empty-tray">点击抽屉里的食材加入备料盘，也可以把食材拖到右侧汉堡里。</p>
-            ) : (
-              selectedIngredients.map((ingredient) => (
-                <button
-                  aria-label={`移除 ${ingredient.name}`}
-                  className={`tray-item ${recentlyTouchedId === ingredient.id ? 'is-touched' : ''}`}
-                  draggable
-                  key={ingredient.id}
-                  onClick={() => toggleIngredient(ingredient)}
-                  onDragEnd={finishIngredientDrag}
-                  onDragStart={(event) => startIngredientDrag(event, ingredient)}
-                  style={{ '--chip-color': ingredient.color } as CSSProperties}
-                  type="button"
-                >
-                  <Image alt="" aria-hidden="true" height={44} src={ingredient.image} unoptimized width={58} />
-                  <span>{ingredient.name}</span>
-                  <X aria-hidden="true" size={14} strokeWidth={3.2} />
-                </button>
-              ))
-            )}
-          </div>
-        </section>
-
-        <div className="fridge-workspace">
-          <div className="fridge-drawers" aria-label="冰箱抽屉" role="tablist">
-            {pantryDrawerViews.map((drawer) => {
-              const active = drawer.id === activeDrawer.id
-              const selectedCount = drawer.items.filter((ingredient) => selected.has(ingredient.id)).length
-
-              return (
-                <button
-                  aria-controls={`drawer-panel-${drawer.id}`}
-                  aria-selected={active}
-                  className={active ? 'fridge-drawer-button is-active' : 'fridge-drawer-button'}
-                  id={`drawer-tab-${drawer.id}`}
-                  key={drawer.id}
-                  onClick={() => setActiveDrawerId(drawer.id)}
-                  role="tab"
-                  style={{ '--drawer-color': drawer.color } as CSSProperties}
-                  type="button"
-                >
-                  <span className="drawer-handle" aria-hidden="true">
-                    <Refrigerator size={18} strokeWidth={3} />
-                  </span>
-                  <span className="drawer-copy">
-                    <strong>{drawer.name}</strong>
-                    <small>{drawer.summary}</small>
-                  </span>
-                  <span className="drawer-count">{selectedCount}/{drawer.items.length}</span>
-                  <ChevronRight className="drawer-arrow" aria-hidden="true" size={16} strokeWidth={3} />
-                </button>
-              )
-            })}
+            <span>{visualLayers.length} LAYERS</span>
           </div>
 
-          <div
-            aria-labelledby={`drawer-tab-${activeDrawer.id}`}
-            className="drawer-card"
-            id={`drawer-panel-${activeDrawer.id}`}
-            key={activeDrawer.id}
-            role="tabpanel"
-            style={{ '--drawer-color': activeDrawer.color } as CSSProperties}
-          >
-            <div className="drawer-card-head">
-              <div>
-                <p>{activeDrawer.summary}</p>
-                <h3>{activeDrawer.name}</h3>
-                <span>{activeDrawer.hint}</span>
-              </div>
-              <div className="drawer-card-actions">
-                <button type="button" onClick={addActiveDrawerIngredients}>
-                  <Plus aria-hidden="true" size={16} strokeWidth={3} />
-                  加入当前抽屉
-                </button>
-                <button type="button" onClick={openSearch}>
-                  <Search aria-hidden="true" size={16} strokeWidth={3} />
-                  全局搜索
-                </button>
-              </div>
-            </div>
-
-            <div className="drawer-stats-row">
-              <span>本抽屉 {activeDrawer.items.length} 种</span>
-              <span>已备好 {activeDrawerSelectedCount} 种</span>
-              <span>可点击或拖拽</span>
-            </div>
-
-            <div className="drawer-shelf">
-              {activeDrawer.items.map((ingredient) => renderIngredientCard(ingredient, 'drawer'))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <aside className="burger-preview" aria-label="当前汉堡预览">
-        <div className="preview-card refined-preview-card">
-          <p className="eyebrow">FRESHLY BUILT</p>
-          <h2>{previewTitle}</h2>
           <div
             className={`${visualLayers.length > 42 ? 'dish-stage crowded-stage' : 'dish-stage'} ${isDishDropHot ? 'is-drop-hot' : ''} ${isDishPulsing ? 'is-drop-pulse' : ''}`}
             onDragLeave={handleDishDragLeave}
@@ -837,17 +703,18 @@ export default function BurgerKitchen() {
             onDrop={handleDishDrop}
           >
             <div className="stage-toolbar">
-              <span>{visualLayers.length} 层</span>
-              <button type="button" onClick={resetLayerLayout}>
-                恢复整齐
+              <span>BUILD No. {String(selectedIngredients.length).padStart(2, '0')}</span>
+              <button aria-label="恢复整齐" title="恢复整齐" type="button" onClick={resetLayerLayout}>
+                <RotateCcw aria-hidden="true" size={18} strokeWidth={3} />
               </button>
             </div>
-            <div className="drop-cue" aria-hidden="true">
-              松手加入汉堡
-            </div>
-            <div className="plate-glow" />
+            <div className="drop-cue" aria-hidden="true">放上去</div>
+            <div className="plate-glow" aria-hidden="true" />
             {visualLayers.length === 0 ? (
-              <p className="empty-stack">先放入食材。</p>
+              <div className="empty-stack">
+                <strong>空盘待命</strong>
+                <span>OPEN FOR ORDERS</span>
+              </div>
             ) : (
               <div className="crafted-burger" aria-label="可拖动食材的汉堡工作区">
                 {visualLayers.map((layer, index) => {
@@ -900,84 +767,126 @@ export default function BurgerKitchen() {
               </div>
             )}
           </div>
-          <div className="preview-meta">
-            <p>
-              已放入 <strong>{selectedIngredients.length}</strong> 种食材，当前 <strong>{visualLayers.length}</strong> 层都可以拖动。
-            </p>
-            <div className="selected-mini-list">
-              {selectedIngredients.slice(0, 16).map((ingredient) => (
-                <span key={ingredient.id}>{ingredient.name}</span>
-              ))}
-              {selectedIngredients.length > 16 ? <span>+{selectedIngredients.length - 16}</span> : null}
-            </div>
-          </div>
-        </div>
-      </aside>
 
-      <div className="recipes build-summary" id="recipes">
-        <div className="panel-heading refined-heading">
-          <div>
-            <p className="eyebrow">QUICK BUILDS</p>
-            <h2>快捷搭配</h2>
-          </div>
-          <span>{selectedIngredients.length} / {kitchenIngredients.length}</span>
-        </div>
-
-        <div className="preset-row" aria-label="快捷搭配">
-          {presets.map((preset) => (
-            <button key={preset.id} onClick={() => applyPreset(preset.ids)} type="button">
-              <Sparkles aria-hidden="true" size={16} strokeWidth={3} />
-              {preset.name}
+          <footer className="station-footer">
+            <span><strong>{selectedIngredients.length}</strong> 种食材已上台</span>
+            <button type="button" onClick={resetLayerLayout}>
+              <RotateCcw aria-hidden="true" size={16} strokeWidth={3} />
+              对齐汉堡
             </button>
-          ))}
-        </div>
+          </footer>
+        </section>
 
-        <div className="kind-summary-grid">
-          {(Object.keys(kindLabels) as LayerKind[]).map((kind) => (
-            <div className="kind-summary-card" key={kind} style={{ '--chip-color': kindColors[kind] } as CSSProperties}>
-              <span>{kindLabels[kind]}</span>
-              <strong>{kindCounts.get(kind) ?? 0}</strong>
+        <aside className="order-ticket" aria-label="本单食材">
+          <header className="ticket-heading">
+            <div>
+              <p>ORDER TICKET</p>
+              <h2>本单</h2>
             </div>
-          ))}
-        </div>
-      </div>
+            <strong>{String(selectedIngredients.length).padStart(2, '0')}</strong>
+          </header>
 
-      <div className="ingredient-atlas" id="atlas">
-        <div className="panel-heading refined-heading">
-          <div>
-            <p className="eyebrow">PIXEL PANTRY</p>
-            <h2>汉堡食材图鉴</h2>
+          <div className="ticket-rule" aria-hidden="true" />
+
+          <div className="ticket-items">
+            {selectedIngredients.length === 0 ? (
+              <p className="ticket-empty">NO ITEMS YET</p>
+            ) : (
+              selectedIngredients.map((ingredient, index) => (
+                <button
+                  aria-label={`移除 ${ingredient.name}`}
+                  className={recentlyTouchedId === ingredient.id ? 'ticket-item is-touched' : 'ticket-item'}
+                  key={ingredient.id}
+                  onClick={() => toggleIngredient(ingredient)}
+                  type="button"
+                >
+                  <span className="ticket-index">{String(index + 1).padStart(2, '0')}</span>
+                  <Image alt="" aria-hidden="true" height={42} src={ingredient.image} unoptimized width={54} />
+                  <span className="ticket-item-copy">
+                    <strong>{ingredient.name}</strong>
+                    <small>{kindLabels[ingredient.kind]}</small>
+                  </span>
+                  <X aria-hidden="true" size={15} strokeWidth={3} />
+                </button>
+              ))
+            )}
           </div>
-          <span>{pixelIngredients.length} 枚素材</span>
-        </div>
 
-        <p className="atlas-intro">
-          按食材贴图表.xlsx 的行顺序导入，名称与图片逐行对应。每个素材都保留透明背景，可用于汉堡组装、食材图鉴和创意配方。
-        </p>
-
-        {atlasGroups.map((group) => (
-          <section className="atlas-group" key={group.category}>
-            <div className="atlas-group-heading">
-              <h3>{group.category}</h3>
-              <span>{group.items.length} 枚</span>
-            </div>
-            <div className="atlas-grid">
-              {group.items.map((item) => (
-                <article className="atlas-card" key={`${item.id}-${item.sheet}-${item.index}`}>
-                  <div className="atlas-art">
-                    <Image alt={item.name} height={120} src={item.image} unoptimized width={150} />
-                  </div>
-                  <div>
-                    <h4>{item.name}</h4>
-                    <p>{item.description}</p>
-                    <span>#{item.index}</span>
-                  </div>
-                </article>
+          <footer className="ticket-footer">
+            <p>HOUSE PICKS</p>
+            <div className="ticket-presets">
+              {presets.map((preset) => (
+                <button key={preset.id} onClick={() => applyPreset(preset.ids)} type="button">
+                  <Sparkles aria-hidden="true" size={14} strokeWidth={3} />
+                  {preset.name}
+                </button>
               ))}
             </div>
-          </section>
-        ))}
+            <button className="ticket-clear" disabled={selectedIngredients.length === 0} type="button" onClick={clearBasket}>
+              <Trash2 aria-hidden="true" size={16} strokeWidth={3} />
+              清空本单
+            </button>
+          </footer>
+        </aside>
       </div>
+
+      <section className="ingredient-dock" aria-labelledby="ingredient-dock-title">
+        <div className="dock-heading">
+          <div className="dock-title">
+            <span className="dock-fridge-icon" aria-hidden="true"><Refrigerator size={20} strokeWidth={3} /></span>
+            <div>
+              <p>FRIDGE DRAWERS</p>
+              <h2 id="ingredient-dock-title">{activeDrawer.name}</h2>
+            </div>
+          </div>
+          <div className="dock-meta">
+            <span>{activeDrawerSelectedCount} / {activeDrawer.items.length}</span>
+            <button aria-label="搜索全部食材" title="搜索全部食材" type="button" onClick={openSearch}>
+              <Search aria-hidden="true" size={18} strokeWidth={3} />
+            </button>
+          </div>
+        </div>
+
+        <div className="dock-tabs" aria-label="冰箱分类" role="tablist">
+          {pantryDrawerViews.map((drawer) => {
+            const active = drawer.id === activeDrawer.id
+            const selectedCount = drawer.items.filter((ingredient) => selected.has(ingredient.id)).length
+
+            return (
+              <button
+                aria-controls={`dock-panel-${drawer.id}`}
+                aria-selected={active}
+                className={active ? 'is-active' : ''}
+                id={`dock-tab-${drawer.id}`}
+                key={drawer.id}
+                onClick={() => setActiveDrawerId(drawer.id)}
+                role="tab"
+                style={{ '--drawer-color': drawer.color } as CSSProperties}
+                type="button"
+              >
+                <strong>{drawer.shortName}</strong>
+                <span>{selectedCount}/{drawer.items.length}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        <div
+          aria-labelledby={`dock-tab-${activeDrawer.id}`}
+          className="dock-panel"
+          id={`dock-panel-${activeDrawer.id}`}
+          key={activeDrawer.id}
+          role="tabpanel"
+        >
+          <div className="dock-panel-copy">
+            <strong>{activeDrawer.summary}</strong>
+            <span>{activeDrawer.items.length} 种可选</span>
+          </div>
+          <div className="dock-shelf">
+            {activeDrawer.items.map((ingredient) => renderIngredientCard(ingredient, 'dock'))}
+          </div>
+        </div>
+      </section>
 
       {isSearchOpen ? (
         <div
@@ -1014,7 +923,7 @@ export default function BurgerKitchen() {
 
             <div className="search-results-meta">
               <span>找到 {searchResults.length} 种</span>
-              <span>点击加入，再点取消</span>
+              <span>本单 {selectedIngredients.length} 种</span>
             </div>
 
             <div className="search-results">

@@ -613,6 +613,7 @@
   min-height: 82px;
   margin-top: 10px;
   place-items: start center;
+  pointer-events: none;
 }
 
 .site-loader-progress {
