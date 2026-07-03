@@ -1,0 +1,4 @@
+interface:
+  display_name: "Responsive QA"
+  short_description: "Verify findedd.cn UI at mobile tablet and desktop sizes"
+  default_prompt: "Use $responsive-qa to check this UI across the project viewports."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Burger Data Guardian"
+  short_description: "Validate ingredient references and coherent burger flavor logic"
+  default_prompt: "Use $burger-data-guardian to review this burger or ingredient data change."

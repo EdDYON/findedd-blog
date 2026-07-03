@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pixel UI Polisher"
+  short_description: "Polish one findedd.cn component without changing its logic"
+  default_prompt: "Use $pixel-ui-polisher to improve this single pixel food UI component."

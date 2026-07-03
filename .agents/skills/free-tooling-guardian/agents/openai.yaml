@@ -1,0 +1,4 @@
+interface:
+  display_name: "Free Tooling Guardian"
+  short_description: "Keep findedd.cn tooling free local and maintainable"
+  default_prompt: "Use $free-tooling-guardian before adding or recommending project tooling."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Findedd Visual Director"
+  short_description: "Guard the pixel burger visual language of findedd.cn"
+  default_prompt: "Use $findedd-visual-director to design or review this findedd.cn interface."

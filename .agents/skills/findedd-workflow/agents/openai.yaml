@@ -1,0 +1,4 @@
+interface:
+  display_name: "Findedd Workflow"
+  short_description: "Route findedd.cn work through a safe project workflow"
+  default_prompt: "Use $findedd-workflow to handle this findedd.cn task from audit through verification."
