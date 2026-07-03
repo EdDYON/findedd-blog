@@ -1,7 +1,8 @@
 'use client'
 
 import Image from 'next/image'
-import type { CSSProperties, KeyboardEvent, PointerEvent } from 'react'
+import { Check, ChevronRight, Plus, Refrigerator, RotateCcw, Search, Sparkles, Trash2, X } from 'lucide-react'
+import type { CSSProperties, DragEvent, KeyboardEvent, PointerEvent } from 'react'
 import { useMemo, useRef, useState } from 'react'
 import { pixelIngredients, type PixelIngredient } from '@/data/pixelIngredients'
 
@@ -18,9 +19,21 @@ type LayerKind =
   | 'side'
   | 'other'
 
+type DrawerId = 'bread' | 'protein' | 'cheese' | 'vegetable' | 'sauce' | 'side' | 'all'
+
 type KitchenIngredient = PixelIngredient & {
   kind: LayerKind
   color: string
+}
+
+type PantryDrawer = {
+  id: DrawerId
+  name: string
+  shortName: string
+  summary: string
+  hint: string
+  color: string
+  match: (ingredient: KitchenIngredient) => boolean
 }
 
 type LayerOffset = {
@@ -129,18 +142,6 @@ const kindColors: Record<LayerKind, string> = {
   other: '#c86a62',
 }
 
-const categoryHints: Record<string, string> = {
-  肉类与肉饼: '肉饼、鸡排、鱼排和其他主体。',
-  芝士与鸡蛋: '芝士、煎蛋和柔软夹层。',
-  蔬菜与香草: '清爽叶菜、香草和鲜蔬。',
-  切片配料: '番茄、酸黄瓜、洋葱等切片。',
-  配菜与小食: '脆口小食，也能直接叠进去。',
-  酱料: '汉堡的酸甜咸辣。',
-  调味料与酱料: '碎料、调味和抹酱。',
-  面包与基础食材: '面包顶、面包底和底层基础。',
-  汉堡配料综合: '适合直接组装的综合素材。',
-}
-
 const layerBand: Record<LayerKind, Omit<LayerLayout, 'x' | 'y' | 'z' | 'rotate' | 'opacity'>> = {
   bunTop: { width: 88, height: 118, scaleX: 1, scaleY: 1 },
   bunBottom: { width: 88, height: 92, scaleX: 1, scaleY: 1 },
@@ -172,28 +173,19 @@ const kindStackOrder: Record<LayerKind, number> = {
 function getLayerKind(ingredient: PixelIngredient): LayerKind {
   const { category, name } = ingredient
 
-  if (name.includes('面包顶') || name.includes('汉堡胚顶')) return 'bunTop'
-  if (name.includes('面包底') || name.includes('汉堡胚底')) return 'bunBottom'
+  if (name.includes('面包顶') || name.includes('汉堡胚顶') || name.includes('包顶')) return 'bunTop'
+  if (name.includes('面包底') || name.includes('汉堡胚底') || name.includes('包底')) return 'bunBottom'
 
-  const breadLike = /面包|汉堡胚|吐司|贝果|法棍|热狗|可颂|华夫|皮塔|薄饼/.test(name)
-  if (breadLike && !/肉饼|蛋饼|煎饼/.test(name)) return 'base'
+  const breadLike = /面包|汉堡胚|吐司|贝果|法棍|热狗|可颂|华夫|皮塔|薄饼|松饼|馒头|面饼/.test(name)
+  if (breadLike && !/肉饼|鸡排|鱼排|蔬菜饼|煎饼/.test(name)) return 'base'
 
+  if (/芝士|奶酪|起司|切达|马苏里拉|帕玛森|普罗沃洛内|瑞士|蓝纹|胡椒杰克/.test(name)) return 'cheese'
+  if (/酱料/.test(category) || /酱|芥末|蛋黄酱|番茄酱|牧场|千岛|莎莎|青酱|黄油|蜂蜜|辣酱|塔塔/.test(name)) return 'sauce'
+  if (/肉类|肉饼/.test(category) || /牛肉|鸡胸|鸡排|鱼排|虾|蟹|猪肉|羊肉|三文鱼|金枪鱼|火鸡|培根|香肠|素肉|豆饼|蔬菜饼|蘑菇肉饼/.test(name)) return 'protein'
   if (/鸡蛋|煎蛋|荷包蛋|培根|火腿|香肠/.test(name)) return 'extra'
-  if (/芝士|奶酪|起司|切达|马苏里拉|美式芝士|布里|瑞士/.test(name)) return 'cheese'
-
-  if (/酱料/.test(category) || /酱|芥末|蛋黄酱|美乃滋|黄油|沙拉|莎莎|蘸/.test(name)) return 'sauce'
-
-  if (/肉类|肉饼/.test(category) || /牛肉|鸡|鱼|虾|猪|肉饼|肉排|排|鳕鱼|三文鱼|金枪鱼|豆饼|素肉|蘑菇肉饼|豆腐排/.test(name)) {
-    return 'protein'
-  }
-
-  if (/调味/.test(category) || /盐|胡椒|粉|籽|香料|调味|碎|丁|芝麻|葱花|蒜/.test(name)) return 'seasoning'
-
-  if (/蔬菜|香草|切片配料/.test(category) || /生菜|番茄|洋葱|黄瓜|辣椒|蘑菇|菇|牛油果|菠萝|橄榄|胡萝卜|卷心菜|甘蓝|萝卜|芦笋|玉米|香菜|罗勒/.test(name)) {
-    return 'vegetable'
-  }
-
-  if (/配菜|小食/.test(category) || /薯|洋葱圈|脆片|炸|球|块|圈|薯条/.test(name)) return 'side'
+  if (/调味/.test(category) || /盐|黑胡椒|辣椒粉|香料|芝麻|葱花|蒜|洋葱碎|调味/.test(name)) return 'seasoning'
+  if (/蔬菜|香草|切片配料/.test(category) || /生菜|番茄|洋葱|黄瓜|辣椒|蘑菇|牛油果|菠萝|橄榄|菠菜|芝麻菜|胡萝卜|卷心菜|玉米|香菜|酸黄瓜|萝卜/.test(name)) return 'vegetable'
+  if (/配菜|小食/.test(category) || /薯|洋葱圈|脆片|卷心菜沙拉|沙拉|豌豆|玉米粒|炸/.test(name)) return 'side'
 
   return 'other'
 }
@@ -210,6 +202,77 @@ function decorateIngredient(ingredient: PixelIngredient): KitchenIngredient {
 
 const kitchenIngredients = pixelIngredients.map(decorateIngredient)
 const ingredientById = new Map(kitchenIngredients.map((ingredient) => [ingredient.id, ingredient]))
+
+const pantryDrawers: PantryDrawer[] = [
+  {
+    id: 'bread',
+    name: '面包抽屉',
+    shortName: '面包',
+    summary: '面包与基础',
+    hint: '先选上下胚，也可以只放底胚做开放式汉堡。',
+    color: '#e6a35f',
+    match: (ingredient) => ['bunTop', 'bunBottom', 'base'].includes(ingredient.kind) || ingredient.category.includes('面包'),
+  },
+  {
+    id: 'protein',
+    name: '肉类抽屉',
+    shortName: '肉类',
+    summary: '肉饼、鸡排、鱼排',
+    hint: '这里决定汉堡的主体，素肉和蔬菜饼也归在这一层。',
+    color: '#98624a',
+    match: (ingredient) => ingredient.kind === 'protein' || ingredient.category.includes('肉类'),
+  },
+  {
+    id: 'cheese',
+    name: '芝士抽屉',
+    shortName: '芝士',
+    summary: '芝士与鸡蛋',
+    hint: '芝士片、软芝士和鸡蛋都放在这里，适合补一层口感。',
+    color: '#f5be3d',
+    match: (ingredient) => ingredient.kind === 'cheese' || ingredient.category.includes('芝士'),
+  },
+  {
+    id: 'vegetable',
+    name: '蔬菜抽屉',
+    shortName: '蔬菜',
+    summary: '叶菜、切片、香草',
+    hint: '番茄、洋葱、生菜、酸黄瓜和香草都在这里。',
+    color: '#86aa58',
+    match: (ingredient) => ingredient.kind === 'vegetable' || ingredient.category.includes('蔬菜') || ingredient.category.includes('切片'),
+  },
+  {
+    id: 'sauce',
+    name: '酱料抽屉',
+    shortName: '酱料',
+    summary: '酱料与调味',
+    hint: '番茄酱、芥末、BBQ 和各种调味酱都可以直接叠进去。',
+    color: '#d76645',
+    match: (ingredient) => ingredient.kind === 'sauce' || ingredient.kind === 'seasoning' || ingredient.category.includes('酱料') || ingredient.category.includes('调味'),
+  },
+  {
+    id: 'side',
+    name: '小食配料抽屉',
+    shortName: '小食',
+    summary: '配菜、加料、小点',
+    hint: '薯条、洋葱圈、沙拉、培根、菠萝和其他奇妙加料都丢到这里。',
+    color: '#db8050',
+    match: (ingredient) => ingredient.kind === 'side' || ingredient.kind === 'extra' || ingredient.kind === 'other' || ingredient.category.includes('配菜'),
+  },
+  {
+    id: 'all',
+    name: '全部食材 / 搜索',
+    shortName: '全部',
+    summary: '381 种全部可选',
+    hint: '需要精确找东西时可以打开全局搜索，也可以在这里慢慢翻完整冰箱。',
+    color: '#f71918',
+    match: () => true,
+  },
+]
+
+const pantryDrawerViews = pantryDrawers.map((drawer) => ({
+  ...drawer,
+  items: kitchenIngredients.filter(drawer.match),
+}))
 
 const atlasGroups = Array.from(
   kitchenIngredients.reduce((map, ingredient) => {
@@ -332,7 +395,7 @@ function getVisualLayers(selected: Set<string>): VisualLayer[] {
 
     return {
       ...ingredient,
-      visualKey: `${ingredient.id}-${globalIndex}`,
+      visualKey: ingredient.id,
       layout: getLayerLayout(ingredient, indexInKind, totalsByKind.get(ingredient.kind) ?? 1, globalIndex, selectedIngredients.length),
     }
   })
@@ -355,38 +418,49 @@ function getPreviewTitle(selectedItems: KitchenIngredient[]) {
 
 export default function BurgerKitchen() {
   const [selected, setSelected] = useState(() => new Set(initialSelectedIds))
-  const [activeCategory, setActiveCategory] = useState('all')
+  const [activeDrawerId, setActiveDrawerId] = useState<DrawerId>('bread')
   const [query, setQuery] = useState('')
-  const [showSelectedOnly, setShowSelectedOnly] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [recentlyTouchedId, setRecentlyTouchedId] = useState<string | null>(null)
+  const [draggedIngredientId, setDraggedIngredientId] = useState<string | null>(null)
+  const [isDishDropHot, setIsDishDropHot] = useState(false)
+  const [isDishPulsing, setIsDishPulsing] = useState(false)
   const [layerOffsets, setLayerOffsets] = useState<Record<string, LayerOffset>>({})
   const [layerDepths, setLayerDepths] = useState<Record<string, number>>({})
   const [dragState, setDragState] = useState<DragState | null>(null)
   const depthCounter = useRef(500)
 
-  const selectedIngredients = useMemo(
-    () => kitchenIngredients.filter((ingredient) => selected.has(ingredient.id)),
-    [selected],
+  const selectedIngredients = useMemo(() => {
+    const items: KitchenIngredient[] = []
+    selected.forEach((id) => {
+      const ingredient = ingredientById.get(id)
+      if (ingredient) items.push(ingredient)
+    })
+    return items
+  }, [selected])
+
+  const activeDrawer = useMemo(
+    () => pantryDrawerViews.find((drawer) => drawer.id === activeDrawerId) ?? pantryDrawerViews[0],
+    [activeDrawerId],
   )
 
-  const visibleIngredients = useMemo(() => {
+  const searchResults = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase('zh-CN')
 
-    return kitchenIngredients.filter((ingredient) => {
-      const inCategory = activeCategory === 'all' || ingredient.category === activeCategory
-      const inSearch =
-        needle.length === 0 ||
+    if (needle.length === 0) return kitchenIngredients
+
+    return kitchenIngredients.filter(
+      (ingredient) =>
         ingredient.name.toLocaleLowerCase('zh-CN').includes(needle) ||
         ingredient.category.toLocaleLowerCase('zh-CN').includes(needle) ||
-        kindLabels[ingredient.kind].toLocaleLowerCase('zh-CN').includes(needle)
-      const inSelection = !showSelectedOnly || selected.has(ingredient.id)
+        kindLabels[ingredient.kind].toLocaleLowerCase('zh-CN').includes(needle),
+    )
+  }, [query])
 
-      return inCategory && inSearch && inSelection
-    })
-  }, [activeCategory, query, selected, showSelectedOnly])
-
-  const visibleGroups = useMemo(() => groupIngredients(visibleIngredients), [visibleIngredients])
+  const searchGroups = useMemo(() => groupIngredients(searchResults), [searchResults])
   const visualLayers = useMemo(() => getVisualLayers(selected), [selected])
   const previewTitle = useMemo(() => getPreviewTitle(selectedIngredients), [selectedIngredients])
+  const activeDrawerSelectedCount = activeDrawer.items.filter((ingredient) => selected.has(ingredient.id)).length
   const kindCounts = useMemo(
     () =>
       selectedIngredients.reduce((map, ingredient) => {
@@ -395,6 +469,19 @@ export default function BurgerKitchen() {
       }, new Map<LayerKind, number>()),
     [selectedIngredients],
   )
+
+  function flashIngredient(id: string) {
+    setRecentlyTouchedId(id)
+    window.setTimeout(() => {
+      setRecentlyTouchedId((current) => (current === id ? null : current))
+    }, 520)
+  }
+
+  function flashDish() {
+    setIsDishPulsing(false)
+    window.requestAnimationFrame(() => setIsDishPulsing(true))
+    window.setTimeout(() => setIsDishPulsing(false), 560)
+  }
 
   function toggleIngredient(ingredient: KitchenIngredient) {
     setSelected((current) => {
@@ -406,14 +493,26 @@ export default function BurgerKitchen() {
       }
       return next
     })
+    flashIngredient(ingredient.id)
   }
 
-  function addVisibleIngredients() {
+  function addIngredient(ingredient: KitchenIngredient) {
     setSelected((current) => {
+      if (current.has(ingredient.id)) return current
       const next = new Set(current)
-      visibleIngredients.forEach((ingredient) => next.add(ingredient.id))
+      next.add(ingredient.id)
       return next
     })
+    flashIngredient(ingredient.id)
+  }
+
+  function addActiveDrawerIngredients() {
+    setSelected((current) => {
+      const next = new Set(current)
+      activeDrawer.items.forEach((ingredient) => next.add(ingredient.id))
+      return next
+    })
+    if (activeDrawer.items[0]) flashIngredient(activeDrawer.items[0].id)
   }
 
   function clearBasket() {
@@ -431,6 +530,51 @@ export default function BurgerKitchen() {
     setLayerDepths({})
     setDragState(null)
     depthCounter.current = 500
+  }
+
+  function openSearch() {
+    setIsSearchOpen(true)
+  }
+
+  function closeSearch() {
+    setIsSearchOpen(false)
+  }
+
+  function startIngredientDrag(event: DragEvent<HTMLElement>, ingredient: KitchenIngredient) {
+    event.dataTransfer.effectAllowed = 'copy'
+    event.dataTransfer.setData('text/plain', ingredient.id)
+    setDraggedIngredientId(ingredient.id)
+  }
+
+  function finishIngredientDrag() {
+    setDraggedIngredientId(null)
+    setIsDishDropHot(false)
+  }
+
+  function handleDishDragOver(event: DragEvent<HTMLDivElement>) {
+    if (!draggedIngredientId) return
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'copy'
+    setIsDishDropHot(true)
+  }
+
+  function handleDishDragLeave(event: DragEvent<HTMLDivElement>) {
+    const nextTarget = event.relatedTarget
+    if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
+      setIsDishDropHot(false)
+    }
+  }
+
+  function handleDishDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault()
+    const ingredientId = event.dataTransfer.getData('text/plain')
+    const ingredient = ingredientById.get(ingredientId)
+    if (ingredient) {
+      addIngredient(ingredient)
+      flashDish()
+    }
+    setDraggedIngredientId(null)
+    setIsDishDropHot(false)
   }
 
   function bringLayerToFront(key: string) {
@@ -517,105 +661,168 @@ export default function BurgerKitchen() {
     })
   }
 
+  function handleSearchKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === 'Escape') closeSearch()
+  }
+
+  function renderIngredientCard(ingredient: KitchenIngredient, mode: 'drawer' | 'search') {
+    const active = selected.has(ingredient.id)
+    const touched = recentlyTouchedId === ingredient.id
+
+    return (
+      <button
+        aria-pressed={active}
+        className={`ingredient-card ingredient-card-${mode} ${active ? 'is-selected' : ''} ${touched ? 'is-touched' : ''}`}
+        draggable
+        key={`${mode}-${ingredient.id}`}
+        onClick={() => toggleIngredient(ingredient)}
+        onDragEnd={finishIngredientDrag}
+        onDragStart={(event) => startIngredientDrag(event, ingredient)}
+        style={{ '--chip-color': ingredient.color } as CSSProperties}
+        title={`${ingredient.name} / ${kindLabels[ingredient.kind]}`}
+        type="button"
+      >
+        <span className="ingredient-card-art">
+          <Image alt="" aria-hidden="true" height={58} src={ingredient.image} unoptimized width={78} />
+        </span>
+        <span className="ingredient-card-copy">
+          <strong>{ingredient.name}</strong>
+          <small>{kindLabels[ingredient.kind]}</small>
+        </span>
+        <span className="ingredient-card-state" aria-hidden="true">
+          {active ? <Check size={16} strokeWidth={3.2} /> : <Plus size={16} strokeWidth={3.2} />}
+        </span>
+      </button>
+    )
+  }
+
   return (
-    <section className="kitchen kitchen-refined" id="basket">
-      <div className="ingredient-panel full-pantry-panel">
+    <section className="kitchen kitchen-refined kitchen-drawer-mode" id="basket">
+      <div className="ingredient-panel fridge-panel">
         <div className="panel-heading refined-heading">
           <div>
             <p className="eyebrow">BUILD YOUR BURGER</p>
-            <h2>全部食材</h2>
+            <h2>冰箱抽屉</h2>
           </div>
-          <button type="button" onClick={() => applyPreset(initialSelectedIds)}>
-            默认
-          </button>
-        </div>
-
-        <div className="pantry-toolbar">
-          <input
-            aria-label="搜索食材"
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="搜索食材"
-            type="search"
-            value={query}
-          />
-          <div className="pantry-actions">
-            <button aria-pressed={showSelectedOnly} className={showSelectedOnly ? 'active' : ''} onClick={() => setShowSelectedOnly((current) => !current)} type="button">
-              已选
+          <div className="panel-title-actions">
+            <button type="button" onClick={() => applyPreset(initialSelectedIds)}>
+              <RotateCcw aria-hidden="true" size={17} strokeWidth={3} />
+              默认
             </button>
-            <button onClick={addVisibleIngredients} type="button">
-              加入当前
-            </button>
-            <button onClick={clearBasket} type="button">
-              清空
+            <button type="button" onClick={openSearch}>
+              <Search aria-hidden="true" size={17} strokeWidth={3} />
+              搜索
             </button>
           </div>
         </div>
 
-        <div className="category-filter" aria-label="食材分类">
-          <button aria-pressed={activeCategory === 'all'} className={activeCategory === 'all' ? 'active' : ''} onClick={() => setActiveCategory('all')} type="button">
-            全部
-            <span>{kitchenIngredients.length}</span>
-          </button>
-          {atlasGroups.map((group) => (
-            <button
-              aria-pressed={activeCategory === group.category}
-              className={activeCategory === group.category ? 'active' : ''}
-              key={group.category}
-              onClick={() => setActiveCategory(group.category)}
-              type="button"
-            >
-              {group.category}
-              <span>{group.items.length}</span>
-            </button>
-          ))}
-        </div>
+        <section className="prep-tray" aria-label="当前备料盘">
+          <div className="prep-tray-head">
+            <div>
+              <p>PREP TRAY</p>
+              <h3>备料盘</h3>
+            </div>
+            <div className="prep-tray-actions">
+              <span>{selectedIngredients.length} / {kitchenIngredients.length}</span>
+              <button type="button" onClick={clearBasket}>
+                <Trash2 aria-hidden="true" size={16} strokeWidth={3} />
+                清空
+              </button>
+            </div>
+          </div>
+          <div className="prep-tray-strip">
+            {selectedIngredients.length === 0 ? (
+              <p className="empty-tray">点击抽屉里的食材加入备料盘，也可以把食材拖到右侧汉堡里。</p>
+            ) : (
+              selectedIngredients.map((ingredient) => (
+                <button
+                  aria-label={`移除 ${ingredient.name}`}
+                  className={`tray-item ${recentlyTouchedId === ingredient.id ? 'is-touched' : ''}`}
+                  draggable
+                  key={ingredient.id}
+                  onClick={() => toggleIngredient(ingredient)}
+                  onDragEnd={finishIngredientDrag}
+                  onDragStart={(event) => startIngredientDrag(event, ingredient)}
+                  style={{ '--chip-color': ingredient.color } as CSSProperties}
+                  type="button"
+                >
+                  <Image alt="" aria-hidden="true" height={44} src={ingredient.image} unoptimized width={58} />
+                  <span>{ingredient.name}</span>
+                  <X aria-hidden="true" size={14} strokeWidth={3.2} />
+                </button>
+              ))
+            )}
+          </div>
+        </section>
 
-        <div className="pantry-count-row">
-          <span>显示 {visibleIngredients.length} 种</span>
-          <span>已放入 {selectedIngredients.length} 种</span>
-        </div>
+        <div className="fridge-workspace">
+          <div className="fridge-drawers" aria-label="冰箱抽屉" role="tablist">
+            {pantryDrawerViews.map((drawer) => {
+              const active = drawer.id === activeDrawer.id
+              const selectedCount = drawer.items.filter((ingredient) => selected.has(ingredient.id)).length
 
-        <div className="all-ingredient-groups">
-          {visibleGroups.length === 0 ? (
-            <p className="empty-stack empty-pantry">没有找到这个食材。</p>
-          ) : (
-            visibleGroups.map((group) => (
-              <section className="ingredient-group ingredient-group-full" key={group.category}>
-                <div className="ingredient-group-heading">
-                  <h3>{group.category}</h3>
-                  <p>{categoryHints[group.category] ?? '来自食材贴图表的可用素材。'}</p>
-                  <span>{group.items.length}</span>
-                </div>
-                <div className="ingredient-chips all-ingredient-grid">
-                  {group.items.map((ingredient) => {
-                    const active = selected.has(ingredient.id)
-                    return (
-                      <button
-                        aria-pressed={active}
-                        className={active ? 'ingredient-chip active' : 'ingredient-chip'}
-                        key={ingredient.id}
-                        onClick={() => toggleIngredient(ingredient)}
-                        style={{ '--chip-color': ingredient.color } as CSSProperties}
-                        title={`${ingredient.name} / ${kindLabels[ingredient.kind]}`}
-                        type="button"
-                      >
-                        <Image
-                          alt=""
-                          aria-hidden="true"
-                          className="ingredient-chip-art"
-                          height={52}
-                          src={ingredient.image}
-                          unoptimized
-                          width={72}
-                        />
-                        <span className="ingredient-chip-label">{ingredient.name}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </section>
-            ))
-          )}
+              return (
+                <button
+                  aria-controls={`drawer-panel-${drawer.id}`}
+                  aria-selected={active}
+                  className={active ? 'fridge-drawer-button is-active' : 'fridge-drawer-button'}
+                  id={`drawer-tab-${drawer.id}`}
+                  key={drawer.id}
+                  onClick={() => setActiveDrawerId(drawer.id)}
+                  role="tab"
+                  style={{ '--drawer-color': drawer.color } as CSSProperties}
+                  type="button"
+                >
+                  <span className="drawer-handle" aria-hidden="true">
+                    <Refrigerator size={18} strokeWidth={3} />
+                  </span>
+                  <span className="drawer-copy">
+                    <strong>{drawer.name}</strong>
+                    <small>{drawer.summary}</small>
+                  </span>
+                  <span className="drawer-count">{selectedCount}/{drawer.items.length}</span>
+                  <ChevronRight className="drawer-arrow" aria-hidden="true" size={16} strokeWidth={3} />
+                </button>
+              )
+            })}
+          </div>
+
+          <div
+            aria-labelledby={`drawer-tab-${activeDrawer.id}`}
+            className="drawer-card"
+            id={`drawer-panel-${activeDrawer.id}`}
+            key={activeDrawer.id}
+            role="tabpanel"
+            style={{ '--drawer-color': activeDrawer.color } as CSSProperties}
+          >
+            <div className="drawer-card-head">
+              <div>
+                <p>{activeDrawer.summary}</p>
+                <h3>{activeDrawer.name}</h3>
+                <span>{activeDrawer.hint}</span>
+              </div>
+              <div className="drawer-card-actions">
+                <button type="button" onClick={addActiveDrawerIngredients}>
+                  <Plus aria-hidden="true" size={16} strokeWidth={3} />
+                  加入当前抽屉
+                </button>
+                <button type="button" onClick={openSearch}>
+                  <Search aria-hidden="true" size={16} strokeWidth={3} />
+                  全局搜索
+                </button>
+              </div>
+            </div>
+
+            <div className="drawer-stats-row">
+              <span>本抽屉 {activeDrawer.items.length} 种</span>
+              <span>已备好 {activeDrawerSelectedCount} 种</span>
+              <span>可点击或拖拽</span>
+            </div>
+
+            <div className="drawer-shelf">
+              {activeDrawer.items.map((ingredient) => renderIngredientCard(ingredient, 'drawer'))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -623,12 +830,20 @@ export default function BurgerKitchen() {
         <div className="preview-card refined-preview-card">
           <p className="eyebrow">FRESHLY BUILT</p>
           <h2>{previewTitle}</h2>
-          <div className={visualLayers.length > 42 ? 'dish-stage crowded-stage' : 'dish-stage'}>
+          <div
+            className={`${visualLayers.length > 42 ? 'dish-stage crowded-stage' : 'dish-stage'} ${isDishDropHot ? 'is-drop-hot' : ''} ${isDishPulsing ? 'is-drop-pulse' : ''}`}
+            onDragLeave={handleDishDragLeave}
+            onDragOver={handleDishDragOver}
+            onDrop={handleDishDrop}
+          >
             <div className="stage-toolbar">
               <span>{visualLayers.length} 层</span>
               <button type="button" onClick={resetLayerLayout}>
                 恢复整齐
               </button>
+            </div>
+            <div className="drop-cue" aria-hidden="true">
+              松手加入汉堡
             </div>
             <div className="plate-glow" />
             {visualLayers.length === 0 ? (
@@ -703,7 +918,7 @@ export default function BurgerKitchen() {
         <div className="panel-heading refined-heading">
           <div>
             <p className="eyebrow">QUICK BUILDS</p>
-            <h2>搭配面板</h2>
+            <h2>快捷搭配</h2>
           </div>
           <span>{selectedIngredients.length} / {kitchenIngredients.length}</span>
         </div>
@@ -711,6 +926,7 @@ export default function BurgerKitchen() {
         <div className="preset-row" aria-label="快捷搭配">
           {presets.map((preset) => (
             <button key={preset.id} onClick={() => applyPreset(preset.ids)} type="button">
+              <Sparkles aria-hidden="true" size={16} strokeWidth={3} />
               {preset.name}
             </button>
           ))}
@@ -762,6 +978,65 @@ export default function BurgerKitchen() {
           </section>
         ))}
       </div>
+
+      {isSearchOpen ? (
+        <div
+          className="pantry-search-overlay"
+          onKeyDown={handleSearchKeyDown}
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeSearch()
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="pantry-search-title"
+        >
+          <div className="pantry-search-modal">
+            <div className="search-modal-head">
+              <div>
+                <p className="eyebrow">GLOBAL SEARCH</p>
+                <h2 id="pantry-search-title">找食材</h2>
+              </div>
+              <button aria-label="关闭搜索" type="button" onClick={closeSearch}>
+                <X aria-hidden="true" size={22} strokeWidth={3} />
+              </button>
+            </div>
+
+            <label className="search-input-wrap">
+              <Search aria-hidden="true" size={19} strokeWidth={3} />
+              <input
+                autoFocus
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="输入食材名、分类或类型"
+                type="search"
+                value={query}
+              />
+            </label>
+
+            <div className="search-results-meta">
+              <span>找到 {searchResults.length} 种</span>
+              <span>点击加入，再点取消</span>
+            </div>
+
+            <div className="search-results">
+              {searchGroups.length === 0 ? (
+                <p className="empty-stack empty-pantry">没有找到这个食材。</p>
+              ) : (
+                searchGroups.map((group) => (
+                  <section className="search-group" key={group.category}>
+                    <div className="search-group-head">
+                      <h3>{group.category}</h3>
+                      <span>{group.items.length}</span>
+                    </div>
+                    <div className="search-grid">
+                      {group.items.map((ingredient) => renderIngredientCard(ingredient, 'search'))}
+                    </div>
+                  </section>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }
