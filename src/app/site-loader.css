@@ -164,53 +164,16 @@
 }
 
 .loader-sticker-mascot {
-  top: 18%;
-  left: clamp(26px, 9vw, 156px);
-  width: min(160px, 12vw);
+  top: 19%;
+  left: clamp(22px, 6vw, 116px);
+  width: clamp(188px, 17vw, 306px);
   animation-delay: -2s;
 }
 
-.loader-sticker-mascot .sticker-hair {
-  fill: #f58a30;
-  stroke: var(--ink);
-  stroke-width: 7;
-  stroke-linejoin: round;
-}
-
-.loader-sticker-mascot .sticker-face {
-  fill: #ffe0b9;
-  stroke: var(--ink);
-  stroke-width: 6;
-}
-
-.loader-sticker-mascot .sticker-bang,
-.loader-sticker-mascot .sticker-eye,
-.loader-sticker-mascot .sticker-mouth {
-  fill: none;
-  stroke: var(--ink);
-  stroke-width: 7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.loader-sticker-mascot .sticker-mini-burger {
-  fill: var(--yellow);
-  stroke: var(--ink);
-  stroke-width: 5;
-}
-
-.loader-sticker-mascot .sticker-mini-lettuce {
-  fill: var(--green);
-  stroke: var(--ink);
-  stroke-width: 4;
-  stroke-linejoin: round;
-}
-
-.loader-sticker-mascot .sticker-jacket {
-  fill: #ffcc3f;
-  stroke: var(--ink);
-  stroke-width: 7;
-  stroke-linejoin: round;
+.loader-sticker-mascot img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .loader-sticker-ticket {
@@ -941,9 +904,9 @@
   }
 
   .loader-sticker-mascot {
-    top: 19%;
-    left: 16px;
-    width: 88px;
+    top: 22%;
+    left: 12px;
+    width: 112px;
   }
 
   .loader-sticker-fries {
