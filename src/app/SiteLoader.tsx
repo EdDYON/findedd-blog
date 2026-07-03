@@ -1,7 +1,15 @@
 'use client'
 
 import Image from 'next/image'
-import { useCallback, useEffect, useRef, useState, type ChangeEvent, type CSSProperties, type KeyboardEvent } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type CSSProperties,
+  type KeyboardEvent,
+} from 'react'
 
 type LoaderLayer = {
   id: string
@@ -56,22 +64,24 @@ const messages = [
   '盖上融化的切达芝士...',
   '加入脆爽生菜和番茄...',
   '最后盖上金黄面包顶...',
-  '汉堡完成，点一下开饭！',
+  '汉堡完成，开饭！！！',
 ]
 
-const crumbs = [
-  [-118, -64],
-  [-88, -116],
-  [-42, -138],
-  [12, -148],
-  [66, -130],
-  [112, -92],
-  [128, -38],
-  [112, 12],
-  [66, 40],
-  [12, 52],
-  [-52, 38],
-  [-104, 2],
+const burstVectors = [
+  { x: '-180px', y: '82px', rotate: '-16deg' },
+  { x: '210px', y: '24px', rotate: '18deg' },
+  { x: '-250px', y: '-86px', rotate: '-24deg' },
+  { x: '250px', y: '-132px', rotate: '22deg' },
+  { x: '-170px', y: '-220px', rotate: '-18deg' },
+  { x: '160px', y: '-300px', rotate: '16deg' },
+]
+
+const brandBands = [
+  'FIND BURGER   OPEN KITCHEN   HAND DRAWN BURGERS',
+  'CHEESE   SAUCE   PATTY   LETTUCE   TOMATO',
+  'FIND BURGER   HOT GRILL   CRAYON SHOP',
+  'ORDER UP   BURGER LAB   FRESH STACK',
+  'FIND BURGER   OPEN KITCHEN   HARD CRAYON',
 ]
 
 const logoLetters = Array.from('find burger')
@@ -190,6 +200,13 @@ export default function SiteLoader() {
       <div className="site-loader-wipe site-loader-wipe-yellow" aria-hidden="true" />
       <div className="site-loader-wipe site-loader-wipe-orange" aria-hidden="true" />
       <div className="site-loader-wipe site-loader-wipe-red" aria-hidden="true" />
+      <div className="site-loader-brand-bands" aria-hidden="true">
+        {brandBands.map((band, index) => (
+          <span key={band} style={{ '--band-delay': `${index * -7}s` } as CSSProperties}>
+            {band}&nbsp;&nbsp;&nbsp;{band}&nbsp;&nbsp;&nbsp;{band}
+          </span>
+        ))}
+      </div>
       <input
         aria-label="进入 find burger"
         className="site-loader-toggle"
@@ -234,6 +251,10 @@ export default function SiteLoader() {
                 key={layer.id}
                 style={
                   {
+                    '--burst-delay': `${index * 34}ms`,
+                    '--burst-rotate': burstVectors[index].rotate,
+                    '--burst-x': burstVectors[index].x,
+                    '--burst-y': burstVectors[index].y,
                     '--loader-delay': `${110 + index * 235}ms`,
                     '--loader-mobile-y': `${index * 35}px`,
                     '--loader-y': `${index * 42}px`,
@@ -249,27 +270,6 @@ export default function SiteLoader() {
                   width={360}
                 />
               </div>
-            ))}
-          </div>
-
-          <div className="site-loader-crumbs">
-            {crumbs.map(([x, y], index) => (
-              <i
-                key={`${x}-${y}`}
-                style={
-                  {
-                    '--crumb-delay': `${1740 + index * 18}ms`,
-                    '--crumb-ready-delay': `${index * 74}ms`,
-                    '--crumb-exit-delay': `${index * 18}ms`,
-                    '--crumb-x': `${x}px`,
-                    '--crumb-y': `${y}px`,
-                    '--crumb-ready-x': `${x * 0.62}px`,
-                    '--crumb-ready-y': `${y * 0.5}px`,
-                    '--crumb-burst-x': `${x * 1.45}px`,
-                    '--crumb-burst-y': `${y * 1.1 - 42}px`,
-                  } as CSSProperties
-                }
-              />
             ))}
           </div>
         </label>
@@ -297,7 +297,7 @@ export default function SiteLoader() {
           role="button"
           tabIndex={0}
         >
-          点一下，开饭！
+          开饭！！！
         </label>
       </div>
     </div>
