@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type CSSProperties, type KeyboardEvent } from 'react'
 
 type LoaderLayer = {
   id: string
@@ -75,6 +75,7 @@ const crumbs = [
 ]
 
 const logoLetters = Array.from('find burger')
+const loaderToggleId = 'find-burger-loader-toggle'
 
 export default function SiteLoader() {
   const [visible, setVisible] = useState(true)
@@ -108,21 +109,23 @@ export default function SiteLoader() {
     setIsReady(true)
   }, [])
 
-  const armPointerInteraction = useCallback(
-    (event: PointerEvent<HTMLButtonElement>) => {
-      if (!isReady || isExiting || event.button !== 0) return
-      if (readyAt.current && performance.now() - readyAt.current < 380) return
+  const enterFromToggle = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      if (!event.currentTarget.checked) return
       interactionArmed.current = true
+      enterSite()
     },
-    [isExiting, isReady],
+    [enterSite],
   )
 
   const enterFromKeyboard = useCallback(
-    (event: KeyboardEvent<HTMLButtonElement>) => {
+    (event: KeyboardEvent<HTMLLabelElement>) => {
       if (event.key !== 'Enter' && event.key !== ' ') return
       if (!isReady || isExiting) return
 
       event.preventDefault()
+      const toggle = document.getElementById(loaderToggleId)
+      if (toggle instanceof HTMLInputElement) toggle.checked = true
       interactionArmed.current = true
       enterSite()
     },
@@ -187,6 +190,13 @@ export default function SiteLoader() {
       <div className="site-loader-wipe site-loader-wipe-yellow" aria-hidden="true" />
       <div className="site-loader-wipe site-loader-wipe-orange" aria-hidden="true" />
       <div className="site-loader-wipe site-loader-wipe-red" aria-hidden="true" />
+      <input
+        aria-label="进入 find burger"
+        className="site-loader-toggle"
+        id={loaderToggleId}
+        onChange={enterFromToggle}
+        type="checkbox"
+      />
 
       <div className="site-loader-content">
         <div className="site-loader-logo" aria-label="find burger">
@@ -208,14 +218,13 @@ export default function SiteLoader() {
           ))}
         </div>
 
-        <button
+        <label
           aria-label={isReady ? '进入 find burger' : 'find burger 汉堡正在组装'}
           className="site-loader-stage"
-          disabled={!isReady || isExiting}
-          onClick={enterSite}
+          htmlFor={loaderToggleId}
           onKeyDown={enterFromKeyboard}
-          onPointerDown={armPointerInteraction}
-          type="button"
+          role="button"
+          tabIndex={0}
         >
           <div className="site-loader-shadow" />
           <div className="site-loader-stack">
@@ -263,7 +272,7 @@ export default function SiteLoader() {
               />
             ))}
           </div>
-        </button>
+        </label>
 
         <div className="site-loader-copy" aria-live="polite">
           <strong>{messages[messageIndex]}</strong>
@@ -281,16 +290,15 @@ export default function SiteLoader() {
           <div style={{ width: `${progress}%` }} />
         </div>
 
-        <button
+        <label
           className="site-loader-enter"
-          disabled={!isReady || isExiting}
-          onClick={enterSite}
+          htmlFor={loaderToggleId}
           onKeyDown={enterFromKeyboard}
-          onPointerDown={armPointerInteraction}
-          type="button"
+          role="button"
+          tabIndex={0}
         >
-          {isReady ? '点一下，开饭！' : '正在画汉堡...'}
-        </button>
+          点一下，开饭！
+        </label>
       </div>
     </div>
   )
