@@ -1,115 +1,196 @@
+'use client'
+
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react'
 
 const menuItems = [
-  { name: '经典牛肉', note: '牛肉 / 芝士 / 酸黄瓜' },
-  { name: '辣鸡腿', note: '脆皮鸡腿 / 辣酱 / 生菜' },
-  { name: '双层芝士', note: '双肉饼 / 双芝士 / 洋葱' },
-  { name: '早餐堡', note: '鸡蛋 / 培根 / 黄油面包' },
+  {
+    id: 'classic',
+    ticket: '001',
+    stamp: 'HOUSE',
+    name: '经典牛肉',
+    note: '牛肉饼 / 切达 / 酸黄瓜 / 番茄酱',
+    colors: ['#f4b43a', '#8d3f21', '#f7cf4b', '#4f9b46', '#d9472d'],
+    layers: ['牛肉饼', '切达芝士', '酸黄瓜', '番茄酱'],
+  },
+  {
+    id: 'spicy',
+    ticket: '014',
+    stamp: 'HOT',
+    name: '辣鸡腿堡',
+    note: '脆鸡排 / 生菜 / 辣酱 / 芝麻面包',
+    colors: ['#e9582c', '#f8c34a', '#3f9a45', '#f7a722', '#fff1c9'],
+    layers: ['脆鸡排', '生菜', '辣味酱', '芝麻面包'],
+  },
+  {
+    id: 'double',
+    ticket: '027',
+    stamp: 'MELT',
+    name: '双层芝士',
+    note: '双肉饼 / 双芝士 / 洋葱圈 / 烟熏酱',
+    colors: ['#9f4b24', '#fac13d', '#7b301c', '#f8d76b', '#c6462f'],
+    layers: ['双层牛肉', '切达芝士', '洋葱圈', '烟熏酱'],
+  },
+  {
+    id: 'breakfast',
+    ticket: '039',
+    stamp: 'MORN',
+    name: '早餐堡',
+    note: '煎蛋 / 培根 / 马苏里拉 / 黄芥末',
+    colors: ['#fff0bf', '#e66f48', '#f8c43f', '#ffe29a', '#f3a24a'],
+    layers: ['煎蛋', '培根', '马苏里拉', '黄芥末'],
+  },
+]
+
+const tickerItems = [
+  'FIND BURGER',
+  'OPEN',
+  'CHEESE',
+  'SAUCE',
+  'CRAYON',
+  'HOT GRILL',
+  'PICKLES',
+  'FIND BURGER',
 ]
 
 function BurgerVisual() {
   return (
-    <div className="burger-frame" aria-label="精致汉堡插画">
-      <div className="price-tag">
-        <span>NO. 001</span>
-        今日样本
-      </div>
-
-      <svg className="burger-svg" viewBox="0 0 720 560" role="img" aria-labelledby="burger-title">
-        <title id="burger-title">一枚分层的芝士汉堡</title>
+    <div className="burger-frame shop-burger-frame" aria-label="find burger 硬蜡笔汉堡主视觉">
+      <div className="burger-sign-ribbon">find burger</div>
+      <svg className="burger-svg shop-burger-svg" viewBox="0 0 560 430" role="img">
+        <title>硬蜡笔风格汉堡</title>
         <defs>
-          <linearGradient id="bunTop" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#F9B84A" />
-            <stop offset="70%" stopColor="#D77A27" />
-            <stop offset="100%" stopColor="#B85F1C" />
-          </linearGradient>
-          <linearGradient id="bunBottom" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#DF8930" />
-            <stop offset="100%" stopColor="#A8551C" />
-          </linearGradient>
-          <linearGradient id="patty" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0%" stopColor="#7A371A" />
-            <stop offset="100%" stopColor="#3F1A0E" />
-          </linearGradient>
-          <filter id="softShadow" x="-20%" y="-20%" width="140%" height="150%">
-            <feDropShadow dx="16" dy="18" stdDeviation="0" floodColor="#281109" floodOpacity="0.92" />
+          <filter id="homeBurgerShadow" x="-20%" y="-20%" width="140%" height="150%">
+            <feDropShadow dx="8" dy="12" stdDeviation="0" floodColor="#2b120d" floodOpacity="0.42" />
           </filter>
         </defs>
-
-        <path
-          className="splash"
-          d="M221 107C291 35 455 33 536 94C626 162 626 330 547 419C471 505 284 505 198 421C116 341 135 195 221 107Z"
-        />
-        <ellipse className="plate" cx="360" cy="492" rx="254" ry="34" />
-
-        <g className="burger-stack" filter="url(#softShadow)">
+        <ellipse className="burger-ground" cx="280" cy="380" rx="170" ry="22" />
+        <g filter="url(#homeBurgerShadow)">
           <path
-            className="bun-bottom"
-            d="M130 426H590V458C590 517 540 535 360 535C180 535 130 517 130 458Z"
+            className="bun bottom-bun"
+            d="M112 326 C155 358 405 358 448 326 L436 374 C385 401 176 401 124 374 Z"
           />
           <path
-            className="lettuce"
-            d="M150 392C181 369 211 409 243 386C276 363 306 409 339 386C371 364 403 409 435 386C470 363 500 409 531 386C553 371 574 380 592 402V440H128V405C135 400 142 396 150 392Z"
+            className="crayon-stroke bun-stroke"
+            d="M132 356 C203 377 363 377 430 356"
           />
           <path
             className="patty"
-            d="M138 326C138 291 170 274 223 276H498C552 274 582 291 582 326C582 363 549 380 498 378H223C171 380 138 363 138 326Z"
+            d="M98 272 C119 242 435 242 462 272 C477 289 462 317 438 322 C360 337 204 338 122 321 C94 315 81 291 98 272 Z"
           />
+          <path className="grill-mark" d="M165 282 L205 312" />
+          <path className="grill-mark" d="M252 277 L290 315" />
+          <path className="grill-mark" d="M340 279 L378 309" />
           <path
             className="cheese"
-            d="M154 275H573V331H501L466 369L430 331H321L286 369L248 331H154Z"
+            d="M104 230 L456 230 L431 272 L384 250 L342 278 L296 251 L248 279 L206 250 L158 276 Z"
           />
           <path
-            className="sauce"
-            d="M139 246C174 230 207 236 241 248C278 260 307 260 339 244C381 222 421 232 461 248C505 266 544 260 583 239L595 281C549 299 501 300 457 281C418 264 384 262 345 282C302 304 253 300 214 282C183 268 160 268 132 283Z"
+            className="lettuce"
+            d="M106 202 L143 176 L184 205 L221 178 L263 207 L303 177 L346 205 L383 177 L421 204 L461 182 L475 220 L440 238 L397 218 L361 241 L316 216 L278 240 L235 216 L194 240 L155 217 L121 237 Z"
           />
           <path
-            className="bun-top"
-            d="M124 207C139 110 219 64 360 64C501 64 580 111 596 207C603 247 573 265 519 260H201C146 265 117 247 124 207Z"
+            className="tomato tomato-one"
+            d="M126 166 C176 145 235 151 267 171 C246 197 159 201 126 166 Z"
           />
+          <path
+            className="tomato tomato-two"
+            d="M279 169 C333 145 401 153 436 176 C407 203 313 204 279 169 Z"
+          />
+          <path
+            className="bun top-bun"
+            d="M91 158 C106 62 451 47 476 160 C398 176 179 178 91 158 Z"
+          />
+          <path className="top-edge" d="M107 160 C171 184 396 184 461 162" />
           <g className="sesame">
-            <ellipse cx="235" cy="126" rx="17" ry="8" transform="rotate(-18 235 126)" />
-            <ellipse cx="315" cy="101" rx="15" ry="8" transform="rotate(8 315 101)" />
-            <ellipse cx="405" cy="116" rx="17" ry="8" transform="rotate(16 405 116)" />
-            <ellipse cx="483" cy="152" rx="14" ry="7" transform="rotate(-12 483 152)" />
+            <rect x="153" y="112" width="14" height="12" rx="2" />
+            <rect x="218" y="86" width="16" height="14" rx="2" />
+            <rect x="288" y="115" width="12" height="10" rx="2" />
+            <rect x="355" y="86" width="16" height="13" rx="2" />
+            <rect x="418" y="124" width="14" height="12" rx="2" />
+          </g>
+          <g className="crayon-sprinkles" aria-hidden="true">
+            <rect x="92" y="248" width="20" height="20" />
+            <rect x="470" y="219" width="18" height="18" />
+            <rect x="244" y="66" width="18" height="18" />
+            <rect x="397" y="54" width="17" height="17" />
+            <rect x="300" y="251" width="14" height="14" />
           </g>
         </g>
       </svg>
-
-      <div className="floating-chip chip-one">cheese</div>
-      <div className="floating-chip chip-two">juicy</div>
-      <div className="floating-chip chip-three">sauce</div>
+      <div className="burger-sticker sticker-left">OPEN</div>
+      <div className="burger-sticker sticker-right">HOT</div>
     </div>
   )
 }
 
 export default function Home() {
-  return (
-    <main className="site-shell">
-      <section className="hero" aria-labelledby="site-title">
-        <div className="grain" aria-hidden="true" />
+  const router = useRouter()
+  const [activeCard, setActiveCard] = useState<string | null>(null)
+  const [isEntering, setIsEntering] = useState(false)
+  const popTimer = useRef<number | null>(null)
 
-        <nav className="topbar" aria-label="主导航">
-          <a className="brand" href="#top">
+  useEffect(() => {
+    return () => {
+      if (popTimer.current) {
+        window.clearTimeout(popTimer.current)
+      }
+    }
+  }, [])
+
+  function popTicket(id: string) {
+    setActiveCard(id)
+
+    if (popTimer.current) {
+      window.clearTimeout(popTimer.current)
+    }
+
+    popTimer.current = window.setTimeout(() => {
+      setActiveCard((current) => (current === id ? null : current))
+    }, 1050)
+  }
+
+  function enterKitchen(event: MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault()
+
+    if (isEntering) {
+      return
+    }
+
+    setIsEntering(true)
+    window.setTimeout(() => router.push('/cook'), 680)
+  }
+
+  return (
+    <main className={`site-shell home-shop-shell ${isEntering ? 'is-entering-kitchen' : ''}`}>
+      <section className="hero sign-hero" id="top">
+        <div className="grain sign-grain" />
+        <nav className="topbar sign-topbar">
+          <Link className="brand sign-brand" href="#top" aria-label="find burger 首页">
             find burger
-          </a>
+          </Link>
           <div className="nav-links">
             <a href="#menu">菜单</a>
             <Link href="/cook">厨房</Link>
-            <a href="#story">计划</a>
           </div>
         </nav>
 
-        <div className="hero-grid" id="top">
-          <div className="hero-copy">
-            <p className="eyebrow">HARD CRAYON BURGER INDEX</p>
-            <h1 id="site-title">find burger</h1>
-            <p className="lead">把全世界好吃的汉堡，做成一本轻巧、有趣、会动的在线菜单。</p>
+        <div className="hero-grid sign-board">
+          <div className="hero-copy sign-copy">
+            <p className="eyebrow">HARD CRAYON BURGER SHOP</p>
+            <h1 aria-label="find burger">
+              <span>find</span>
+              <span>burger</span>
+            </h1>
+            <p className="lead">
+              一家画在红色蜡笔纸上的汉堡小店。先挑一张票据，再把喜欢的食材丢进厨房。
+            </p>
             <div className="hero-actions">
-              <Link className="button button-red" href="/cook">
-                开始组装
-              </Link>
-              <a className="button button-light" href="#menu">
+              <a className="button button-red shop-button" href="/cook" onClick={enterKitchen}>
+                开饭
+              </a>
+              <a className="button button-light shop-button" href="#menu">
                 看菜单
               </a>
             </div>
@@ -119,33 +200,68 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="ticker" aria-hidden="true">
-        <div>
-          <span>CHEESE</span>
-          <span>SAUCE</span>
-          <span>JUICY</span>
-          <span>CRISPY</span>
-          <span>CHEESE</span>
-          <span>SAUCE</span>
-          <span>JUICY</span>
-          <span>CRISPY</span>
+      <div className="ticker ticker-conveyor" aria-label="find burger 传送带">
+        <div className="ticker-track">
+          {[...tickerItems, ...tickerItems].map((item, index) => (
+            <span key={`${item}-${index}`}>{item}</span>
+          ))}
         </div>
       </div>
 
-      <section className="menu-strip" id="menu" aria-label="汉堡菜单">
-        {menuItems.map((item, index) => (
-          <article className="menu-card" key={item.name}>
-            <p>NO. {String(index + 1).padStart(2, '0')}</p>
-            <h2>{item.name}</h2>
-            <span>{item.note}</span>
-          </article>
-        ))}
+      <section className="menu-strip menu-ticket-board" id="menu" aria-label="点菜单票据">
+        <div className="menu-board-head">
+          <p className="eyebrow">ORDER STICKERS</p>
+          <h2>汉堡贴纸 / 点菜单票据</h2>
+        </div>
+
+        <div className="menu-ticket-grid">
+          {menuItems.map((item, index) => (
+            <button
+              className={`menu-card menu-ticket ${activeCard === item.id ? 'is-popped' : ''}`}
+              key={item.id}
+              onClick={() => popTicket(item.id)}
+              style={
+                {
+                  '--ticket-tilt': index % 2 === 0 ? '-1.5deg' : '1.5deg',
+                  '--ticket-hover-tilt': index % 2 === 0 ? '1deg' : '-1deg',
+                  '--ticket-accent': item.colors[0],
+                  '--ticket-stamp': item.colors[2],
+                } as CSSProperties
+              }
+              type="button"
+            >
+              <span className="ticket-number">NO. {item.ticket}</span>
+              <span className="ticket-stamp">{item.stamp}</span>
+              <h3>{item.name}</h3>
+              <p>{item.note}</p>
+              <span className="ticket-layers" aria-hidden="true">
+                {item.colors.map((color) => (
+                  <span key={color} style={{ backgroundColor: color }} />
+                ))}
+              </span>
+              <span className="ticket-pop-layers" aria-hidden="true">
+                {item.layers.map((layer, layerIndex) => (
+                  <span
+                    key={layer}
+                    style={{ '--layer-delay': `${layerIndex * 70}ms` } as CSSProperties}
+                  >
+                    {layer}
+                  </span>
+                ))}
+              </span>
+            </button>
+          ))}
+        </div>
       </section>
 
-      <section className="story" id="story">
-        <p>COMING SOON</p>
-        <h2>不是草稿菜单，是一个慢慢长大的汉堡图鉴。</h2>
-      </section>
+      {isEntering ? (
+        <div className="kitchen-crayon-transition" aria-hidden="true">
+          <span>开饭</span>
+          <i />
+          <i />
+          <i />
+        </div>
+      ) : null}
     </main>
   )
 }
