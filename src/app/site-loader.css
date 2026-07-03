@@ -120,6 +120,201 @@
   opacity: 0.82;
 }
 
+.site-loader-stickers {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+}
+
+.loader-sticker {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  opacity: 0.9;
+  filter: drop-shadow(7px 9px 0 rgba(40, 17, 9, 0.22));
+  transform: rotate(var(--sticker-rotate));
+  transform-origin: center;
+  animation: loader-sticker-float 12s ease-in-out infinite;
+}
+
+.loader-sticker svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.loader-sticker .sticker-paper {
+  fill: #fff3dc;
+  stroke: var(--ink);
+  stroke-width: 7;
+  stroke-linejoin: round;
+}
+
+.loader-sticker text {
+  fill: var(--ink);
+  font-family: var(--font-crayon);
+  font-size: 18px;
+  font-weight: 1000;
+  letter-spacing: 0;
+  paint-order: stroke;
+  stroke: rgba(255, 248, 234, 0.68);
+  stroke-width: 4;
+}
+
+.loader-sticker-mascot {
+  top: 18%;
+  left: clamp(26px, 9vw, 156px);
+  width: min(160px, 12vw);
+  animation-delay: -2s;
+}
+
+.loader-sticker-mascot .sticker-hair {
+  fill: #f58a30;
+  stroke: var(--ink);
+  stroke-width: 7;
+  stroke-linejoin: round;
+}
+
+.loader-sticker-mascot .sticker-face {
+  fill: #ffe0b9;
+  stroke: var(--ink);
+  stroke-width: 6;
+}
+
+.loader-sticker-mascot .sticker-bang,
+.loader-sticker-mascot .sticker-eye,
+.loader-sticker-mascot .sticker-mouth {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.loader-sticker-mascot .sticker-mini-burger {
+  fill: var(--yellow);
+  stroke: var(--ink);
+  stroke-width: 5;
+}
+
+.loader-sticker-mascot .sticker-mini-lettuce {
+  fill: var(--green);
+  stroke: var(--ink);
+  stroke-width: 4;
+  stroke-linejoin: round;
+}
+
+.loader-sticker-mascot .sticker-jacket {
+  fill: #ffcc3f;
+  stroke: var(--ink);
+  stroke-width: 7;
+  stroke-linejoin: round;
+}
+
+.loader-sticker-ticket {
+  top: 31%;
+  right: clamp(22px, 9vw, 158px);
+  width: min(210px, 15vw);
+  animation-delay: -6s;
+}
+
+.loader-sticker-ticket .ticket-line {
+  fill: none;
+  stroke: #f71918;
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+
+.loader-sticker-fries {
+  right: clamp(34px, 16vw, 294px);
+  bottom: 13%;
+  width: min(138px, 10vw);
+  animation-delay: -4s;
+}
+
+.loader-sticker-fries .fries-stick {
+  fill: #ffd768;
+  stroke: var(--ink);
+  stroke-width: 7;
+  stroke-linejoin: round;
+}
+
+.loader-sticker-fries .fries-box {
+  fill: #fff3dc;
+  stroke: var(--ink);
+  stroke-width: 7;
+  stroke-linejoin: round;
+}
+
+.loader-sticker-fries .fries-smile {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.loader-sticker-soda {
+  bottom: 16%;
+  left: clamp(38px, 14vw, 270px);
+  width: min(126px, 9vw);
+  animation-delay: -8s;
+}
+
+.loader-sticker-soda .soda-straw {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.loader-sticker-soda .soda-cup {
+  fill: #fff3dc;
+  stroke: var(--ink);
+  stroke-width: 7;
+  stroke-linejoin: round;
+}
+
+.loader-sticker-soda .soda-label {
+  fill: #5ac2ff;
+  stroke: var(--ink);
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+
+.loader-sticker-soda .soda-bubble {
+  fill: #f71918;
+  stroke: var(--ink);
+  stroke-width: 5;
+}
+
+.loader-sticker-star {
+  top: 14%;
+  right: clamp(26px, 22vw, 408px);
+  width: min(122px, 9vw);
+  opacity: 0.76;
+  animation-delay: -10s;
+}
+
+.loader-sticker-star .sticker-paper {
+  fill: #ffe36b;
+}
+
+.loader-sticker-star .star-burger {
+  fill: #f4a12e;
+  stroke: var(--ink);
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+
+.loader-sticker-star .star-cheese {
+  fill: #fff3dc;
+  stroke: var(--ink);
+  stroke-width: 5;
+  stroke-linejoin: round;
+}
+
 .site-loader-content {
   position: relative;
   z-index: 3;
@@ -399,10 +594,12 @@
 .site-loader.is-exiting .site-loader-copy,
 .site-loader.is-exiting .site-loader-progress,
 .site-loader.is-exiting .site-loader-enter,
+.site-loader.is-exiting .site-loader-stickers,
 .site-loader:has(.site-loader-toggle:checked) .site-loader-logo,
 .site-loader:has(.site-loader-toggle:checked) .site-loader-copy,
 .site-loader:has(.site-loader-toggle:checked) .site-loader-progress,
-.site-loader:has(.site-loader-toggle:checked) .site-loader-enter {
+.site-loader:has(.site-loader-toggle:checked) .site-loader-enter,
+.site-loader:has(.site-loader-toggle:checked) .site-loader-stickers {
   animation: loader-content-exit 360ms cubic-bezier(0.72, 0, 0.28, 1) forwards;
 }
 
@@ -699,6 +896,17 @@
   }
 }
 
+@keyframes loader-sticker-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--sticker-rotate));
+  }
+
+  50% {
+    transform: translateY(-8px) rotate(calc(var(--sticker-rotate) + 2deg));
+  }
+}
+
 @keyframes loader-paper-away {
   to {
     transform: translateY(112%);
@@ -725,6 +933,29 @@
     gap: 2px;
     font-size: 3.35rem;
     -webkit-text-stroke-width: 2px;
+  }
+
+  .loader-sticker-ticket,
+  .loader-sticker-soda {
+    display: none;
+  }
+
+  .loader-sticker-mascot {
+    top: 19%;
+    left: 16px;
+    width: 88px;
+  }
+
+  .loader-sticker-fries {
+    right: 16px;
+    bottom: 17%;
+    width: 78px;
+  }
+
+  .loader-sticker-star {
+    top: 21%;
+    right: 20px;
+    width: 70px;
   }
 
   .site-loader-stack {
@@ -771,6 +1002,10 @@
   .site-loader-shadow,
   .site-loader-crumbs i,
   .site-loader-wipe {
+    animation: none;
+  }
+
+  .loader-sticker {
     animation: none;
   }
 

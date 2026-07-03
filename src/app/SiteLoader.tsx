@@ -87,6 +87,120 @@ const brandBands = [
 const logoLetters = Array.from('Find Burger')
 const loaderToggleId = 'find-burger-loader-toggle'
 
+function LoaderStickers() {
+  return (
+    <div className="site-loader-stickers" aria-hidden="true">
+      <div
+        className="loader-sticker loader-sticker-mascot"
+        style={{ '--sticker-rotate': '-8deg' } as CSSProperties}
+      >
+        <svg viewBox="0 0 210 230" role="img">
+          <path
+            className="sticker-paper"
+            d="M33 28C58 10 143 8 169 31C194 53 198 165 177 194C154 225 58 224 31 195C6 168 7 47 33 28Z"
+          />
+          <path
+            className="sticker-hair"
+            d="M52 77C58 38 91 24 122 33C155 42 176 71 169 113C158 96 144 87 130 87C104 87 86 99 64 122C55 107 49 92 52 77Z"
+          />
+          <path
+            className="sticker-face"
+            d="M62 93C74 55 146 54 160 94C174 134 147 168 111 169C75 170 49 134 62 93Z"
+          />
+          <path className="sticker-bang" d="M72 66L91 103L111 62L124 105L147 73" />
+          <path className="sticker-eye" d="M82 119L101 113" />
+          <path className="sticker-eye" d="M127 113L145 120" />
+          <path className="sticker-mouth" d="M101 143C110 150 121 150 130 143" />
+          <path
+            className="sticker-mini-burger"
+            d="M136 42C147 31 175 35 181 49C169 54 148 55 136 42Z"
+          />
+          <path className="sticker-mini-lettuce" d="M138 50L181 50L171 60L160 55L151 62Z" />
+          <path className="sticker-jacket" d="M55 187C74 171 146 170 166 188L151 213H70Z" />
+          <text x="105" y="211" textAnchor="middle">
+            TINY TIGER
+          </text>
+        </svg>
+      </div>
+
+      <div
+        className="loader-sticker loader-sticker-ticket"
+        style={{ '--sticker-rotate': '7deg' } as CSSProperties}
+      >
+        <svg viewBox="0 0 240 150" role="img">
+          <path
+            className="sticker-paper"
+            d="M20 24H218C207 42 207 58 222 75C207 92 207 108 218 126H20C33 107 33 92 18 75C33 58 33 42 20 24Z"
+          />
+          <path className="ticket-line" d="M56 47H184" />
+          <path className="ticket-line" d="M46 75H194" />
+          <path className="ticket-line" d="M58 102H179" />
+          <text x="120" y="84" textAnchor="middle">
+            BURGER PASS
+          </text>
+        </svg>
+      </div>
+
+      <div
+        className="loader-sticker loader-sticker-fries"
+        style={{ '--sticker-rotate': '-12deg' } as CSSProperties}
+      >
+        <svg viewBox="0 0 180 210" role="img">
+          <path className="fries-stick" d="M43 18L62 16L70 112H51Z" />
+          <path className="fries-stick" d="M78 10L98 12L94 118H72Z" />
+          <path className="fries-stick" d="M118 18L137 22L116 118H96Z" />
+          <path
+            className="fries-box"
+            d="M35 91C67 108 113 108 146 91L133 187C108 201 71 201 47 187Z"
+          />
+          <path className="fries-smile" d="M69 143C83 156 100 156 115 143" />
+          <text x="90" y="178" textAnchor="middle">
+            FIND
+          </text>
+        </svg>
+      </div>
+
+      <div
+        className="loader-sticker loader-sticker-soda"
+        style={{ '--sticker-rotate': '10deg' } as CSSProperties}
+      >
+        <svg viewBox="0 0 170 220" role="img">
+          <path className="soda-straw" d="M82 15L122 7" />
+          <path
+            className="soda-cup"
+            d="M43 58H141L126 194C103 205 75 205 52 194Z"
+          />
+          <path className="soda-label" d="M56 101H128L122 154H62Z" />
+          <path className="soda-bubble" d="M77 117C87 107 105 108 113 119C105 132 84 132 77 117Z" />
+          <text x="92" y="147" textAnchor="middle">
+            COLA
+          </text>
+        </svg>
+      </div>
+
+      <div
+        className="loader-sticker loader-sticker-star"
+        style={{ '--sticker-rotate': '14deg' } as CSSProperties}
+      >
+        <svg viewBox="0 0 170 170" role="img">
+          <path
+            className="sticker-paper"
+            d="M85 15L104 58L151 54L116 86L130 132L85 108L40 132L54 86L19 54L66 58Z"
+          />
+          <path
+            className="star-burger"
+            d="M48 83C58 57 112 57 123 83C105 91 66 91 48 83Z"
+          />
+          <path className="star-cheese" d="M49 91H123L109 110L93 101L81 113L67 101Z" />
+          <text x="85" y="136" textAnchor="middle">
+            HOT
+          </text>
+        </svg>
+      </div>
+    </div>
+  )
+}
+
 export default function SiteLoader() {
   const [visible, setVisible] = useState(true)
   const [messageIndex, setMessageIndex] = useState(0)
@@ -207,6 +321,7 @@ export default function SiteLoader() {
           </span>
         ))}
       </div>
+      <LoaderStickers />
       <input
         aria-label="进入 find burger"
         className="site-loader-toggle"
