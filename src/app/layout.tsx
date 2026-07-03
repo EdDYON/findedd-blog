@@ -4,8 +4,8 @@ import './globals.css'
 import './site-loader.css'
 
 export const metadata: Metadata = {
-  title: '汉堡',
-  description: '一个会动的汉堡网站。',
+  title: 'find burger',
+  description: '一个硬蜡笔风格的互动汉堡网站。',
 }
 
 export const viewport: Viewport = {

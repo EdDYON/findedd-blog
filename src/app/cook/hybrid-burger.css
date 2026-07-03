@@ -1219,3 +1219,28 @@
     transition: none;
   }
 }
+
+/* Keep the kitchen in the same hard-crayon lettering system. */
+.kitchen-drawer-mode,
+.kitchen-drawer-mode button,
+.kitchen-drawer-mode input,
+.kitchen-drawer-mode h2,
+.kitchen-drawer-mode h3,
+.kitchen-drawer-mode h4,
+.kitchen-drawer-mode p,
+.kitchen-drawer-mode span,
+.kitchen-drawer-mode small,
+.kitchen-drawer-mode strong,
+.pantry-search-modal,
+.pantry-search-modal input {
+  font-family: var(--font-crayon);
+  letter-spacing: 0;
+}
+
+.kitchen-drawer-mode h2,
+.kitchen-drawer-mode h3,
+.kitchen-drawer-mode h4,
+.search-modal-head h2,
+.search-group-head h3 {
+  text-shadow: var(--crayon-soft-shadow);
+}

@@ -91,7 +91,7 @@ export default function Home() {
 
         <nav className="topbar" aria-label="主导航">
           <a className="brand" href="#top">
-            汉堡
+            find burger
           </a>
           <div className="nav-links">
             <a href="#menu">菜单</a>
@@ -102,8 +102,8 @@ export default function Home() {
 
         <div className="hero-grid" id="top">
           <div className="hero-copy">
-            <p className="eyebrow">BURGER INDEX</p>
-            <h1 id="site-title">汉堡</h1>
+            <p className="eyebrow">HARD CRAYON BURGER INDEX</p>
+            <h1 id="site-title">find burger</h1>
             <p className="lead">把全世界好吃的汉堡，做成一本轻巧、有趣、会动的在线菜单。</p>
             <div className="hero-actions">
               <Link className="button button-red" href="/cook">

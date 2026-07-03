@@ -4,7 +4,7 @@ import BurgerKitchen from './BurgerKitchen'
 import './hybrid-burger.css'
 
 export const metadata: Metadata = {
-  title: '汉堡厨房｜汉堡',
+  title: '汉堡厨房｜find burger',
   description: '选择汉堡胚、酱料和食材，实时组装属于你的汉堡。',
 }
 
@@ -15,7 +15,7 @@ export default function CookPage() {
 
       <nav className="cook-topbar" aria-label="厨房导航">
         <Link className="brand" href="/">
-          汉堡
+          find burger
         </Link>
         <div className="nav-links">
           <Link href="/">首页</Link>

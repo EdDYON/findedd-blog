@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 
 type LoaderLayer = {
   id: string
@@ -56,7 +56,7 @@ const messages = [
   '盖上融化的切达芝士...',
   '加入脆爽生菜和番茄...',
   '最后盖上金黄面包顶...',
-  '汉堡完成，准备开饭！',
+  '汉堡完成，点一下开饭！',
 ]
 
 const crumbs = [
@@ -74,28 +74,45 @@ const crumbs = [
   [-104, 2],
 ]
 
+const logoLetters = Array.from('find burger')
+
 export default function SiteLoader() {
   const [visible, setVisible] = useState(true)
   const [messageIndex, setMessageIndex] = useState(0)
   const [progress, setProgress] = useState(0)
+  const [isReady, setIsReady] = useState(false)
+  const [isExiting, setIsExiting] = useState(false)
+  const previousOverflow = useRef('')
+  const exitTimer = useRef<number | null>(null)
+
+  const enterSite = useCallback(() => {
+    if (!isReady || isExiting || exitTimer.current) return
+
+    setIsExiting(true)
+    exitTimer.current = window.setTimeout(() => {
+      document.documentElement.style.overflow = previousOverflow.current
+      setVisible(false)
+    }, 1080)
+  }, [isExiting, isReady])
 
   useEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const root = document.documentElement
-    const previousOverflow = root.style.overflow
+    previousOverflow.current = root.style.overflow
     root.style.overflow = 'hidden'
 
     if (reducedMotion) {
       const reducedProgressTimer = window.setTimeout(() => setProgress(100), 0)
-      const reducedTimer = window.setTimeout(() => {
-        root.style.overflow = previousOverflow
-        setVisible(false)
+      const reducedReadyTimer = window.setTimeout(() => {
+        setMessageIndex(messages.length - 1)
+        setIsReady(true)
       }, 260)
 
       return () => {
         window.clearTimeout(reducedProgressTimer)
-        window.clearTimeout(reducedTimer)
-        root.style.overflow = previousOverflow
+        window.clearTimeout(reducedReadyTimer)
+        if (exitTimer.current) window.clearTimeout(exitTimer.current)
+        root.style.overflow = previousOverflow.current
       }
     }
 
@@ -108,33 +125,75 @@ export default function SiteLoader() {
     const messageTimers = messages.slice(1).map((_, index) =>
       window.setTimeout(() => setMessageIndex(index + 1), 280 + index * 260),
     )
-    const removeTimer = window.setTimeout(() => {
+    const readyTimer = window.setTimeout(() => {
       window.clearInterval(progressTimer)
       setProgress(100)
-      root.style.overflow = previousOverflow
-      setVisible(false)
-    }, 3580)
+      setMessageIndex(messages.length - 1)
+      setIsReady(true)
+    }, 2420)
 
     return () => {
       window.clearInterval(progressTimer)
       messageTimers.forEach((timer) => window.clearTimeout(timer))
-      window.clearTimeout(removeTimer)
-      root.style.overflow = previousOverflow
+      window.clearTimeout(readyTimer)
+      if (exitTimer.current) window.clearTimeout(exitTimer.current)
+      root.style.overflow = previousOverflow.current
     }
   }, [])
+
+  useEffect(() => {
+    function handleKeyDown(event: globalThis.KeyboardEvent) {
+      if (event.key !== 'Enter' && event.key !== ' ') return
+      if (!isReady || isExiting) return
+
+      event.preventDefault()
+      enterSite()
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [enterSite, isExiting, isReady])
 
   if (!visible) return null
 
   return (
-    <div className="site-loader" aria-busy="true" aria-label="正在准备汉堡网站" role="status">
+    <div
+      className={`site-loader ${isReady ? 'is-ready' : ''} ${isExiting ? 'is-exiting' : ''}`}
+      aria-label="find burger 开场动画"
+      aria-modal="true"
+      role="dialog"
+    >
       <div className="site-loader-wipe site-loader-wipe-yellow" aria-hidden="true" />
       <div className="site-loader-wipe site-loader-wipe-orange" aria-hidden="true" />
       <div className="site-loader-wipe site-loader-wipe-red" aria-hidden="true" />
 
       <div className="site-loader-content">
-        <div className="site-loader-kicker">FINDEDD BURGER LAB</div>
+        <div className="site-loader-logo" aria-label="find burger">
+          {logoLetters.map((letter, index) => (
+            <span
+              aria-hidden="true"
+              key={`${letter}-${index}`}
+              style={
+                {
+                  '--letter-delay': `${index * 54}ms`,
+                  '--letter-ready-delay': `${index * 18}ms`,
+                  '--letter-tilt': `${index % 2 === 0 ? -2 : 2}deg`,
+                  '--letter-ready-tilt': `${index % 2 === 0 ? 2 : -2}deg`,
+                } as CSSProperties
+              }
+            >
+              {letter === ' ' ? '\u00A0' : letter}
+            </span>
+          ))}
+        </div>
 
-        <div className="site-loader-stage" aria-hidden="true">
+        <button
+          aria-label={isReady ? '进入 find burger' : 'find burger 汉堡正在组装'}
+          className="site-loader-stage"
+          disabled={!isReady || isExiting}
+          onClick={enterSite}
+          type="button"
+        >
           <div className="site-loader-shadow" />
           <div className="site-loader-stack">
             {layers.map((layer, index) => (
@@ -168,14 +227,20 @@ export default function SiteLoader() {
                 style={
                   {
                     '--crumb-delay': `${1740 + index * 18}ms`,
+                    '--crumb-ready-delay': `${index * 74}ms`,
+                    '--crumb-exit-delay': `${index * 18}ms`,
                     '--crumb-x': `${x}px`,
                     '--crumb-y': `${y}px`,
+                    '--crumb-ready-x': `${x * 0.62}px`,
+                    '--crumb-ready-y': `${y * 0.5}px`,
+                    '--crumb-burst-x': `${x * 1.45}px`,
+                    '--crumb-burst-y': `${y * 1.1 - 42}px`,
                   } as CSSProperties
                 }
               />
             ))}
           </div>
-        </div>
+        </button>
 
         <div className="site-loader-copy" aria-live="polite">
           <strong>{messages[messageIndex]}</strong>
@@ -192,6 +257,15 @@ export default function SiteLoader() {
         >
           <div style={{ width: `${progress}%` }} />
         </div>
+
+        <button
+          className="site-loader-enter"
+          disabled={!isReady || isExiting}
+          onClick={enterSite}
+          type="button"
+        >
+          {isReady ? '点一下，开饭！' : '正在画汉堡...'}
+        </button>
       </div>
     </div>
   )
