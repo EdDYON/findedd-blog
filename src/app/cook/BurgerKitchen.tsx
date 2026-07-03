@@ -5,38 +5,22 @@ import type { CSSProperties, KeyboardEvent, PointerEvent } from 'react'
 import { useMemo, useRef, useState } from 'react'
 import { pixelIngredients, type PixelIngredient } from '@/data/pixelIngredients'
 
-type CategoryKey = 'bun' | 'protein' | 'cheese' | 'vegetable' | 'sauce' | 'extra'
+type LayerKind =
+  | 'bunTop'
+  | 'bunBottom'
+  | 'base'
+  | 'protein'
+  | 'cheese'
+  | 'vegetable'
+  | 'sauce'
+  | 'extra'
+  | 'seasoning'
+  | 'side'
+  | 'other'
 
-type Ingredient = {
-  id: string
-  name: string
-  category: CategoryKey
+type KitchenIngredient = PixelIngredient & {
+  kind: LayerKind
   color: string
-  short: string
-  assetName?: string
-  bottomAssetName?: string
-}
-
-type Category = {
-  key: CategoryKey
-  title: string
-  hint: string
-}
-
-type Recipe = {
-  id: string
-  name: string
-  badge: string
-  required: string[]
-  optional: string[]
-  taste: string[]
-  steps: string[]
-}
-
-type VisualLayer = Ingredient & {
-  role?: 'top' | 'bottom'
-  visualKey: string
-  asset?: PixelIngredient
 }
 
 type LayerOffset = {
@@ -57,144 +41,178 @@ type DragState = {
   maxY: number
 }
 
-const categories: Category[] = [
-  { key: 'bun', title: '汉堡胚', hint: '也可以选择无胚，做成盘餐或生菜包。' },
-  { key: 'protein', title: '主体', hint: '肉饼、鸡腿、鱼排或植物肉。' },
-  { key: 'cheese', title: '芝士', hint: '负责融化、拉丝和幸福感。' },
-  { key: 'vegetable', title: '蔬菜', hint: '增加脆感、酸度和清爽感。' },
-  { key: 'sauce', title: '酱料', hint: '汉堡真正的性格开关。' },
-  { key: 'extra', title: '加料', hint: '培根、煎蛋、洋葱圈，快乐但危险。' },
+type LayerLayout = {
+  x: number
+  y: number
+  width: number
+  height: number
+  scaleX: number
+  scaleY: number
+  rotate: number
+  z: number
+  opacity: number
+}
+
+type VisualLayer = KitchenIngredient & {
+  visualKey: string
+  layout: LayerLayout
+}
+
+const initialSelectedIds = [
+  'ingredient-252',
+  'ingredient-260',
+  'ingredient-001',
+  'ingredient-026',
+  'ingredient-350',
+  'ingredient-104',
+  'ingredient-118',
+  'ingredient-177',
 ]
 
-const ingredients: Ingredient[] = [
-  {
-    id: 'sesame-bun',
-    name: '芝麻胚',
-    category: 'bun',
-    color: '#d9822b',
-    short: '芝麻',
-    assetName: '芝麻面包顶',
-    bottomAssetName: '芝麻面包底',
-  },
-  {
-    id: 'brioche-bun',
-    name: '黄油布里欧修胚',
-    category: 'bun',
-    color: '#f0a23a',
-    short: '黄油胚',
-    assetName: '布里欧修面包顶',
-    bottomAssetName: '布里欧修面包底',
-  },
-  {
-    id: 'whole-bun',
-    name: '全麦胚',
-    category: 'bun',
-    color: '#9f6a35',
-    short: '全麦',
-    assetName: '全麦面包顶',
-    bottomAssetName: '全麦面包底',
-  },
-  { id: 'lettuce-wrap', name: '生菜包', category: 'bun', color: '#54a848', short: '生菜包', assetName: '卷心生菜' },
-  { id: 'no-bun', name: '不要胚', category: 'bun', color: '#fff5e3', short: '无胚' },
-  { id: 'beef-patty', name: '牛肉饼', category: 'protein', color: '#5a2514', short: '牛肉', assetName: '经典牛肉饼' },
-  { id: 'double-beef', name: '双层牛肉饼', category: 'protein', color: '#482012', short: '双牛', assetName: '厚切牛肉饼' },
-  { id: 'fried-chicken', name: '炸鸡腿排', category: 'protein', color: '#c57523', short: '炸鸡', assetName: '脆炸鸡排' },
-  { id: 'fish-fillet', name: '鳕鱼排', category: 'protein', color: '#ead29b', short: '鱼排', assetName: '鱼排' },
-  { id: 'mushroom-patty', name: '蘑菇排', category: 'protein', color: '#6e4a2e', short: '蘑菇', assetName: '蘑菇肉饼' },
-  { id: 'american-cheese', name: '美式芝士', category: 'cheese', color: '#ffc329', short: '美式芝士', assetName: '美式芝士片' },
-  { id: 'cheddar', name: '切达芝士', category: 'cheese', color: '#f6a51f', short: '切达', assetName: '切达芝士片' },
-  { id: 'mozzarella', name: '马苏里拉', category: 'cheese', color: '#fff0b9', short: '马苏', assetName: '马苏里拉芝士' },
-  { id: 'lettuce', name: '生菜', category: 'vegetable', color: '#4b9d42', short: '生菜', assetName: '生菜' },
-  { id: 'tomato', name: '番茄片', category: 'vegetable', color: '#f93b32', short: '番茄', assetName: '番茄片' },
-  { id: 'pickle', name: '酸黄瓜', category: 'vegetable', color: '#8ca63a', short: '酸瓜', assetName: '酸黄瓜片' },
-  { id: 'onion', name: '洋葱圈', category: 'vegetable', color: '#f5e0ed', short: '洋葱', assetName: '红洋葱圈' },
-  { id: 'jalapeno', name: '墨西哥辣椒', category: 'vegetable', color: '#2f8d38', short: '辣椒', assetName: '墨西哥辣椒圈' },
-  { id: 'ketchup', name: '番茄酱', category: 'sauce', color: '#f71918', short: '番茄酱', assetName: '番茄酱' },
-  { id: 'mustard', name: '黄芥末', category: 'sauce', color: '#ffc329', short: '芥末', assetName: '黄芥末' },
-  { id: 'mayo', name: '蛋黄酱', category: 'sauce', color: '#fff0cc', short: '蛋黄酱', assetName: '蛋黄酱' },
-  { id: 'bbq', name: '烟熏 BBQ 酱', category: 'sauce', color: '#6f2418', short: 'BBQ', assetName: 'BBQ酱' },
-  { id: 'spicy-mayo', name: '辣味蛋黄酱', category: 'sauce', color: '#ff7a25', short: '辣蛋黄', assetName: '辣味蛋黄酱' },
-  { id: 'bacon', name: '培根', category: 'extra', color: '#b23a22', short: '培根', assetName: '培根' },
-  { id: 'egg', name: '煎蛋', category: 'extra', color: '#fff3b4', short: '煎蛋', assetName: '煎蛋' },
-  { id: 'onion-ring', name: '炸洋葱圈', category: 'extra', color: '#d9902f', short: '洋葱圈', assetName: '炸洋葱圈' },
-]
-
-const recipes: Recipe[] = [
+const presets = [
   {
     id: 'classic',
-    name: '经典芝士牛肉堡',
-    badge: '入门稳牌',
-    required: ['sesame-bun', 'beef-patty', 'american-cheese', 'lettuce', 'tomato', 'pickle', 'ketchup'],
-    optional: ['mustard'],
-    taste: ['酸甜', '肉香', '清爽'],
-    steps: ['烤热芝麻胚', '牛肉饼煎到边缘焦香', '趁热盖芝士', '按生菜、番茄、酸黄瓜和酱料组装'],
+    name: '经典牛肉',
+    ids: ['ingredient-252', 'ingredient-260', 'ingredient-001', 'ingredient-026', 'ingredient-350', 'ingredient-104', 'ingredient-118', 'ingredient-177'],
   },
   {
     id: 'double',
-    name: '双层芝士猛兽堡',
-    badge: '高能量',
-    required: ['brioche-bun', 'double-beef', 'cheddar', 'pickle', 'bbq'],
-    optional: ['bacon', 'onion'],
-    taste: ['浓郁', '烟熏', '油脂感'],
-    steps: ['布里欧修胚轻烤', '双层牛肉饼分开煎香', '芝士夹在肉饼之间融化', '用 BBQ 酱压住肉香'],
+    name: '双层芝士',
+    ids: ['ingredient-325', 'ingredient-331', 'ingredient-001', 'ingredient-003', 'ingredient-026', 'ingredient-027', 'ingredient-350', 'ingredient-360', 'ingredient-373'],
   },
   {
-    id: 'spicy-chicken',
-    name: '辣酱鸡腿堡',
-    badge: '脆皮警告',
-    required: ['sesame-bun', 'fried-chicken', 'lettuce', 'spicy-mayo', 'pickle'],
-    optional: ['tomato', 'jalapeno'],
-    taste: ['辣', '脆', '酸爽'],
-    steps: ['炸鸡腿排回烤 3 分钟', '面包胚内侧抹辣味蛋黄酱', '用酸黄瓜和生菜增加清爽感', '喜欢更刺激就加墨西哥辣椒'],
-  },
-  {
-    id: 'breakfast',
-    name: '早餐煎蛋培根堡',
-    badge: '早起奖励',
-    required: ['brioche-bun', 'egg', 'bacon', 'american-cheese', 'mayo'],
-    optional: ['beef-patty'],
-    taste: ['奶香', '咸香', '柔软'],
-    steps: ['黄油胚煎到微脆', '培根煎出焦边', '煎蛋保持半熟或全熟', '蛋黄酱薄薄一层就够'],
-  },
-  {
-    id: 'lettuce-wrap',
-    name: '无胚生菜包汉堡',
-    badge: '轻食路线',
-    required: ['lettuce-wrap', 'beef-patty', 'tomato', 'pickle', 'mustard'],
-    optional: ['onion', 'jalapeno'],
-    taste: ['清爽', '低负担', '酸辣'],
-    steps: ['选两大片完整生菜当外壳', '肉饼煎好后稍微放凉', '番茄和酸黄瓜负责水分', '用芥末提味，不要放太多水感酱料'],
-  },
-  {
-    id: 'mushroom',
-    name: '蘑菇芝士素堡',
-    badge: '植物灵感',
-    required: ['whole-bun', 'mushroom-patty', 'mozzarella', 'lettuce', 'tomato', 'mayo'],
-    optional: ['onion', 'bbq'],
-    taste: ['鲜味', '柔和', '多汁'],
-    steps: ['全麦胚烤热', '蘑菇排煎到表面微焦', '马苏里拉负责拉丝', '用番茄和生菜补水分'],
-  },
-  {
-    id: 'naked',
-    name: '无胚肉饼盘',
-    badge: '没有胚也能吃',
-    required: ['no-bun', 'beef-patty', 'lettuce', 'tomato', 'bbq'],
-    optional: ['egg', 'pickle'],
-    taste: ['直接', '肉香', '清爽'],
-    steps: ['牛肉饼煎好放在生菜上', '番茄和酸黄瓜放旁边', 'BBQ 酱少量点在肉饼上', '可以加煎蛋变成盘餐'],
+    id: 'garden',
+    name: '蔬菜满层',
+    ids: ['ingredient-254', 'ingredient-262', 'ingredient-066', 'ingredient-067', 'ingredient-104', 'ingredient-118', 'ingredient-126', 'ingredient-140', 'ingredient-184'],
   },
 ]
 
-const initialSelected = new Set(['sesame-bun', 'beef-patty', 'american-cheese', 'lettuce', 'tomato', 'pickle', 'ketchup'])
-const ingredientById = new Map(ingredients.map((ingredient) => [ingredient.id, ingredient]))
-const bunIds = ingredients.filter((ingredient) => ingredient.category === 'bun').map((ingredient) => ingredient.id)
-const pixelByName = pixelIngredients.reduce((map, ingredient) => {
-  if (!map.has(ingredient.name)) map.set(ingredient.name, ingredient)
-  return map
-}, new Map<string, PixelIngredient>())
+const kindLabels: Record<LayerKind, string> = {
+  bunTop: '面包顶',
+  bunBottom: '面包底',
+  base: '基础',
+  protein: '主体',
+  cheese: '芝士',
+  vegetable: '蔬菜',
+  sauce: '酱料',
+  extra: '加料',
+  seasoning: '调味',
+  side: '配菜',
+  other: '其他',
+}
+
+const kindClassNames: Record<LayerKind, string> = {
+  bunTop: 'bun-top',
+  bunBottom: 'bun-bottom',
+  base: 'base',
+  protein: 'protein',
+  cheese: 'cheese',
+  vegetable: 'vegetable',
+  sauce: 'sauce',
+  extra: 'extra',
+  seasoning: 'seasoning',
+  side: 'side',
+  other: 'other',
+}
+
+const kindColors: Record<LayerKind, string> = {
+  bunTop: '#d9822b',
+  bunBottom: '#bf6b27',
+  base: '#d79a4a',
+  protein: '#6a2d19',
+  cheese: '#f4b934',
+  vegetable: '#78a94a',
+  sauce: '#d94b32',
+  extra: '#c56b45',
+  seasoning: '#9d704c',
+  side: '#d98a2e',
+  other: '#c86a62',
+}
+
+const categoryHints: Record<string, string> = {
+  肉类与肉饼: '肉饼、鸡排、鱼排和其他主体。',
+  芝士与鸡蛋: '芝士、煎蛋和柔软夹层。',
+  蔬菜与香草: '清爽叶菜、香草和鲜蔬。',
+  切片配料: '番茄、酸黄瓜、洋葱等切片。',
+  配菜与小食: '脆口小食，也能直接叠进去。',
+  酱料: '汉堡的酸甜咸辣。',
+  调味料与酱料: '碎料、调味和抹酱。',
+  面包与基础食材: '面包顶、面包底和底层基础。',
+  汉堡配料综合: '适合直接组装的综合素材。',
+}
+
+const layerBand: Record<LayerKind, Omit<LayerLayout, 'x' | 'y' | 'z' | 'rotate' | 'opacity'>> = {
+  bunTop: { width: 88, height: 118, scaleX: 1, scaleY: 1 },
+  bunBottom: { width: 88, height: 92, scaleX: 1, scaleY: 1 },
+  base: { width: 84, height: 80, scaleX: 1, scaleY: 0.78 },
+  protein: { width: 83, height: 92, scaleX: 1, scaleY: 0.86 },
+  cheese: { width: 78, height: 68, scaleX: 1.04, scaleY: 0.62 },
+  vegetable: { width: 76, height: 62, scaleX: 1, scaleY: 0.62 },
+  sauce: { width: 70, height: 54, scaleX: 1.26, scaleY: 0.36 },
+  extra: { width: 72, height: 66, scaleX: 1, scaleY: 0.68 },
+  seasoning: { width: 56, height: 46, scaleX: 0.86, scaleY: 0.5 },
+  side: { width: 66, height: 64, scaleX: 0.92, scaleY: 0.62 },
+  other: { width: 64, height: 58, scaleX: 0.9, scaleY: 0.62 },
+}
+
+const kindStackOrder: Record<LayerKind, number> = {
+  bunBottom: 0,
+  base: 1,
+  protein: 2,
+  cheese: 3,
+  extra: 4,
+  vegetable: 5,
+  side: 6,
+  seasoning: 7,
+  sauce: 8,
+  other: 9,
+  bunTop: 10,
+}
+
+function getLayerKind(ingredient: PixelIngredient): LayerKind {
+  const { category, name } = ingredient
+
+  if (name.includes('面包顶') || name.includes('汉堡胚顶')) return 'bunTop'
+  if (name.includes('面包底') || name.includes('汉堡胚底')) return 'bunBottom'
+
+  const breadLike = /面包|汉堡胚|吐司|贝果|法棍|热狗|可颂|华夫|皮塔|薄饼/.test(name)
+  if (breadLike && !/肉饼|蛋饼|煎饼/.test(name)) return 'base'
+
+  if (/鸡蛋|煎蛋|荷包蛋|培根|火腿|香肠/.test(name)) return 'extra'
+  if (/芝士|奶酪|起司|切达|马苏里拉|美式芝士|布里|瑞士/.test(name)) return 'cheese'
+
+  if (/酱料/.test(category) || /酱|芥末|蛋黄酱|美乃滋|黄油|沙拉|莎莎|蘸/.test(name)) return 'sauce'
+
+  if (/肉类|肉饼/.test(category) || /牛肉|鸡|鱼|虾|猪|肉饼|肉排|排|鳕鱼|三文鱼|金枪鱼|豆饼|素肉|蘑菇肉饼|豆腐排/.test(name)) {
+    return 'protein'
+  }
+
+  if (/调味/.test(category) || /盐|胡椒|粉|籽|香料|调味|碎|丁|芝麻|葱花|蒜/.test(name)) return 'seasoning'
+
+  if (/蔬菜|香草|切片配料/.test(category) || /生菜|番茄|洋葱|黄瓜|辣椒|蘑菇|菇|牛油果|菠萝|橄榄|胡萝卜|卷心菜|甘蓝|萝卜|芦笋|玉米|香菜|罗勒/.test(name)) {
+    return 'vegetable'
+  }
+
+  if (/配菜|小食/.test(category) || /薯|洋葱圈|脆片|炸|球|块|圈|薯条/.test(name)) return 'side'
+
+  return 'other'
+}
+
+function decorateIngredient(ingredient: PixelIngredient): KitchenIngredient {
+  const kind = getLayerKind(ingredient)
+
+  return {
+    ...ingredient,
+    kind,
+    color: kindColors[kind],
+  }
+}
+
+const kitchenIngredients = pixelIngredients.map(decorateIngredient)
+const ingredientById = new Map(kitchenIngredients.map((ingredient) => [ingredient.id, ingredient]))
 
 const atlasGroups = Array.from(
-  pixelIngredients.reduce((map, ingredient) => {
+  kitchenIngredients.reduce((map, ingredient) => {
     const group = map.get(ingredient.category)
     if (group) {
       group.push(ingredient)
@@ -202,101 +220,185 @@ const atlasGroups = Array.from(
       map.set(ingredient.category, [ingredient])
     }
     return map
-  }, new Map<string, PixelIngredient[]>()),
+  }, new Map<string, KitchenIngredient[]>()),
 ).map(([category, items]) => ({ category, items }))
 
-function byIds(ids: string[], selected: Set<string>) {
-  return ids
-    .filter((id) => selected.has(id))
-    .map((id) => ingredientById.get(id))
-    .filter((item): item is Ingredient => Boolean(item))
+function groupIngredients(items: KitchenIngredient[]) {
+  const grouped = new Map<string, KitchenIngredient[]>()
+  items.forEach((ingredient) => {
+    const group = grouped.get(ingredient.category)
+    if (group) {
+      group.push(ingredient)
+    } else {
+      grouped.set(ingredient.category, [ingredient])
+    }
+  })
+
+  return Array.from(grouped).map(([category, groupItems]) => ({ category, items: groupItems }))
 }
 
-function getMissing(recipe: Recipe, selected: Set<string>) {
-  return recipe.required.filter((ingredientId) => !selected.has(ingredientId))
+function sortForStack(a: KitchenIngredient, b: KitchenIngredient) {
+  const byKind = kindStackOrder[a.kind] - kindStackOrder[b.kind]
+  if (byKind !== 0) return byKind
+  return a.index - b.index
 }
 
-function getIngredientName(ingredientId: string) {
-  return ingredientById.get(ingredientId)?.name ?? ingredientId
+function getKindPosition(index: number, total: number) {
+  if (total <= 1) return 0
+  return index - (total - 1) / 2
 }
 
-function getIngredientAsset(ingredient: Ingredient, role?: VisualLayer['role']) {
-  if (role === 'bottom' && ingredient.bottomAssetName) return pixelByName.get(ingredient.bottomAssetName)
-  if (ingredient.assetName) return pixelByName.get(ingredient.assetName)
-  return undefined
+function getLayerLayout(layer: KitchenIngredient, indexInKind: number, totalInKind: number, globalIndex: number, totalLayers: number): LayerLayout {
+  const base = layerBand[layer.kind]
+  const crowd = Math.max(0, totalLayers - 16)
+  const compact = Math.min(28, crowd * 1.35)
+  const kindPosition = getKindPosition(indexInKind, totalInKind)
+  const lane = globalIndex % 7
+  const wave = ((lane % 3) - 1) * 5
+  const microShift = totalLayers > 44 ? ((globalIndex % 9) - 4) * 3 : wave
+  const opacity = totalLayers > 90 ? 0.82 : totalLayers > 52 ? 0.9 : 1
+
+  if (layer.kind === 'bunTop') {
+    return {
+      ...base,
+      x: kindPosition * 8,
+      y: 30 + indexInKind * 10,
+      rotate: kindPosition * 2,
+      z: 420 + indexInKind,
+      opacity,
+    }
+  }
+
+  if (layer.kind === 'bunBottom') {
+    return {
+      ...base,
+      x: kindPosition * 8,
+      y: 288 - Math.min(indexInKind, 5) * 5,
+      rotate: kindPosition * -1.4,
+      z: 25 + indexInKind,
+      opacity,
+    }
+  }
+
+  if (layer.kind === 'base') {
+    return {
+      ...base,
+      x: kindPosition * 9,
+      y: 268 - Math.min(indexInKind, 7) * 8,
+      rotate: kindPosition * 1.6,
+      z: 45 + indexInKind,
+      opacity,
+    }
+  }
+
+  const bandY: Record<Exclude<LayerKind, 'bunTop' | 'bunBottom' | 'base'>, number> = {
+    protein: 236,
+    cheese: 202,
+    extra: 174,
+    vegetable: 150,
+    side: 166,
+    seasoning: 132,
+    sauce: 116,
+    other: 184,
+  }
+
+  const layerStep = layer.kind === 'protein' ? 18 : layer.kind === 'cheese' ? 14 : layer.kind === 'sauce' ? 10 : 12
+  const compressedStep = Math.max(4, layerStep - compact * 0.22)
+  const y = bandY[layer.kind] - kindPosition * compressedStep + Math.sin(globalIndex * 1.2) * 3
+  const width = Math.max(34, base.width - Math.max(0, totalLayers - 28) * 0.16)
+
+  return {
+    ...base,
+    width,
+    x: microShift + kindPosition * 2.5,
+    y,
+    rotate: ((globalIndex % 5) - 2) * (totalLayers > 34 ? 1.3 : 0.9),
+    z: 90 + kindStackOrder[layer.kind] * 24 + indexInKind,
+    opacity,
+  }
 }
 
 function getVisualLayers(selected: Set<string>): VisualLayer[] {
-  const bun = [...selected].map((id) => ingredientById.get(id)).find((item) => item?.category === 'bun')
-  const hasBread = bun && bun.id !== 'no-bun'
-  const topBun = hasBread ? [{ ...bun, role: 'top' as const, visualKey: `${bun.id}-top` }] : []
-  const bottomBun = hasBread ? [{ ...bun, role: 'bottom' as const, visualKey: `${bun.id}-bottom` }] : []
+  const selectedIngredients = kitchenIngredients.filter((ingredient) => selected.has(ingredient.id)).sort(sortForStack)
+  const totalsByKind = selectedIngredients.reduce((map, ingredient) => {
+    map.set(ingredient.kind, (map.get(ingredient.kind) ?? 0) + 1)
+    return map
+  }, new Map<LayerKind, number>())
+  const indexesByKind = new Map<LayerKind, number>()
 
-  const topSauces = byIds(['mayo', 'spicy-mayo', 'ketchup', 'mustard', 'bbq'], selected).slice(0, 2)
-  const vegetables = byIds(['lettuce', 'tomato', 'pickle', 'onion', 'jalapeno'], selected)
-  const extras = byIds(['egg', 'bacon', 'onion-ring'], selected)
-  const cheeses = byIds(['american-cheese', 'cheddar', 'mozzarella'], selected)
-  const proteins = byIds(['double-beef', 'beef-patty', 'fried-chicken', 'fish-fillet', 'mushroom-patty'], selected)
+  return selectedIngredients.map((ingredient, globalIndex) => {
+    const indexInKind = indexesByKind.get(ingredient.kind) ?? 0
+    indexesByKind.set(ingredient.kind, indexInKind + 1)
 
-  const layers: Array<Ingredient & Partial<Pick<VisualLayer, 'role' | 'visualKey'>>> = [
-    ...topBun,
-    ...topSauces,
-    ...vegetables,
-    ...extras,
-    ...cheeses,
-    ...proteins,
-    ...bottomBun,
-  ]
-
-  return layers.map((layer, index) => ({
-    ...layer,
-    visualKey: layer.visualKey ?? `${layer.id}-${index}`,
-    asset: getIngredientAsset(layer, layer.role),
-  }))
+    return {
+      ...ingredient,
+      visualKey: `${ingredient.id}-${globalIndex}`,
+      layout: getLayerLayout(ingredient, indexInKind, totalsByKind.get(ingredient.kind) ?? 1, globalIndex, selectedIngredients.length),
+    }
+  })
 }
 
-function getPreviewTitle(selected: Set<string>, activeRecipe: Recipe, recipeStates: Array<{ recipe: Recipe; canMake: boolean }>) {
-  const readyRecipe = recipeStates.find((item) => item.canMake)?.recipe
-  if (readyRecipe) return readyRecipe.name
-  if (selected.has('no-bun')) return '无胚自由盘'
-  return activeRecipe.name
+function getPreviewTitle(selectedItems: KitchenIngredient[]) {
+  if (selectedItems.length === 0) return '空盘待命'
+
+  const hasTop = selectedItems.some((ingredient) => ingredient.kind === 'bunTop')
+  const hasBottom = selectedItems.some((ingredient) => ingredient.kind === 'bunBottom')
+  const proteins = selectedItems.filter((ingredient) => ingredient.kind === 'protein').length
+  const sauces = selectedItems.filter((ingredient) => ingredient.kind === 'sauce').length
+
+  if (hasTop && hasBottom && proteins >= 2) return '多层自选汉堡'
+  if (hasTop && hasBottom && sauces >= 2) return '重酱像素汉堡'
+  if (hasTop && hasBottom) return '自选像素汉堡'
+  if (proteins > 0) return '开放式汉堡'
+  return '自由食材叠叠堡'
 }
 
 export default function BurgerKitchen() {
-  const [selected, setSelected] = useState(() => new Set(initialSelected))
-  const [activeRecipeId, setActiveRecipeId] = useState(recipes[0].id)
+  const [selected, setSelected] = useState(() => new Set(initialSelectedIds))
+  const [activeCategory, setActiveCategory] = useState('all')
+  const [query, setQuery] = useState('')
+  const [showSelectedOnly, setShowSelectedOnly] = useState(false)
   const [layerOffsets, setLayerOffsets] = useState<Record<string, LayerOffset>>({})
   const [layerDepths, setLayerDepths] = useState<Record<string, number>>({})
   const [dragState, setDragState] = useState<DragState | null>(null)
-  const depthCounter = useRef(100)
-  const activeRecipe = recipes.find((recipe) => recipe.id === activeRecipeId) ?? recipes[0]
+  const depthCounter = useRef(500)
 
-  const recipeStates = useMemo(
-    () =>
-      recipes.map((recipe) => {
-        const missing = getMissing(recipe, selected)
-        return {
-          recipe,
-          missing,
-          canMake: missing.length === 0,
-        }
-      }),
+  const selectedIngredients = useMemo(
+    () => kitchenIngredients.filter((ingredient) => selected.has(ingredient.id)),
     [selected],
   )
 
-  const visualLayers = useMemo(() => getVisualLayers(selected), [selected])
-  const canMakeCount = recipeStates.filter((item) => item.canMake).length
-  const previewTitle = getPreviewTitle(selected, activeRecipe, recipeStates)
-  const selectedIngredients = [...selected].map(getIngredientName).filter((name) => name !== '不要胚')
+  const visibleIngredients = useMemo(() => {
+    const needle = query.trim().toLocaleLowerCase('zh-CN')
 
-  function toggleIngredient(ingredient: Ingredient) {
+    return kitchenIngredients.filter((ingredient) => {
+      const inCategory = activeCategory === 'all' || ingredient.category === activeCategory
+      const inSearch =
+        needle.length === 0 ||
+        ingredient.name.toLocaleLowerCase('zh-CN').includes(needle) ||
+        ingredient.category.toLocaleLowerCase('zh-CN').includes(needle) ||
+        kindLabels[ingredient.kind].toLocaleLowerCase('zh-CN').includes(needle)
+      const inSelection = !showSelectedOnly || selected.has(ingredient.id)
+
+      return inCategory && inSearch && inSelection
+    })
+  }, [activeCategory, query, selected, showSelectedOnly])
+
+  const visibleGroups = useMemo(() => groupIngredients(visibleIngredients), [visibleIngredients])
+  const visualLayers = useMemo(() => getVisualLayers(selected), [selected])
+  const previewTitle = useMemo(() => getPreviewTitle(selectedIngredients), [selectedIngredients])
+  const kindCounts = useMemo(
+    () =>
+      selectedIngredients.reduce((map, ingredient) => {
+        map.set(ingredient.kind, (map.get(ingredient.kind) ?? 0) + 1)
+        return map
+      }, new Map<LayerKind, number>()),
+    [selectedIngredients],
+  )
+
+  function toggleIngredient(ingredient: KitchenIngredient) {
     setSelected((current) => {
       const next = new Set(current)
-      if (ingredient.category === 'bun') {
-        bunIds.forEach((id) => next.delete(id))
-        next.add(ingredient.id)
-        return next
-      }
       if (next.has(ingredient.id)) {
         next.delete(ingredient.id)
       } else {
@@ -306,14 +408,21 @@ export default function BurgerKitchen() {
     })
   }
 
-  function applyRecipe(recipe: Recipe) {
-    setActiveRecipeId(recipe.id)
-    setSelected(new Set([...recipe.required, ...recipe.optional]))
-    resetLayerLayout()
+  function addVisibleIngredients() {
+    setSelected((current) => {
+      const next = new Set(current)
+      visibleIngredients.forEach((ingredient) => next.add(ingredient.id))
+      return next
+    })
   }
 
   function clearBasket() {
-    setSelected(new Set(['sesame-bun']))
+    setSelected(new Set())
+    resetLayerLayout()
+  }
+
+  function applyPreset(ids: string[]) {
+    setSelected(new Set(ids.filter((id) => ingredientById.has(id))))
     resetLayerLayout()
   }
 
@@ -321,7 +430,7 @@ export default function BurgerKitchen() {
     setLayerOffsets({})
     setLayerDepths({})
     setDragState(null)
-    depthCounter.current = 100
+    depthCounter.current = 500
   }
 
   function bringLayerToFront(key: string) {
@@ -401,8 +510,8 @@ export default function BurgerKitchen() {
       return {
         ...current,
         [key]: {
-          x: Math.min(110, Math.max(-110, origin.x + delta.x)),
-          y: Math.min(110, Math.max(-110, origin.y + delta.y)),
+          x: Math.min(120, Math.max(-120, origin.x + delta.x)),
+          y: Math.min(120, Math.max(-120, origin.y + delta.y)),
         },
       }
     })
@@ -410,84 +519,130 @@ export default function BurgerKitchen() {
 
   return (
     <section className="kitchen kitchen-refined" id="basket">
-      <div className="ingredient-panel">
+      <div className="ingredient-panel full-pantry-panel">
         <div className="panel-heading refined-heading">
           <div>
             <p className="eyebrow">BUILD YOUR BURGER</p>
-            <h2>选择食材</h2>
+            <h2>全部食材</h2>
           </div>
-          <button type="button" onClick={clearBasket}>
-            重置
+          <button type="button" onClick={() => applyPreset(initialSelectedIds)}>
+            默认
           </button>
         </div>
 
-        {categories.map((category) => (
-          <div className="ingredient-group" key={category.key}>
-            <div>
-              <h3>{category.title}</h3>
-              <p>{category.hint}</p>
-            </div>
-            <div className="ingredient-chips">
-              {ingredients
-                .filter((ingredient) => ingredient.category === category.key)
-                .map((ingredient) => {
-                  const active = selected.has(ingredient.id)
-                  const asset = getIngredientAsset(ingredient)
-                  return (
-                    <button
-                      className={active ? 'ingredient-chip active' : 'ingredient-chip'}
-                      key={ingredient.id}
-                      onClick={() => toggleIngredient(ingredient)}
-                      style={{ '--chip-color': ingredient.color } as CSSProperties}
-                      type="button"
-                    >
-                      {asset ? (
+        <div className="pantry-toolbar">
+          <input
+            aria-label="搜索食材"
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="搜索食材"
+            type="search"
+            value={query}
+          />
+          <div className="pantry-actions">
+            <button aria-pressed={showSelectedOnly} className={showSelectedOnly ? 'active' : ''} onClick={() => setShowSelectedOnly((current) => !current)} type="button">
+              已选
+            </button>
+            <button onClick={addVisibleIngredients} type="button">
+              加入当前
+            </button>
+            <button onClick={clearBasket} type="button">
+              清空
+            </button>
+          </div>
+        </div>
+
+        <div className="category-filter" aria-label="食材分类">
+          <button aria-pressed={activeCategory === 'all'} className={activeCategory === 'all' ? 'active' : ''} onClick={() => setActiveCategory('all')} type="button">
+            全部
+            <span>{kitchenIngredients.length}</span>
+          </button>
+          {atlasGroups.map((group) => (
+            <button
+              aria-pressed={activeCategory === group.category}
+              className={activeCategory === group.category ? 'active' : ''}
+              key={group.category}
+              onClick={() => setActiveCategory(group.category)}
+              type="button"
+            >
+              {group.category}
+              <span>{group.items.length}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="pantry-count-row">
+          <span>显示 {visibleIngredients.length} 种</span>
+          <span>已放入 {selectedIngredients.length} 种</span>
+        </div>
+
+        <div className="all-ingredient-groups">
+          {visibleGroups.length === 0 ? (
+            <p className="empty-stack empty-pantry">没有找到这个食材。</p>
+          ) : (
+            visibleGroups.map((group) => (
+              <section className="ingredient-group ingredient-group-full" key={group.category}>
+                <div className="ingredient-group-heading">
+                  <h3>{group.category}</h3>
+                  <p>{categoryHints[group.category] ?? '来自食材贴图表的可用素材。'}</p>
+                  <span>{group.items.length}</span>
+                </div>
+                <div className="ingredient-chips all-ingredient-grid">
+                  {group.items.map((ingredient) => {
+                    const active = selected.has(ingredient.id)
+                    return (
+                      <button
+                        aria-pressed={active}
+                        className={active ? 'ingredient-chip active' : 'ingredient-chip'}
+                        key={ingredient.id}
+                        onClick={() => toggleIngredient(ingredient)}
+                        style={{ '--chip-color': ingredient.color } as CSSProperties}
+                        title={`${ingredient.name} / ${kindLabels[ingredient.kind]}`}
+                        type="button"
+                      >
                         <Image
                           alt=""
                           aria-hidden="true"
                           className="ingredient-chip-art"
                           height={52}
-                          src={asset.image}
+                          src={ingredient.image}
                           unoptimized
                           width={72}
                         />
-                      ) : (
-                        <span className="ingredient-color-dot" />
-                      )}
-                      <span className="ingredient-chip-label">{ingredient.name}</span>
-                    </button>
-                  )
-                })}
-            </div>
-          </div>
-        ))}
+                        <span className="ingredient-chip-label">{ingredient.name}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </section>
+            ))
+          )}
+        </div>
       </div>
 
       <aside className="burger-preview" aria-label="当前汉堡预览">
         <div className="preview-card refined-preview-card">
           <p className="eyebrow">FRESHLY BUILT</p>
           <h2>{previewTitle}</h2>
-          <div className={selected.has('no-bun') ? 'dish-stage no-bun-stage' : 'dish-stage'}>
+          <div className={visualLayers.length > 42 ? 'dish-stage crowded-stage' : 'dish-stage'}>
             <div className="stage-toolbar">
-              <span>拖动食材，自由叠放</span>
+              <span>{visualLayers.length} 层</span>
               <button type="button" onClick={resetLayerLayout}>
                 恢复整齐
               </button>
             </div>
             <div className="plate-glow" />
-            {visualLayers.length <= 1 ? (
-              <p className="empty-stack">再加肉饼、蔬菜和酱料，汉堡就会变得好吃。</p>
+            {visualLayers.length === 0 ? (
+              <p className="empty-stack">先放入食材。</p>
             ) : (
-              <div className="crafted-burger" aria-label="可自由拖动食材的汉堡工作区">
+              <div className="crafted-burger" aria-label="可拖动食材的汉堡工作区">
                 {visualLayers.map((layer, index) => {
                   const offset = layerOffsets[layer.visualKey] ?? { x: 0, y: 0 }
-                  const roleName = layer.role === 'top' ? '上层' : layer.role === 'bottom' ? '下层' : ''
                   const isDragging = dragState?.key === layer.visualKey
 
                   return (
                     <div
-                      aria-label={`拖动${roleName}${layer.name}`}
-                      className={`visual-layer draggable-layer ${isDragging ? 'is-dragging' : ''} ${layer.asset ? 'has-sprite' : ''} visual-${layer.category} visual-${layer.id} ${layer.role ? `visual-${layer.role}` : ''}`}
+                      aria-label={`拖动${layer.name}`}
+                      className={`visual-layer draggable-layer has-sprite visual-kind-${kindClassNames[layer.kind]} ${isDragging ? 'is-dragging' : ''}`}
                       key={layer.visualKey}
                       onKeyDown={(event) => nudgeLayer(event, layer.visualKey)}
                       onPointerCancel={(event) => finishLayerDrag(event, layer.visualKey)}
@@ -498,28 +653,32 @@ export default function BurgerKitchen() {
                       style={
                         {
                           '--layer-color': layer.color,
-                          '--delay': `${index * 38}ms`,
+                          '--delay': `${Math.min(index * 18, 560)}ms`,
                           '--drag-x': `${offset.x}px`,
                           '--drag-y': `${offset.y}px`,
-                          zIndex: layerDepths[layer.visualKey],
+                          '--layer-x': `${layer.layout.x}px`,
+                          '--layer-y': `${layer.layout.y}px`,
+                          '--layer-width': `${layer.layout.width}%`,
+                          '--layer-height': `${layer.layout.height}px`,
+                          '--layer-scale-x': layer.layout.scaleX,
+                          '--layer-scale-y': layer.layout.scaleY,
+                          '--layer-rotate': `${layer.layout.rotate}deg`,
+                          '--layer-opacity': layer.layout.opacity,
+                          zIndex: layerDepths[layer.visualKey] ?? layer.layout.z,
                         } as CSSProperties
                       }
                       tabIndex={0}
                     >
-                      {layer.asset ? (
-                        <Image
-                          alt=""
-                          aria-hidden="true"
-                          className="sprite-layer-image"
-                          draggable={false}
-                          height={130}
-                          src={layer.asset.image}
-                          unoptimized
-                          width={280}
-                        />
-                      ) : layer.category === 'bun' && layer.role === 'top' && layer.id !== 'lettuce-wrap' ? (
-                        <span className="sesame-dots" />
-                      ) : null}
+                      <Image
+                        alt=""
+                        aria-hidden="true"
+                        className="sprite-layer-image"
+                        draggable={false}
+                        height={130}
+                        src={layer.image}
+                        unoptimized
+                        width={280}
+                      />
                     </div>
                   )
                 })}
@@ -528,53 +687,41 @@ export default function BurgerKitchen() {
           </div>
           <div className="preview-meta">
             <p>
-              已选择 <strong>{selectedIngredients.length}</strong> 种材料，可直接做 <strong>{canMakeCount}</strong> 款汉堡。
+              已放入 <strong>{selectedIngredients.length}</strong> 种食材，当前 <strong>{visualLayers.length}</strong> 层都可以拖动。
             </p>
             <div className="selected-mini-list">
-              {selectedIngredients.slice(0, 8).map((name) => (
-                <span key={name}>{name}</span>
+              {selectedIngredients.slice(0, 16).map((ingredient) => (
+                <span key={ingredient.id}>{ingredient.name}</span>
               ))}
+              {selectedIngredients.length > 16 ? <span>+{selectedIngredients.length - 16}</span> : null}
             </div>
           </div>
         </div>
       </aside>
 
-      <div className="recipes" id="recipes">
+      <div className="recipes build-summary" id="recipes">
         <div className="panel-heading refined-heading">
           <div>
-            <p className="eyebrow">CAN I COOK?</p>
-            <h2>可制作配方</h2>
+            <p className="eyebrow">QUICK BUILDS</p>
+            <h2>搭配面板</h2>
           </div>
-          <span>{canMakeCount} / {recipes.length} 可做</span>
+          <span>{selectedIngredients.length} / {kitchenIngredients.length}</span>
         </div>
 
-        <div className="recipe-grid">
-          {recipeStates.map(({ recipe, missing, canMake }) => (
-            <article className={recipe.id === activeRecipe.id ? 'recipe-card active' : 'recipe-card'} key={recipe.id}>
-              <div className="recipe-card-top">
-                <p>{recipe.badge}</p>
-                <span>{canMake ? '可制作' : `缺 ${missing.length} 个`}</span>
-              </div>
-              <h3>{recipe.name}</h3>
-              <div className="taste-list">
-                {recipe.taste.map((taste) => (
-                  <span key={taste}>{taste}</span>
-                ))}
-              </div>
-              {missing.length > 0 ? (
-                <p className="missing">还缺：{missing.map(getIngredientName).join('、')}</p>
-              ) : (
-                <p className="missing ready">材料齐了，可以开做。</p>
-              )}
-              <ol>
-                {recipe.steps.map((step) => (
-                  <li key={step}>{step}</li>
-                ))}
-              </ol>
-              <button type="button" onClick={() => applyRecipe(recipe)}>
-                按这个组装
-              </button>
-            </article>
+        <div className="preset-row" aria-label="快捷搭配">
+          {presets.map((preset) => (
+            <button key={preset.id} onClick={() => applyPreset(preset.ids)} type="button">
+              {preset.name}
+            </button>
+          ))}
+        </div>
+
+        <div className="kind-summary-grid">
+          {(Object.keys(kindLabels) as LayerKind[]).map((kind) => (
+            <div className="kind-summary-card" key={kind} style={{ '--chip-color': kindColors[kind] } as CSSProperties}>
+              <span>{kindLabels[kind]}</span>
+              <strong>{kindCounts.get(kind) ?? 0}</strong>
+            </div>
           ))}
         </div>
       </div>
@@ -589,7 +736,7 @@ export default function BurgerKitchen() {
         </div>
 
         <p className="atlas-intro">
-          按食材贴图表.xlsx 的行顺序导入，名称与图片逐行对应。每个素材都保留透明背景，后续可以继续拿来做配方、菜单和动画。
+          按食材贴图表.xlsx 的行顺序导入，名称与图片逐行对应。每个素材都保留透明背景，可用于汉堡组装、食材图鉴和创意配方。
         </p>
 
         {atlasGroups.map((group) => (
@@ -607,9 +754,7 @@ export default function BurgerKitchen() {
                   <div>
                     <h4>{item.name}</h4>
                     <p>{item.description}</p>
-                    <span>
-                      #{item.index}
-                    </span>
+                    <span>#{item.index}</span>
                   </div>
                 </article>
               ))}
