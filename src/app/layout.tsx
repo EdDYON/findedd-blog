@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next'
+import SiteLoader from './SiteLoader'
 import './globals.css'
+import './site-loader.css'
 
 export const metadata: Metadata = {
   title: '汉堡',
@@ -17,7 +19,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body>
+        <SiteLoader />
+        {children}
+      </body>
     </html>
   )
 }
