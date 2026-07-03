@@ -56,8 +56,8 @@ const tickerItems = [
 
 function BurgerVisual() {
   return (
-    <div className="burger-frame shop-burger-frame" aria-label="find burger 硬蜡笔汉堡主视觉">
-      <div className="burger-sign-ribbon">find burger</div>
+    <div className="burger-frame shop-burger-frame" aria-label="Find Burger 硬蜡笔汉堡主视觉">
+      <div className="burger-sign-ribbon">Find Burger</div>
       <svg className="burger-svg shop-burger-svg" viewBox="0 0 560 430" role="img">
         <title>硬蜡笔风格汉堡</title>
         <defs>
@@ -167,8 +167,8 @@ export default function Home() {
       <section className="hero sign-hero" id="top">
         <div className="grain sign-grain" />
         <nav className="topbar sign-topbar">
-          <Link className="brand sign-brand" href="#top" aria-label="find burger 首页">
-            find burger
+          <Link className="brand sign-brand" href="#top" aria-label="Find Burger 首页">
+            Find Burger
           </Link>
           <div className="nav-links">
             <a href="#menu">菜单</a>
@@ -179,9 +179,9 @@ export default function Home() {
         <div className="hero-grid sign-board">
           <div className="hero-copy sign-copy">
             <p className="eyebrow">HARD CRAYON BURGER SHOP</p>
-            <h1 aria-label="find burger">
-              <span>find</span>
-              <span>burger</span>
+            <h1 aria-label="Find Burger">
+              <span>Find</span>
+              <span>Burger</span>
             </h1>
             <p className="lead">
               一家画在红色蜡笔纸上的汉堡小店。先挑一张票据，再把喜欢的食材丢进厨房。
@@ -200,7 +200,7 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="ticker ticker-conveyor" aria-label="find burger 传送带">
+      <div className="ticker ticker-conveyor" aria-label="Find Burger 传送带">
         <div className="ticker-track">
           {[...tickerItems, ...tickerItems].map((item, index) => (
             <span key={`${item}-${index}`}>{item}</span>

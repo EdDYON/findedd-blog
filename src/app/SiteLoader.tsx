@@ -84,7 +84,7 @@ const brandBands = [
   'FIND BURGER   OPEN KITCHEN   HARD CRAYON',
 ]
 
-const logoLetters = Array.from('find burger')
+const logoLetters = Array.from('Find Burger')
 const loaderToggleId = 'find-burger-loader-toggle'
 
 export default function SiteLoader() {
