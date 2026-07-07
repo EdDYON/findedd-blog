@@ -1,8 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
 const menuItems = [
   {
@@ -126,9 +125,7 @@ function BurgerVisual() {
 }
 
 export default function Home() {
-  const router = useRouter()
   const [activeCard, setActiveCard] = useState<string | null>(null)
-  const [isEntering, setIsEntering] = useState(false)
   const popTimer = useRef<number | null>(null)
 
   useEffect(() => {
@@ -151,19 +148,8 @@ export default function Home() {
     }, 1050)
   }
 
-  function enterKitchen(event: MouseEvent<HTMLAnchorElement>) {
-    event.preventDefault()
-
-    if (isEntering) {
-      return
-    }
-
-    setIsEntering(true)
-    window.setTimeout(() => router.push('/cook'), 680)
-  }
-
   return (
-    <main className={`site-shell home-shop-shell ${isEntering ? 'is-entering-kitchen' : ''}`}>
+    <main className="site-shell home-shop-shell">
       <section className="hero sign-hero" id="top">
         <div className="grain sign-grain" />
         <nav className="topbar sign-topbar">
@@ -172,7 +158,6 @@ export default function Home() {
           </Link>
           <div className="nav-links">
             <a href="#menu">菜单</a>
-            <Link href="/cook">厨房</Link>
           </div>
         </nav>
 
@@ -184,10 +169,10 @@ export default function Home() {
               <span>Burger</span>
             </h1>
             <p className="lead">
-              一家画在红色蜡笔纸上的汉堡小店。先挑一张票据，再把喜欢的食材丢进厨房。
+              一家画在红色蜡笔纸上的汉堡小店。先挑一张票据，再慢慢看喜欢的汉堡灵感。
             </p>
             <div className="hero-actions">
-              <a className="button button-red shop-button" href="/cook" onClick={enterKitchen}>
+              <a className="button button-red shop-button" href="#menu">
                 开饭
               </a>
               <a className="button button-light shop-button" href="#menu">
@@ -254,14 +239,6 @@ export default function Home() {
         </div>
       </section>
 
-      {isEntering ? (
-        <div className="kitchen-crayon-transition" aria-hidden="true">
-          <span>开饭</span>
-          <i />
-          <i />
-          <i />
-        </div>
-      ) : null}
     </main>
   )
 }

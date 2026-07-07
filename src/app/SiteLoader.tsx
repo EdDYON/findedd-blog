@@ -58,7 +58,7 @@ const layers: LoaderLayer[] = [
 ]
 
 const messages = [
-  '正在预热汉堡厨房...',
+  '正在预热汉堡小店...',
   '放稳芝麻面包底...',
   '煎一块滋滋作响的牛肉饼...',
   '盖上融化的切达芝士...',
@@ -77,11 +77,11 @@ const burstVectors = [
 ]
 
 const brandBands = [
-  'FIND BURGER   OPEN KITCHEN   HAND DRAWN BURGERS',
+  'FIND BURGER   OPEN SHOP   HAND DRAWN BURGERS',
   'CHEESE   SAUCE   PATTY   LETTUCE   TOMATO',
   'FIND BURGER   HOT GRILL   CRAYON SHOP',
   'ORDER UP   BURGER LAB   FRESH STACK',
-  'FIND BURGER   OPEN KITCHEN   HARD CRAYON',
+  'FIND BURGER   OPEN SHOP   HARD CRAYON',
 ]
 
 const logoLetters = Array.from('Find Burger')
