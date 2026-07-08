@@ -77,14 +77,14 @@ const burstVectors = [
 ]
 
 const brandBands = [
-  'FIND BURGER   OPEN SHOP   HAND DRAWN BURGERS',
+  '汉堡   OPEN SHOP   HAND DRAWN BURGERS',
   'CHEESE   SAUCE   PATTY   LETTUCE   TOMATO',
-  'FIND BURGER   HOT GRILL   CRAYON SHOP',
+  '汉堡   HOT GRILL   CRAYON SHOP',
   'ORDER UP   BURGER LAB   FRESH STACK',
-  'FIND BURGER   OPEN SHOP   HARD CRAYON',
+  '汉堡   OPEN SHOP   HARD CRAYON',
 ]
 
-const logoLetters = Array.from('Find Burger')
+const logoLetters = Array.from('汉堡')
 const loaderToggleId = 'find-burger-loader-toggle'
 
 function LoaderStickers() {
@@ -311,7 +311,7 @@ export default function SiteLoader() {
   return (
     <div
       className={`site-loader ${isReady ? 'is-ready' : ''} ${isExiting ? 'is-exiting' : ''}`}
-      aria-label="find burger 开场动画"
+      aria-label="汉堡 开场动画"
       aria-modal="true"
       role="dialog"
     >
@@ -328,7 +328,7 @@ export default function SiteLoader() {
       </div>
       <LoaderStickers />
       <input
-        aria-label="进入 find burger"
+        aria-label="进入 汉堡"
         className="site-loader-toggle"
         id={loaderToggleId}
         onChange={enterFromToggle}
@@ -336,7 +336,7 @@ export default function SiteLoader() {
       />
 
       <div className="site-loader-content">
-        <div className="site-loader-logo" aria-label="find burger">
+        <div className="site-loader-logo" aria-label="汉堡">
           {logoLetters.map((letter, index) => (
             <span
               aria-hidden="true"
@@ -356,7 +356,7 @@ export default function SiteLoader() {
         </div>
 
         <label
-          aria-label={isReady ? '进入 find burger' : 'find burger 汉堡正在组装'}
+          aria-label={isReady ? '进入 汉堡' : '汉堡正在组装'}
           className="site-loader-stage"
           htmlFor={loaderToggleId}
           onKeyDown={enterFromKeyboard}
@@ -415,7 +415,7 @@ export default function SiteLoader() {
           </div>
 
           <label
-            aria-label="开饭，进入 Find Burger"
+            aria-label="开饭，进入 汉堡"
             className="site-loader-enter"
             htmlFor={loaderToggleId}
             onKeyDown={enterFromKeyboard}
