@@ -783,20 +783,19 @@ h1 {
 
 /* Find Burger shop sign home */
 .home-shop-shell {
-  background: #f71918;
+  background: #f7e7cc;
   color: var(--ink);
 }
 
 .sign-hero {
   isolation: isolate;
   display: grid;
-  min-height: 100svh;
-  padding: 26px clamp(18px, 4vw, 64px) 0;
+  height: min(820px, calc(100svh - 58px));
+  min-height: 680px;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: 22px clamp(20px, 4vw, 64px) 0;
   overflow: hidden;
-  background:
-    repeating-linear-gradient(0deg, rgba(40, 17, 9, 0.08) 0 2px, transparent 2px 28px),
-    repeating-linear-gradient(90deg, rgba(40, 17, 9, 0.07) 0 2px, transparent 2px 28px),
-    #f71918;
+  background: #e93a2f;
 }
 
 .sign-hero::before,
@@ -808,14 +807,14 @@ h1 {
 }
 
 .sign-hero::before {
-  inset: 74px auto auto 6%;
-  width: 220px;
-  height: 30px;
-  border: 4px solid rgba(255, 248, 234, 0.75);
-  border-right: 0;
-  border-left: 0;
-  transform: rotate(-4deg);
-  opacity: 0.62;
+  top: 42%;
+  left: -8%;
+  width: 116%;
+  height: 132px;
+  border-block: 5px solid var(--ink);
+  background: #c92f28;
+  transform: rotate(-7deg);
+  opacity: 0.72;
 }
 
 .sign-hero::after {
@@ -828,7 +827,7 @@ h1 {
 }
 
 .sign-grain {
-  opacity: 0.16;
+  opacity: 0.11;
   background-image:
     linear-gradient(rgba(255, 248, 234, 0.42) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 248, 234, 0.38) 1px, transparent 1px);
@@ -838,16 +837,20 @@ h1 {
 .sign-topbar {
   z-index: 5;
   align-self: start;
+  width: min(1320px, 100%);
+  margin: 0 auto;
 }
 
 .sign-brand {
-  border-color: rgba(255, 248, 234, 0.92);
-  border-radius: 8px;
-  background: transparent;
-  color: #fff8ea;
+  min-height: 48px;
+  border-color: var(--ink);
+  border-radius: 6px;
+  background: var(--yellow);
+  color: var(--ink);
+  letter-spacing: 0;
   text-transform: none;
   transform: rotate(-1deg);
-  box-shadow: 5px 5px 0 rgba(40, 17, 9, 0.34);
+  box-shadow: 5px 5px 0 var(--ink);
 }
 
 .sign-brand::before {
@@ -855,15 +858,15 @@ h1 {
 }
 
 .sign-topbar .nav-links {
-  border-color: rgba(40, 17, 9, 0.85);
-  border-radius: 8px;
+  border-color: var(--ink);
+  border-radius: 6px;
   background: #fff8ea;
-  box-shadow: 5px 5px 0 rgba(40, 17, 9, 0.72);
+  box-shadow: 5px 5px 0 var(--ink);
   backdrop-filter: none;
 }
 
 .sign-topbar .nav-links a {
-  border-radius: 6px;
+  border-radius: 3px;
 }
 
 .sign-board {
@@ -871,53 +874,48 @@ h1 {
   z-index: 2;
   align-self: stretch;
   display: grid;
-  grid-template-columns: minmax(290px, 0.86fr) minmax(390px, 1.14fr);
+  grid-template-columns: minmax(390px, 0.86fr) minmax(500px, 1.14fr);
   align-items: center;
-  width: min(1240px, 100%);
-  min-height: calc(100svh - 88px);
+  width: min(1320px, 100%);
+  min-height: 0;
+  height: 100%;
   margin: 0 auto;
-  gap: 28px;
+  gap: 36px;
 }
 
 .sign-copy {
   position: relative;
   z-index: 3;
-  max-width: 480px;
+  max-width: 610px;
   color: #fff8ea;
-  transform: rotate(-2deg);
+  transform: rotate(-1deg);
 }
 
 .sign-copy::before {
-  position: absolute;
-  inset: -18px -22px auto auto;
-  width: 112px;
-  height: 76px;
-  border: 4px solid rgba(255, 248, 234, 0.8);
-  border-radius: 8px;
-  transform: rotate(10deg);
-  opacity: 0.5;
-  content: '';
+  display: none;
 }
 
 .sign-copy .eyebrow {
   display: inline-flex;
-  margin: 0 0 20px;
+  margin: 0 0 24px;
   border: 3px solid #fff8ea;
-  border-radius: 8px;
-  background: rgba(40, 17, 9, 0.2);
-  padding: 9px 13px;
+  border-radius: 5px;
+  background: var(--ink);
+  padding: 8px 12px;
   color: #fff8ea;
   font-size: 0.88rem;
+  letter-spacing: 0;
   text-shadow: 2px 2px 0 rgba(40, 17, 9, 0.42);
 }
 
 .sign-copy h1 {
-  display: grid;
-  max-width: 8ch;
+  display: block;
+  max-width: none;
   margin: 0;
   color: #fff8ea;
-  font-size: 7.2rem;
-  line-height: 0.78;
+  font-size: 9rem;
+  line-height: 0.84;
+  letter-spacing: 0;
   text-transform: none;
   text-shadow:
     5px 5px 0 #ffc329,
@@ -926,30 +924,58 @@ h1 {
 }
 
 .sign-copy h1 span:last-child {
-  margin-left: 0.42em;
-  transform: rotate(2deg);
+  margin-left: 0;
+  transform: none;
 }
 
 .sign-copy .lead {
-  max-width: 34rem;
-  margin: 26px 0 0;
+  width: max-content;
+  max-width: 100%;
+  margin: 28px 0 0;
+  border-bottom: 4px solid var(--yellow);
+  padding-bottom: 6px;
   color: #fff8ea;
-  font-size: 1.08rem;
-  line-height: 1.65;
+  font-size: 1.24rem;
+  line-height: 1.3;
   text-shadow: 2px 2px 0 rgba(40, 17, 9, 0.34);
 }
 
 .sign-copy .hero-actions {
   display: flex;
   flex-wrap: wrap;
-  margin-top: 30px;
+  margin-top: 32px;
   gap: 14px;
+}
+
+.hero-shop-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 28px;
+  color: rgba(255, 248, 234, 0.82);
+  font-size: 0.76rem;
+  font-weight: 950;
+}
+
+.hero-shop-meta span {
+  position: relative;
+}
+
+.hero-shop-meta span + span::before {
+  position: absolute;
+  top: 50%;
+  left: -12px;
+  width: 5px;
+  height: 5px;
+  background: var(--yellow);
+  content: '';
+  transform: translateY(-50%) rotate(45deg);
 }
 
 .shop-button {
   min-width: 132px;
   min-height: 56px;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 1.08rem;
   transform: rotate(-1deg);
   transition:
@@ -986,8 +1012,8 @@ h1 {
 
 .shop-burger-frame {
   justify-self: center;
-  width: min(620px, 100%);
-  min-height: 540px;
+  width: min(720px, 108%);
+  min-height: 560px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -998,14 +1024,14 @@ h1 {
 .burger-sign-ribbon {
   position: absolute;
   z-index: 4;
-  top: 32px;
+  top: 38px;
   left: 50%;
   border: 4px solid #fff8ea;
-  border-radius: 8px;
-  background: rgba(40, 17, 9, 0.18);
-  padding: 12px 22px;
+  border-radius: 5px;
+  background: var(--ink);
+  padding: 10px 18px;
   color: #fff8ea;
-  font-size: 1.35rem;
+  font-size: 1rem;
   line-height: 1;
   text-transform: none;
   transform: translateX(-50%) rotate(-4deg);
@@ -1018,9 +1044,9 @@ h1 {
 .shop-burger-svg {
   width: 100%;
   height: auto;
-  margin-top: 72px;
+  margin-top: 56px;
   overflow: visible;
-  animation: shop-burger-float 3.2s ease-in-out infinite;
+  animation: shop-burger-float 5.2s ease-in-out infinite;
 }
 
 .shop-burger-svg .burger-ground {
@@ -1404,6 +1430,196 @@ h1 {
   animation: layer-pop 620ms cubic-bezier(0.2, 1.45, 0.35, 1) var(--layer-delay) both;
 }
 
+.diner-menu {
+  scroll-margin-top: 0;
+  padding: 86px clamp(20px, 5vw, 76px) 108px;
+  border-bottom: 5px solid var(--ink);
+  background-color: #f7e7cc;
+  background-image:
+    linear-gradient(rgba(64, 31, 18, 0.05) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(64, 31, 18, 0.05) 2px, transparent 2px);
+  background-size: 34px 34px;
+}
+
+.diner-menu-head {
+  display: flex;
+  width: min(1240px, 100%);
+  align-items: end;
+  justify-content: space-between;
+  gap: 30px;
+  margin: 0 auto 38px;
+}
+
+.diner-menu-head .eyebrow {
+  margin: 0;
+  color: var(--red);
+  letter-spacing: 0;
+}
+
+.diner-menu-head h2 {
+  margin: 10px 0 0;
+  font-size: 4.6rem;
+  line-height: 0.92;
+  text-shadow: 4px 4px 0 var(--yellow), 7px 7px 0 rgba(233, 58, 47, 0.78);
+}
+
+.diner-menu-all {
+  display: inline-flex;
+  min-height: 52px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 17px;
+  border: 3px solid var(--ink);
+  border-radius: 5px;
+  background: var(--yellow);
+  box-shadow: 5px 5px 0 var(--ink);
+  font-size: 0.9rem;
+  font-weight: 950;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.diner-menu-all:hover {
+  box-shadow: 2px 2px 0 var(--ink);
+  transform: translate(3px, 3px);
+}
+
+.diner-menu-list {
+  width: min(1240px, 100%);
+  margin: 0 auto;
+  border-top: 5px solid var(--ink);
+}
+
+.diner-menu-row {
+  --menu-accent: var(--yellow);
+  position: relative;
+  display: grid;
+  min-height: 166px;
+  grid-template-columns: 118px minmax(320px, 1fr) minmax(220px, 0.72fr) 132px;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 18px;
+  border-bottom: 4px solid var(--ink);
+  background: rgba(255, 248, 234, 0.78);
+  transition: background 180ms ease, padding 180ms ease;
+}
+
+.diner-menu-row:nth-child(even) {
+  background: rgba(255, 225, 166, 0.72);
+}
+
+.diner-menu-row:hover,
+.diner-menu-row:focus-visible {
+  z-index: 2;
+  padding-inline: 28px 14px;
+  outline: 0;
+  background: var(--menu-accent);
+}
+
+.diner-menu-row:focus-visible {
+  box-shadow: inset 0 0 0 5px var(--red);
+}
+
+.diner-menu-number {
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  border-right: 3px dashed rgba(40, 17, 9, 0.42);
+  color: var(--red);
+  font-size: 0.86rem;
+  font-weight: 950;
+}
+
+.diner-menu-copy {
+  min-width: 0;
+}
+
+.diner-menu-copy > span {
+  display: inline-block;
+  color: var(--red);
+  font-size: 0.72rem;
+  font-weight: 950;
+}
+
+.diner-menu-copy h3 {
+  margin: 7px 0 0;
+  font-size: 2rem;
+  line-height: 1.08;
+}
+
+.diner-menu-copy p {
+  margin: 6px 0 0;
+  color: rgba(40, 17, 9, 0.58);
+  font-size: 0.78rem;
+  font-weight: 950;
+}
+
+.diner-menu-copy small {
+  display: block;
+  margin-top: 12px;
+  color: rgba(40, 17, 9, 0.75);
+  font-size: 0.8rem;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.diner-menu-layers {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.diner-menu-layers > span {
+  display: block;
+  width: 100%;
+  height: 13px;
+  border: 2px solid var(--ink);
+  box-shadow: 2px 2px 0 rgba(40, 17, 9, 0.18);
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.diner-menu-layers > span:nth-child(2) {
+  width: 88%;
+  margin-left: auto;
+}
+
+.diner-menu-layers > span:nth-child(3) {
+  width: 94%;
+}
+
+.diner-menu-layers > span:nth-child(4) {
+  width: 82%;
+  margin-left: auto;
+}
+
+.diner-menu-row:hover .diner-menu-layers > span:nth-child(odd),
+.diner-menu-row:focus-visible .diner-menu-layers > span:nth-child(odd) {
+  transform: translateX(-10px);
+}
+
+.diner-menu-row:hover .diner-menu-layers > span:nth-child(even),
+.diner-menu-row:focus-visible .diner-menu-layers > span:nth-child(even) {
+  transform: translateX(10px);
+}
+
+.diner-menu-open {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  color: var(--red);
+  font-size: 0.75rem;
+  font-weight: 950;
+}
+
+.diner-menu-open svg {
+  transition: transform 180ms ease;
+}
+
+.diner-menu-row:hover .diner-menu-open svg,
+.diner-menu-row:focus-visible .diner-menu-open svg {
+  transform: translate(4px, -4px) rotate(5deg);
+}
+
 @keyframes shop-burger-float {
   0%,
   100% {
@@ -1411,7 +1627,7 @@ h1 {
   }
 
   50% {
-    transform: translateY(-12px) rotate(-1deg);
+    transform: translateY(-5px) rotate(-0.5deg);
   }
 }
 
@@ -1468,11 +1684,17 @@ h1 {
 }
 
 @media (max-width: 1040px) {
+  .sign-hero {
+    height: auto;
+    min-height: 0;
+  }
+
   .sign-board {
     grid-template-columns: 1fr;
     align-content: center;
-    min-height: calc(100svh - 84px);
-    padding: 34px 0 92px;
+    min-height: 0;
+    height: auto;
+    padding: 58px 0 84px;
   }
 
   .sign-copy {
@@ -1484,7 +1706,7 @@ h1 {
   .sign-copy h1 {
     justify-items: center;
     max-width: none;
-    font-size: 5.8rem;
+    font-size: 6.4rem;
   }
 
   .sign-copy h1 span:last-child {
@@ -1498,8 +1720,18 @@ h1 {
   }
 
   .shop-burger-frame {
-    min-height: 420px;
-    margin-top: -42px;
+    width: min(620px, 96%);
+    min-height: 460px;
+    margin-top: -24px;
+  }
+
+  .diner-menu-row {
+    grid-template-columns: 96px minmax(280px, 1fr) minmax(180px, 0.65fr) 44px;
+    gap: 18px;
+  }
+
+  .diner-menu-open {
+    font-size: 0;
   }
 
   .menu-ticket-grid {
@@ -1517,6 +1749,9 @@ h1 {
 
 @media (max-width: 640px) {
   .sign-hero {
+    height: 780px;
+    min-height: 780px;
+    grid-template-rows: auto minmax(0, 1fr);
     padding: 18px 16px 0;
   }
 
@@ -1539,8 +1774,19 @@ h1 {
   }
 
   .sign-board {
-    padding-top: 18px;
-    gap: 0;
+    position: relative;
+    display: block;
+    height: 100%;
+    padding: 42px 0 0;
+  }
+
+  .sign-copy {
+    position: absolute;
+    top: 42px;
+    left: 0;
+    max-width: 100%;
+    margin: 0;
+    text-align: left;
   }
 
   .sign-copy .eyebrow {
@@ -1548,25 +1794,45 @@ h1 {
   }
 
   .sign-copy h1 {
-    font-size: 3.7rem;
+    font-size: 4.4rem;
   }
 
   .sign-copy .lead {
+    margin-inline: 0;
     font-size: 0.98rem;
   }
 
+  .sign-copy .hero-actions {
+    align-items: center;
+    flex-direction: row;
+    justify-content: flex-start;
+    margin-inline: 0;
+  }
+
+  .hero-shop-meta {
+    display: none;
+  }
+
   .shop-button {
-    flex: 1 1 130px;
+    width: auto;
+    flex: 0 0 auto;
   }
 
   .shop-burger-frame {
-    width: min(410px, 112%);
+    position: absolute;
+    right: -44px;
+    bottom: -2px;
+    width: 440px;
     min-height: 330px;
+    margin: 0;
   }
 
   .burger-sign-ribbon {
-    top: 22px;
-    font-size: 1rem;
+    display: none;
+  }
+
+  .shop-burger-svg {
+    margin-top: 0;
   }
 
   .burger-sticker {
@@ -1591,6 +1857,65 @@ h1 {
 
   .menu-ticket {
     min-height: 252px;
+  }
+
+  .diner-menu {
+    padding: 64px 16px 76px;
+  }
+
+  .diner-menu-head {
+    display: grid;
+    align-items: start;
+    margin-bottom: 28px;
+  }
+
+  .diner-menu-head h2 {
+    font-size: 3.2rem;
+  }
+
+  .diner-menu-all {
+    width: max-content;
+  }
+
+  .diner-menu-row {
+    min-height: 194px;
+    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 14px;
+    padding: 18px 10px;
+  }
+
+  .diner-menu-row:hover,
+  .diner-menu-row:focus-visible {
+    padding-inline: 14px 8px;
+  }
+
+  .diner-menu-copy h3 {
+    padding-right: 34px;
+    font-size: 1.55rem;
+  }
+
+  .diner-menu-copy small {
+    font-size: 0.74rem;
+  }
+
+  .diner-menu-layers {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    padding-left: 76px;
+  }
+
+  .diner-menu-layers > span,
+  .diner-menu-layers > span:nth-child(n) {
+    width: 100%;
+    height: 12px;
+    margin: 0;
+  }
+
+  .diner-menu-open {
+    position: absolute;
+    top: 28px;
+    right: 14px;
   }
 
 }

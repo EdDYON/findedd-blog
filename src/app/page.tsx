@@ -1,44 +1,43 @@
-'use client'
-
 import Link from 'next/link'
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { ArrowUpRight } from 'lucide-react'
+import type { CSSProperties } from 'react'
 
 const menuItems = [
   {
-    id: 'classic',
+    id: 'classic-cheeseburger',
     ticket: '001',
     stamp: 'HOUSE',
-    name: '经典牛肉',
+    name: '经典芝士牛肉堡',
+    englishName: 'CLASSIC CHEESEBURGER',
     note: '牛肉饼 / 切达 / 酸黄瓜 / 番茄酱',
     colors: ['#f4b43a', '#8d3f21', '#f7cf4b', '#4f9b46', '#d9472d'],
-    layers: ['牛肉饼', '切达芝士', '酸黄瓜', '番茄酱'],
   },
   {
-    id: 'spicy',
-    ticket: '014',
+    id: 'gochujang-fried-chicken',
+    ticket: '021',
     stamp: 'HOT',
-    name: '辣鸡腿堡',
-    note: '脆鸡排 / 生菜 / 辣酱 / 芝麻面包',
+    name: '韩式辣酱脆鸡堡',
+    englishName: 'GOCHUJANG CRUNCH',
+    note: '脆炸鸡腿 / 韩式辣酱 / 泡菜 / 芝麻卷心菜',
     colors: ['#e9582c', '#f8c34a', '#3f9a45', '#f7a722', '#fff1c9'],
-    layers: ['脆鸡排', '生菜', '辣味酱', '芝麻面包'],
   },
   {
-    id: 'double',
-    ticket: '027',
-    stamp: 'MELT',
-    name: '双层芝士',
-    note: '双肉饼 / 双芝士 / 洋葱圈 / 烟熏酱',
-    colors: ['#9f4b24', '#fac13d', '#7b301c', '#f8d76b', '#c6462f'],
-    layers: ['双层牛肉', '切达芝士', '洋葱圈', '烟熏酱'],
+    id: 'teriyaki-chicken',
+    ticket: '014',
+    stamp: 'TOKYO',
+    name: '照烧鸡腿堡',
+    englishName: 'TERIYAKI CHICKEN',
+    note: '照烧鸡腿 / 卷心菜 / 日式蛋黄酱 / 海苔碎',
+    colors: ['#edac4b', '#8b3e21', '#88ad53', '#f1b53a', '#5f2b1c'],
   },
   {
-    id: 'breakfast',
-    ticket: '039',
-    stamp: 'MORN',
-    name: '早餐堡',
-    note: '煎蛋 / 培根 / 马苏里拉 / 黄芥末',
-    colors: ['#fff0bf', '#e66f48', '#f8c43f', '#ffe29a', '#f3a24a'],
-    layers: ['煎蛋', '培根', '马苏里拉', '黄芥末'],
+    id: 'guacamole-jalapeno',
+    ticket: '033',
+    stamp: 'FRESH',
+    name: '牛油果墨西哥辣堡',
+    englishName: 'GUACAMOLE JALAPENO',
+    note: '牛肉饼 / 牛油果酱 / 墨西哥辣椒 / 番茄莎莎',
+    colors: ['#e6a238', '#633019', '#579444', '#f6b934', '#d94a29'],
   },
 ]
 
@@ -56,7 +55,7 @@ const tickerItems = [
 function BurgerVisual() {
   return (
     <div className="burger-frame shop-burger-frame" aria-label="汉堡 硬蜡笔汉堡主视觉">
-      <div className="burger-sign-ribbon">汉堡</div>
+      <div className="burger-sign-ribbon">FIND BURGER</div>
       <svg className="burger-svg shop-burger-svg" viewBox="0 0 560 430" role="img">
         <title>硬蜡笔风格汉堡</title>
         <defs>
@@ -109,13 +108,6 @@ function BurgerVisual() {
             <rect x="355" y="86" width="16" height="13" rx="2" />
             <rect x="418" y="124" width="14" height="12" rx="2" />
           </g>
-          <g className="crayon-sprinkles" aria-hidden="true">
-            <rect x="92" y="248" width="20" height="20" />
-            <rect x="470" y="219" width="18" height="18" />
-            <rect x="244" y="66" width="18" height="18" />
-            <rect x="397" y="54" width="17" height="17" />
-            <rect x="300" y="251" width="14" height="14" />
-          </g>
         </g>
       </svg>
       <div className="burger-sticker sticker-left">OPEN</div>
@@ -125,29 +117,6 @@ function BurgerVisual() {
 }
 
 export default function Home() {
-  const [activeCard, setActiveCard] = useState<string | null>(null)
-  const popTimer = useRef<number | null>(null)
-
-  useEffect(() => {
-    return () => {
-      if (popTimer.current) {
-        window.clearTimeout(popTimer.current)
-      }
-    }
-  }, [])
-
-  function popTicket(id: string) {
-    setActiveCard(id)
-
-    if (popTimer.current) {
-      window.clearTimeout(popTimer.current)
-    }
-
-    popTimer.current = window.setTimeout(() => {
-      setActiveCard((current) => (current === id ? null : current))
-    }, 1050)
-  }
-
   return (
     <main className="site-shell home-shop-shell">
       <section className="hero sign-hero" id="top">
@@ -157,27 +126,30 @@ export default function Home() {
             汉堡
           </Link>
           <div className="nav-links">
-            <Link href="/burgers">菜单</Link>
+            <Link href="#menu">菜单</Link>
+            <Link href="/burgers">档案馆</Link>
           </div>
         </nav>
 
         <div className="hero-grid sign-board">
           <div className="hero-copy sign-copy">
-            <p className="eyebrow">HARD CRAYON BURGER SHOP</p>
+            <p className="eyebrow">FIND BURGER / HARD CRAYON DINER</p>
             <h1 aria-label="汉堡">
-              <span>汉</span>
-              <span>堡</span>
+              <span>汉堡</span>
             </h1>
-            <p className="lead">
-              汉堡之神
-            </p>
+            <p className="lead">汉堡之神</p>
             <div className="hero-actions">
               <a className="button button-red shop-button" href="#menu">
                 开饭
               </a>
               <Link className="button button-light shop-button" href="/burgers">
-                看菜单
+                汉堡档案
               </Link>
+            </div>
+            <div className="hero-shop-meta" aria-label="店铺信息">
+              <span>60 WORLD FILES</span>
+              <span>OPEN DAILY</span>
+              <span>NO. 001</span>
             </div>
           </div>
 
@@ -193,48 +165,48 @@ export default function Home() {
         </div>
       </div>
 
-      <section className="menu-strip menu-ticket-board" id="menu" aria-label="点菜单票据">
-        <div className="menu-board-head">
-          <p className="eyebrow">ORDER STICKERS</p>
-          <h2>汉堡贴纸 / 点菜单票据</h2>
+      <section className="diner-menu" id="menu" aria-label="汉堡菜单">
+        <div className="diner-menu-head">
+          <div>
+            <p className="eyebrow">FIND BURGER / DINER MENU</p>
+            <h2>今日菜单</h2>
+          </div>
+          <Link className="diner-menu-all" href="/burgers">
+            全部 60 份
+            <ArrowUpRight aria-hidden="true" size={20} strokeWidth={3} />
+          </Link>
         </div>
 
-        <div className="menu-ticket-grid">
+        <div className="diner-menu-list">
           {menuItems.map((item, index) => (
-            <button
-              className={`menu-card menu-ticket ${activeCard === item.id ? 'is-popped' : ''}`}
+            <Link
+              className="diner-menu-row"
+              href={`/burgers/${item.id}`}
               key={item.id}
-              onClick={() => popTicket(item.id)}
               style={
                 {
-                  '--ticket-tilt': index % 2 === 0 ? '-1.5deg' : '1.5deg',
-                  '--ticket-hover-tilt': index % 2 === 0 ? '1deg' : '-1deg',
-                  '--ticket-accent': item.colors[0],
-                  '--ticket-stamp': item.colors[2],
+                  '--menu-accent': item.colors[0],
+                  '--menu-index': index,
                 } as CSSProperties
               }
-              type="button"
             >
-              <span className="ticket-number">NO. {item.ticket}</span>
-              <span className="ticket-stamp">{item.stamp}</span>
-              <h3>{item.name}</h3>
-              <p>{item.note}</p>
-              <span className="ticket-layers" aria-hidden="true">
+              <span className="diner-menu-number">NO. {item.ticket}</span>
+              <div className="diner-menu-copy">
+                <span>{item.stamp}</span>
+                <h3>{item.name}</h3>
+                <p>{item.englishName}</p>
+                <small>{item.note}</small>
+              </div>
+              <span className="diner-menu-layers" aria-hidden="true">
                 {item.colors.map((color) => (
                   <span key={color} style={{ backgroundColor: color }} />
                 ))}
               </span>
-              <span className="ticket-pop-layers" aria-hidden="true">
-                {item.layers.map((layer, layerIndex) => (
-                  <span
-                    key={layer}
-                    style={{ '--layer-delay': `${layerIndex * 70}ms` } as CSSProperties}
-                  >
-                    {layer}
-                  </span>
-                ))}
+              <span className="diner-menu-open" aria-hidden="true">
+                OPEN FILE
+                <ArrowUpRight size={22} strokeWidth={3} />
               </span>
-            </button>
+            </Link>
           ))}
         </div>
       </section>
