@@ -1,56 +1,9 @@
 import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
-
-const menuItems = [
-  {
-    id: 'classic-cheeseburger',
-    ticket: '001',
-    stamp: 'HOUSE',
-    name: '经典芝士牛肉堡',
-    englishName: 'CLASSIC CHEESEBURGER',
-    note: '牛肉饼 / 切达 / 酸黄瓜 / 番茄酱',
-    colors: ['#f4b43a', '#8d3f21', '#f7cf4b', '#4f9b46', '#d9472d'],
-  },
-  {
-    id: 'gochujang-fried-chicken',
-    ticket: '021',
-    stamp: 'HOT',
-    name: '韩式辣酱脆鸡堡',
-    englishName: 'GOCHUJANG CRUNCH',
-    note: '脆炸鸡腿 / 韩式辣酱 / 泡菜 / 芝麻卷心菜',
-    colors: ['#e9582c', '#f8c34a', '#3f9a45', '#f7a722', '#fff1c9'],
-  },
-  {
-    id: 'teriyaki-chicken',
-    ticket: '014',
-    stamp: 'TOKYO',
-    name: '照烧鸡腿堡',
-    englishName: 'TERIYAKI CHICKEN',
-    note: '照烧鸡腿 / 卷心菜 / 日式蛋黄酱 / 海苔碎',
-    colors: ['#edac4b', '#8b3e21', '#88ad53', '#f1b53a', '#5f2b1c'],
-  },
-  {
-    id: 'guacamole-jalapeno',
-    ticket: '033',
-    stamp: 'FRESH',
-    name: '牛油果墨西哥辣堡',
-    englishName: 'GUACAMOLE JALAPENO',
-    note: '牛肉饼 / 牛油果酱 / 墨西哥辣椒 / 番茄莎莎',
-    colors: ['#e6a238', '#633019', '#579444', '#f6b934', '#d94a29'],
-  },
-]
-
-const tickerItems = [
-  '汉堡',
-  'OPEN',
-  'CHEESE',
-  'SAUCE',
-  'CRAYON',
-  'HOT GRILL',
-  'PICKLES',
-  '汉堡',
-]
+import { burgerBeltBurgers } from '@/data/dinerMenu'
+import BurgerSpecimen from './burgers/BurgerSpecimen'
+import './burgers/burger-archive.css'
 
 function BurgerVisual() {
   return (
@@ -116,6 +69,49 @@ function BurgerVisual() {
   )
 }
 
+function BurgerBelt() {
+  return (
+    <section className="burger-belt" id="menu" aria-labelledby="burger-belt-title">
+      <div className="burger-belt-head">
+        <div>
+          <p>ROTATING BURGER BAR</p>
+          <h2 id="burger-belt-title">回转汉堡</h2>
+        </div>
+        <Link href="/menu">
+          开饭
+          <ArrowUpRight aria-hidden="true" size={20} strokeWidth={3} />
+        </Link>
+      </div>
+
+      <div className="burger-belt-window">
+        <div className="burger-belt-track">
+          {[0, 1].map((copyIndex) => (
+            <div className="burger-belt-set" aria-hidden={copyIndex === 1} key={copyIndex}>
+              {burgerBeltBurgers.map((burger) => (
+                <Link
+                  className="burger-belt-item"
+                  href={`/burgers/${burger.slug}`}
+                  key={`${copyIndex}-${burger.slug}`}
+                  tabIndex={copyIndex === 1 ? -1 : undefined}
+                  style={
+                    {
+                      '--belt-accent': burger.visual.accent,
+                      '--belt-plate': burger.visual.cheese,
+                    } as CSSProperties
+                  }
+                >
+                  <BurgerSpecimen burger={burger} />
+                  <span>{burger.name}</span>
+                </Link>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export default function Home() {
   return (
     <main className="site-shell home-shop-shell">
@@ -126,7 +122,7 @@ export default function Home() {
             汉堡
           </Link>
           <div className="nav-links">
-            <Link href="#menu">菜单</Link>
+            <Link href="/menu">菜单</Link>
             <Link href="/burgers">档案馆</Link>
           </div>
         </nav>
@@ -139,9 +135,9 @@ export default function Home() {
             </h1>
             <p className="lead">汉堡之神</p>
             <div className="hero-actions">
-              <a className="button button-red shop-button" href="#menu">
+              <Link className="button button-red shop-button" href="/menu">
                 开饭
-              </a>
+              </Link>
               <Link className="button button-light shop-button" href="/burgers">
                 汉堡档案
               </Link>
@@ -157,59 +153,7 @@ export default function Home() {
         </div>
       </section>
 
-      <div className="ticker ticker-conveyor" aria-label="汉堡 传送带">
-        <div className="ticker-track">
-          {[...tickerItems, ...tickerItems].map((item, index) => (
-            <span key={`${item}-${index}`}>{item}</span>
-          ))}
-        </div>
-      </div>
-
-      <section className="diner-menu" id="menu" aria-label="汉堡菜单">
-        <div className="diner-menu-head">
-          <div>
-            <p className="eyebrow">FIND BURGER / DINER MENU</p>
-            <h2>今日菜单</h2>
-          </div>
-          <Link className="diner-menu-all" href="/burgers">
-            全部 60 份
-            <ArrowUpRight aria-hidden="true" size={20} strokeWidth={3} />
-          </Link>
-        </div>
-
-        <div className="diner-menu-list">
-          {menuItems.map((item, index) => (
-            <Link
-              className="diner-menu-row"
-              href={`/burgers/${item.id}`}
-              key={item.id}
-              style={
-                {
-                  '--menu-accent': item.colors[0],
-                  '--menu-index': index,
-                } as CSSProperties
-              }
-            >
-              <span className="diner-menu-number">NO. {item.ticket}</span>
-              <div className="diner-menu-copy">
-                <span>{item.stamp}</span>
-                <h3>{item.name}</h3>
-                <p>{item.englishName}</p>
-                <small>{item.note}</small>
-              </div>
-              <span className="diner-menu-layers" aria-hidden="true">
-                {item.colors.map((color) => (
-                  <span key={color} style={{ backgroundColor: color }} />
-                ))}
-              </span>
-              <span className="diner-menu-open" aria-hidden="true">
-                OPEN FILE
-                <ArrowUpRight size={22} strokeWidth={3} />
-              </span>
-            </Link>
-          ))}
-        </div>
-      </section>
+      <BurgerBelt />
 
     </main>
   )
