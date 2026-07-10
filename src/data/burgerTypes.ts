@@ -138,7 +138,7 @@ export type BurgerRecord = {
   pairing: string
   components: string[]
   visual: BurgerVisual
-  reference?: BurgerReference
+  reference: BurgerReference
 }
 
 export type WorldBurgerSeed = Omit<BurgerRecord, 'archiveNo' | 'visual'> & {

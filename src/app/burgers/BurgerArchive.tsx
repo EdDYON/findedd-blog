@@ -334,18 +334,16 @@ export default function BurgerArchive() {
                 <p>{selectedBurger.pairing}</p>
               </div>
 
-              {selectedBurger.reference && (
-                <a
-                  className="archive-source"
-                  href={selectedBurger.reference.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <span>资料来源</span>
-                  <strong>{selectedBurger.reference.label}</strong>
-                  <ExternalLink aria-hidden="true" size={18} strokeWidth={3} />
-                </a>
-              )}
+              <a
+                className="archive-source"
+                href={selectedBurger.reference.url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <span>对应资料</span>
+                <strong>{selectedBurger.reference.label}</strong>
+                <ExternalLink aria-hidden="true" size={18} strokeWidth={3} />
+              </a>
             </div>
           </section>
         </div>

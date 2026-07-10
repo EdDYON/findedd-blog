@@ -1,10 +1,11 @@
 import type { BurgerRecord, BurgerVisual, BurgerVisualRecipe } from './burgerTypes'
+import { getBurgerReference } from './burgerReferences'
 import { worldBurgerSeeds } from './worldBurgers'
 
 export { burgerFlavors, burgerProteins } from './burgerTypes'
 export type { BurgerFlavor, BurgerProtein, BurgerRecord, BurgerVisual } from './burgerTypes'
 
-const featuredBurgers: BurgerRecord[] = [
+const featuredBurgerSeeds: Array<Omit<BurgerRecord, 'reference'>> = [
   {
     slug: 'classic-cheeseburger',
     archiveNo: '001',
@@ -450,10 +451,16 @@ function createWorldVisual(recipe: BurgerVisualRecipe): BurgerVisual {
   }
 }
 
+const featuredBurgers: BurgerRecord[] = featuredBurgerSeeds.map((seed) => ({
+  ...seed,
+  reference: getBurgerReference(seed.slug),
+}))
+
 const worldBurgers: BurgerRecord[] = worldBurgerSeeds.map((seed, index) => ({
   ...seed,
   archiveNo: String(106 + index).padStart(3, '0'),
   visual: createWorldVisual(seed.visual),
+  reference: getBurgerReference(seed.slug),
 }))
 
 export const burgers: BurgerRecord[] = [...featuredBurgers, ...worldBurgers]
@@ -470,6 +477,9 @@ export function validateBurgerCatalog(catalog: BurgerRecord[]) {
     if (burger.components.length < 4) errors.push(`配料层次不足: ${burger.slug}`)
     if (burger.flavors.length < 2) errors.push(`风味标签不足: ${burger.slug}`)
     if (!burger.name || !burger.country || !burger.countryCode) errors.push(`基础信息缺失: ${burger.slug}`)
+    if (!burger.reference.label || !/^https:\/\//.test(burger.reference.url)) {
+      errors.push(`无效资料链接: ${burger.slug}`)
+    }
 
     seenSlugs.add(burger.slug)
     seenArchiveNumbers.add(burger.archiveNo)
