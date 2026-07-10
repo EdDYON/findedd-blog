@@ -79,16 +79,12 @@ function BurgerLayerBreakdown({ burger }: { burger: BurgerRecord }) {
             <span />
           </div>
           <BurgerSpecimen burger={burger} large />
-          <p>SCROLL TO PULL APART</p>
         </div>
       </div>
 
       <div className="detail-layer-copy">
         <p className="detail-kicker">REAL INGREDIENT STACK</p>
-        <h2 id="detail-layers-title">一层一层，看清它</h2>
-        <p className="detail-section-intro">
-          这不是装饰清单。每一层都负责味道、湿度或口感，滚动时汉堡会按真实装配逻辑拆开。
-        </p>
+        <h2 id="detail-layers-title">配料层次</h2>
 
         <ol className="detail-layer-list">
           {burger.components.map((component, index) => (
@@ -96,7 +92,6 @@ function BurgerLayerBreakdown({ burger }: { burger: BurgerRecord }) {
               <span>{String(index + 1).padStart(2, '0')}</span>
               <div>
                 <strong>{component}</strong>
-                <small>{index === 0 ? '承托与焦香' : index === 1 ? '主味与饱足感' : '平衡整份汉堡'}</small>
               </div>
             </li>
           ))}
@@ -147,7 +142,7 @@ export default function BurgerDetailView({
             target="_blank"
             rel="noreferrer"
           >
-            查看对应资料
+            对应资料
             <ExternalLink aria-hidden="true" size={18} strokeWidth={3} />
           </a>
         </div>
@@ -175,8 +170,7 @@ export default function BurgerDetailView({
       <section className="detail-taste" aria-labelledby="detail-taste-title">
         <div>
           <p className="detail-kicker">TASTE CARD</p>
-          <h2 id="detail-taste-title">这一口是什么性格</h2>
-          <p className="detail-section-intro">评分依据档案配料和风味标签整理，五格代表该特征非常突出。</p>
+          <h2 id="detail-taste-title">风味强度</h2>
         </div>
         <div className="detail-taste-grid">
           {tasteRatings.map((rating) => (
@@ -217,8 +211,7 @@ export default function BurgerDetailView({
       <section className="detail-source" aria-labelledby="detail-source-title">
         <div>
           <p className="detail-kicker">REFERENCE DESK</p>
-          <h2 id="detail-source-title">继续查这份汉堡</h2>
-          <p>档案中的介绍与制作逻辑以对应资料为入口，外部页面可能是历史介绍，也可能是制作方法。</p>
+          <h2 id="detail-source-title">资料来源</h2>
         </div>
         <a href={burger.reference.url} target="_blank" rel="noreferrer">
           <span>资料来源</span>

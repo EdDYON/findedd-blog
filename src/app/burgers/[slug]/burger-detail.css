@@ -304,15 +304,6 @@
   padding: 92px 0;
 }
 
-.detail-section-intro {
-  max-width: 530px;
-  margin: 22px 0 0;
-  color: rgba(40, 17, 9, 0.7);
-  font-size: 16px;
-  font-weight: 750;
-  line-height: 1.7;
-}
-
 .detail-taste-grid {
   display: grid;
   align-content: start;
@@ -473,13 +464,6 @@
   background: var(--red);
 }
 
-.detail-exploded-stage > p {
-  margin: 14px 0 0;
-  font-size: 11px;
-  font-weight: 950;
-  text-align: center;
-}
-
 .detail-layer-copy {
   padding-top: 16px;
 }
@@ -527,12 +511,6 @@
 
 .detail-layer-list strong {
   font-size: 18px;
-}
-
-.detail-layer-list small {
-  color: rgba(40, 17, 9, 0.62);
-  font-size: 12px;
-  font-weight: 850;
 }
 
 .detail-recipe {
@@ -604,13 +582,6 @@
 
 .detail-source .detail-kicker {
   color: var(--yellow);
-}
-
-.detail-source p:not(.detail-kicker) {
-  max-width: 560px;
-  margin: 18px 0 0;
-  font-weight: 700;
-  line-height: 1.7;
 }
 
 .detail-source a {

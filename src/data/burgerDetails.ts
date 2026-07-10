@@ -54,15 +54,15 @@ const tasteLabels: Array<[keyof TasteScore, string]> = [
 ]
 
 const proteinInstructions: Record<BurgerProtein, string> = {
-  牛肉: '高温煎出焦香外壳，保留肉汁后静置片刻。',
-  鸡肉: '把鸡肉煎烤至完全熟透，表面形成均匀焦色。',
-  猪肉: '将猪肉煎至完全熟透，让边缘微焦并沥去多余油脂。',
-  鱼类: '轻柔煎烤鱼排至完全熟透，避免反复翻动。',
-  海鲜: '将海鲜快速煎熟，保持弹嫩并及时离火。',
-  素食: '把植物主料煎到外层定型、边缘酥香。',
-  羊肉: '用高温锁住肉汁，再以香料补足羊肉的浓郁气味。',
-  混合肉: '将混合肉料压成均匀肉饼，煎至完全熟透并形成焦边。',
-  野味: '以中高火煎熟主料，避免过度加热令口感发干。',
+  牛肉: '高温煎出焦边，静置片刻。',
+  鸡肉: '煎烤至完全熟透，表面上色。',
+  猪肉: '煎至完全熟透，边缘微焦。',
+  鱼类: '煎烤至熟，翻面一次。',
+  海鲜: '快速煎熟，离火备用。',
+  素食: '煎至定型，边缘微焦。',
+  羊肉: '高温煎熟，静置片刻。',
+  混合肉: '压成均匀肉饼，煎至完全熟透。',
+  野味: '中高火煎熟，静置片刻。',
 }
 
 function clampScore(score: number) {
@@ -104,12 +104,7 @@ export function getBurgerTasteRatings(burger: BurgerRecord): BurgerTasteRating[]
 }
 
 export function getBurgerStory(burger: BurgerRecord) {
-  const ingredientLine = burger.components.slice(1).join('、')
-
-  return [
-    `这份档案以${burger.country}版本为线索，记录它如今最有辨识度的一种组合。${burger.summary}`,
-    `${ingredientLine}共同构成了它的地方性格。${burger.pairing}`,
-  ]
+  return [burger.summary]
 }
 
 export function getBurgerRecipeSteps(burger: BurgerRecord): BurgerRecipeStep[] {
@@ -120,25 +115,25 @@ export function getBurgerRecipeSteps(burger: BurgerRecord): BurgerRecipeStep[] {
   return [
     {
       number: '01',
-      title: '烤香承托',
-      description: `将${bun}切面轻烤到干爽微脆，让它能接住酱汁而不迅速变软。`,
+      title: '面包',
+      description: `${bun}切开，切面烤至微黄。`,
     },
     {
       number: '02',
-      title: '做好主角',
-      description: `准备${main}。${proteinInstructions[burger.protein]}`,
+      title: '主料',
+      description: `${main}：${proteinInstructions[burger.protein]}`,
     },
     {
       number: '03',
-      title: '整理夹层',
+      title: '配料',
       description: middleLayers.length > 0
-        ? `分别处理${middleLayers.join('、')}，冷配料保持清脆，热配料在装配前完成。`
-        : '把需要的蔬菜、芝士和调味料提前备好，避免主料出锅后久等。',
+        ? `${middleLayers.join('、')}分别备好。`
+        : '蔬菜、芝士和调味料分别备好。',
     },
     {
       number: '04',
-      title: '叠好开吃',
-      description: `从底部面包开始按档案顺序叠放，最后加入${finish ?? '调味酱'}，压稳后趁热食用。`,
+      title: '组装',
+      description: `${bun}、${main}、${[...middleLayers, finish ?? '调味酱'].join('、')}依次叠放。`,
     },
   ]
 }
