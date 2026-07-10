@@ -1,12 +1,15 @@
 .archive-shell {
   min-height: 100svh;
   overflow: clip;
-  background-color: #f4e1c3;
+  background-color: #f7e7cc;
   background-image:
-    linear-gradient(rgba(64, 31, 18, 0.055) 2px, transparent 2px),
-    linear-gradient(90deg, rgba(64, 31, 18, 0.055) 2px, transparent 2px);
+    linear-gradient(115deg, rgba(247, 25, 24, 0.045) 0 8%, transparent 8% 18%),
+    linear-gradient(rgba(64, 31, 18, 0.045) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(64, 31, 18, 0.045) 2px, transparent 2px);
+  background-position: 0 0, 0 0, 0 0;
   background-size: 34px 34px;
   color: var(--ink);
+  font-family: var(--font-crayon);
 }
 
 .archive-shell button,
@@ -113,20 +116,19 @@
   font-weight: 1000;
   line-height: 0.9;
   letter-spacing: 0;
-  text-shadow: 4px 4px 0 var(--yellow), 8px 8px 0 rgba(247, 25, 24, 0.9);
+  text-shadow: 4px 4px 0 var(--yellow), 7px 7px 0 rgba(247, 25, 24, 0.62);
 }
 
 .archive-heading h1 span {
   display: inline-block;
   margin-left: 20px;
-  color: var(--red);
-  text-shadow: 4px 4px 0 var(--yellow), 8px 8px 0 var(--ink);
+  color: #a92920;
+  text-shadow: 4px 4px 0 var(--yellow), 7px 7px 0 rgba(40, 17, 9, 0.9);
 }
 
 .archive-intro {
   max-width: 620px;
   margin: 28px 0 0;
-  font-family: 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
   font-size: 18px;
   font-weight: 700;
   line-height: 1.7;
@@ -163,22 +165,11 @@
   z-index: 10;
   display: grid;
   max-width: 1320px;
-  grid-template-columns: auto minmax(260px, 1fr) repeat(3, minmax(130px, 0.5fr)) 52px;
-  align-items: end;
+  grid-template-columns: minmax(300px, 1.18fr) repeat(3, minmax(132px, 0.42fr)) 52px;
+  align-items: center;
   gap: 12px;
   margin: 0 auto;
-  padding: 30px 24px 24px;
-}
-
-.archive-control-title {
-  display: flex;
-  min-height: 52px;
-  align-items: center;
-  gap: 8px;
-  padding: 0 10px 0 0;
-  font-size: 15px;
-  font-weight: 950;
-  white-space: nowrap;
+  padding: 28px 24px 22px;
 }
 
 .archive-search,
@@ -188,15 +179,15 @@
   min-width: 0;
   border: 3px solid var(--ink);
   border-radius: 5px;
-  background: #fff3df;
-  box-shadow: 4px 4px 0 rgba(40, 17, 9, 0.84);
+  background: rgba(255, 246, 229, 0.94);
+  box-shadow: 4px 4px 0 rgba(40, 17, 9, 0.74);
 }
 
 .archive-search {
-  min-height: 52px;
+  min-height: 58px;
   align-items: center;
   gap: 10px;
-  padding: 0 14px;
+  padding: 0 16px;
 }
 
 .archive-search:focus-within,
@@ -211,9 +202,8 @@
   border: 0;
   outline: 0;
   background: transparent;
-  font-family: 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 850;
 }
 
 .archive-search input::placeholder {
@@ -221,16 +211,10 @@
 }
 
 .archive-select {
-  min-height: 66px;
-  flex-direction: column;
+  min-height: 58px;
+  align-items: center;
   justify-content: center;
-  padding: 7px 12px 6px;
-}
-
-.archive-select span {
-  color: var(--red);
-  font-size: 10px;
-  font-weight: 950;
+  padding: 0 12px;
 }
 
 .archive-select select {
@@ -240,7 +224,7 @@
   outline: 0;
   background: transparent;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 900;
 }
 
@@ -418,10 +402,11 @@
   place-items: center;
   overflow: hidden;
   border-bottom: 3px solid var(--ink);
-  background-color: var(--specimen-accent);
+  background-color: color-mix(in srgb, var(--specimen-accent) 42%, #fff2d6 58%);
   background-image:
     linear-gradient(135deg, rgba(255, 255, 255, 0.2) 25%, transparent 25%),
-    linear-gradient(315deg, rgba(40, 17, 9, 0.08) 25%, transparent 25%);
+    linear-gradient(315deg, rgba(40, 17, 9, 0.055) 25%, transparent 25%),
+    linear-gradient(180deg, rgba(255, 243, 223, 0.18), rgba(255, 243, 223, 0));
   background-position: 0 0, 12px 12px;
   background-size: 24px 24px;
 }
@@ -837,7 +822,6 @@
 
 .archive-card-summary {
   margin: 16px 0 0;
-  font-family: 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
   font-size: 14px;
   font-weight: 700;
   line-height: 1.65;
@@ -887,7 +871,6 @@
 
 .archive-empty p {
   margin: 8px 0 22px;
-  font-family: 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
   font-size: 14px;
 }
 
@@ -1011,7 +994,6 @@
   align-items: center;
   gap: 12px;
   border-bottom: 2px solid rgba(40, 17, 9, 0.18);
-  font-family: 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
   font-size: 14px;
   font-weight: 800;
 }
@@ -1030,7 +1012,6 @@
 
 .archive-pairing p {
   margin: 10px 0 0;
-  font-family: 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
   font-size: 15px;
   font-weight: 700;
   line-height: 1.8;
@@ -1116,13 +1097,8 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .archive-control-title,
   .archive-search {
     grid-column: 1 / -1;
-  }
-
-  .archive-control-title {
-    min-height: 36px;
   }
 
   .archive-reset {
@@ -1212,16 +1188,12 @@
     padding: 24px 16px 20px;
   }
 
-  .archive-control-title {
-    font-size: 14px;
-  }
-
   .archive-search {
-    min-height: 50px;
+    min-height: 52px;
   }
 
   .archive-select {
-    min-height: 62px;
+    min-height: 52px;
   }
 
   .archive-reset {

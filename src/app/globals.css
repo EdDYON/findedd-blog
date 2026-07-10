@@ -8,7 +8,15 @@
   --green: #4b9d42;
   --patty: #5b2513;
   --line: rgba(40, 17, 9, 0.16);
-  --font-crayon: 'Arial Black', Impact, 'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  --font-crayon:
+    var(--font-crayon-latin, 'Pangolin'),
+    var(--font-crayon-han, 'ZCOOL KuaiLe'),
+    'Comic Sans MS',
+    'Marker Felt',
+    'Arial Black',
+    'Microsoft YaHei UI',
+    'PingFang SC',
+    sans-serif;
   --crayon-soft-shadow:
     1px 1px 0 rgba(255, 248, 234, 0.72),
     2px 2px 0 rgba(40, 17, 9, 0.16),

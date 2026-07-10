@@ -1,7 +1,22 @@
 import type { Metadata, Viewport } from 'next'
+import { Pangolin, ZCOOL_KuaiLe } from 'next/font/google'
 import SiteLoader from './SiteLoader'
 import './globals.css'
 import './site-loader.css'
+
+const crayonHan = ZCOOL_KuaiLe({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-crayon-han',
+  display: 'swap',
+})
+
+const crayonLatin = Pangolin({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-crayon-latin',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.findedd.cn'),
@@ -37,7 +52,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body>
+      <body className={`${crayonHan.variable} ${crayonLatin.variable}`}>
         <SiteLoader />
         {children}
       </body>

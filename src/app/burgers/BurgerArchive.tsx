@@ -11,7 +11,6 @@ import {
   MapPin,
   RotateCcw,
   Search,
-  SlidersHorizontal,
   X,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
@@ -146,11 +145,6 @@ export default function BurgerArchive() {
       </section>
 
       <section className="archive-controls" aria-label="汉堡筛选">
-        <div className="archive-control-title">
-          <SlidersHorizontal aria-hidden="true" size={20} strokeWidth={3} />
-          <span>筛选档案</span>
-        </div>
-
         <label className="archive-search">
           <span className="sr-only">搜索汉堡、国家或配料</span>
           <Search aria-hidden="true" size={20} strokeWidth={3} />
@@ -163,8 +157,11 @@ export default function BurgerArchive() {
         </label>
 
         <label className="archive-select">
-          <span>肉类</span>
-          <select value={protein} onChange={(event) => updateProtein(event.target.value as BurgerProtein | typeof allValue)}>
+          <select
+            aria-label="肉类"
+            value={protein}
+            onChange={(event) => updateProtein(event.target.value as BurgerProtein | typeof allValue)}
+          >
             <option value={allValue}>全部肉类</option>
             {burgerProteins.map((item) => (
               <option key={item} value={item}>{item}</option>
@@ -173,8 +170,11 @@ export default function BurgerArchive() {
         </label>
 
         <label className="archive-select">
-          <span>风味</span>
-          <select value={flavor} onChange={(event) => updateFlavor(event.target.value as BurgerFlavor | typeof allValue)}>
+          <select
+            aria-label="风味"
+            value={flavor}
+            onChange={(event) => updateFlavor(event.target.value as BurgerFlavor | typeof allValue)}
+          >
             <option value={allValue}>全部风味</option>
             {burgerFlavors.map((item) => (
               <option key={item} value={item}>{item}</option>
@@ -183,8 +183,11 @@ export default function BurgerArchive() {
         </label>
 
         <label className="archive-select">
-          <span>国家</span>
-          <select value={country} onChange={(event) => updateCountry(event.target.value)}>
+          <select
+            aria-label="国家"
+            value={country}
+            onChange={(event) => updateCountry(event.target.value)}
+          >
             <option value={allValue}>全部国家</option>
             {burgerCountries.map((item) => (
               <option key={item} value={item}>{item}</option>
@@ -206,8 +209,8 @@ export default function BurgerArchive() {
 
       <section className="archive-results" aria-live="polite" aria-label="汉堡档案结果">
         <div className="archive-results-line">
-          <span>{hasFilters ? 'MATCHED FILES' : 'ALL FILES'}</span>
-          <strong>{visibleBurgers.length} / {filteredBurgers.length} 份</strong>
+          <span>{hasFilters ? 'MATCHED' : 'FILES'}</span>
+          <strong>{visibleBurgers.length} / {filteredBurgers.length}</strong>
         </div>
 
         {filteredBurgers.length > 0 ? (
