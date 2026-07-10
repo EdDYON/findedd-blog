@@ -202,6 +202,7 @@ export default function BurgerDetailView({
             <article key={step.number}>
               <span>{step.number}</span>
               <h3>{step.title}</h3>
+              <small>{step.meta}</small>
               <p>{step.description}</p>
             </article>
           ))}
