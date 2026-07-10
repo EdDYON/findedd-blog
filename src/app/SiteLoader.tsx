@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import {
   useCallback,
   useEffect,
@@ -208,7 +209,9 @@ function LoaderStickers() {
 }
 
 export default function SiteLoader() {
-  const [visible, setVisible] = useState(true)
+  const pathname = usePathname()
+  const isHomePage = pathname === '/'
+  const [visible, setVisible] = useState(isHomePage)
   const [messageIndex, setMessageIndex] = useState(0)
   const [progress, setProgress] = useState(0)
   const [isReady, setIsReady] = useState(false)
@@ -261,6 +264,8 @@ export default function SiteLoader() {
   )
 
   useEffect(() => {
+    if (!isHomePage) return
+
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const root = document.documentElement
     previousOverflow.current = root.style.overflow
@@ -304,9 +309,9 @@ export default function SiteLoader() {
       if (exitTimer.current) window.clearTimeout(exitTimer.current)
       root.style.overflow = previousOverflow.current
     }
-  }, [markReady])
+  }, [isHomePage, markReady])
 
-  if (!visible) return null
+  if (!isHomePage || !visible) return null
 
   return (
     <div
