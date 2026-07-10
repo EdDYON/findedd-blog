@@ -6,14 +6,11 @@ import {
   ArrowUpRight,
   Archive,
   ChevronDown,
-  ExternalLink,
-  Layers3,
   MapPin,
   RotateCcw,
   Search,
-  X,
 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useMemo, useState, type CSSProperties } from 'react'
 import {
   burgerCountries,
   burgerFlavors,
@@ -21,7 +18,6 @@ import {
   burgers,
   type BurgerFlavor,
   type BurgerProtein,
-  type BurgerRecord,
 } from '@/data/burgers'
 import BurgerSpecimen from './BurgerSpecimen'
 
@@ -34,8 +30,6 @@ export default function BurgerArchive() {
   const [flavor, setFlavor] = useState<BurgerFlavor | typeof allValue>(allValue)
   const [country, setCountry] = useState(allValue)
   const [visibleCount, setVisibleCount] = useState(pageSize)
-  const [selectedBurger, setSelectedBurger] = useState<BurgerRecord | null>(null)
-  const closeButtonRef = useRef<HTMLButtonElement>(null)
 
   const filteredBurgers = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase('zh-CN')
@@ -93,25 +87,6 @@ export default function BurgerArchive() {
     setCountry(value)
     setVisibleCount(pageSize)
   }
-
-  useEffect(() => {
-    if (!selectedBurger) return
-
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    closeButtonRef.current?.focus()
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setSelectedBurger(null)
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-
-    return () => {
-      document.body.style.overflow = previousOverflow
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [selectedBurger])
 
   return (
     <main className="archive-shell">
@@ -222,11 +197,10 @@ export default function BurgerArchive() {
                   key={burger.slug}
                   style={{ '--card-tilt': `${index % 2 === 0 ? -0.6 : 0.6}deg` } as CSSProperties}
                 >
-                  <button
+                  <Link
                     className="archive-card-hit"
-                    type="button"
-                    onClick={() => setSelectedBurger(burger)}
-                    aria-label={`打开 ${burger.name} 档案票`}
+                    href={`/burgers/${burger.slug}`}
+                    aria-label={`阅读 ${burger.name} 完整档案`}
                   />
                   <div className="archive-card-head">
                     <span>FILE NO. {burger.archiveNo}</span>
@@ -245,7 +219,7 @@ export default function BurgerArchive() {
                     </div>
                     <p className="archive-card-summary">{burger.summary}</p>
                     <span className="archive-card-action" aria-hidden="true">
-                      翻开档案
+                      阅读完整档案
                       <ArrowUpRight size={18} strokeWidth={3} />
                     </span>
                   </div>
@@ -278,79 +252,6 @@ export default function BurgerArchive() {
         )}
       </section>
 
-      {selectedBurger && (
-        <div
-          className="archive-sheet-backdrop"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setSelectedBurger(null)
-          }}
-        >
-          <section
-            className="archive-sheet"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="archive-sheet-title"
-          >
-            <div className="archive-sheet-top">
-              <span>FILE NO. {selectedBurger.archiveNo}</span>
-              <button
-                ref={closeButtonRef}
-                type="button"
-                onClick={() => setSelectedBurger(null)}
-                title="关闭档案"
-                aria-label="关闭档案"
-              >
-                <X aria-hidden="true" size={24} strokeWidth={3} />
-              </button>
-            </div>
-
-            <BurgerSpecimen burger={selectedBurger} large />
-
-            <div className="archive-sheet-copy">
-              <p className="archive-card-region">
-                <MapPin aria-hidden="true" size={16} strokeWidth={3} />
-                {selectedBurger.country} / {selectedBurger.protein}
-              </p>
-              <h2 id="archive-sheet-title">{selectedBurger.name}</h2>
-              <p className="archive-sheet-english">{selectedBurger.englishName}</p>
-              <div className="archive-flavors">
-                {selectedBurger.flavors.map((item) => <span key={item}>{item}</span>)}
-              </div>
-
-              <div className="archive-sheet-section">
-                <div className="archive-sheet-label">
-                  <Layers3 aria-hidden="true" size={19} strokeWidth={3} />
-                  <h3>配料层次</h3>
-                </div>
-                <ol className="archive-components">
-                  {selectedBurger.components.map((item, index) => (
-                    <li key={item}>
-                      <span>{String(index + 1).padStart(2, '0')}</span>
-                      {item}
-                    </li>
-                  ))}
-                </ol>
-              </div>
-
-              <div className="archive-sheet-section archive-pairing">
-                <span>WHY IT WORKS</span>
-                <p>{selectedBurger.pairing}</p>
-              </div>
-
-              <a
-                className="archive-source"
-                href={selectedBurger.reference.url}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <span>对应资料</span>
-                <strong>{selectedBurger.reference.label}</strong>
-                <ExternalLink aria-hidden="true" size={18} strokeWidth={3} />
-              </a>
-            </div>
-          </section>
-        </div>
-      )}
     </main>
   )
 }
