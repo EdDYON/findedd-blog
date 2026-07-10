@@ -157,7 +157,7 @@ export default function Home() {
             汉堡
           </Link>
           <div className="nav-links">
-            <a href="#menu">菜单</a>
+            <Link href="/burgers">菜单</Link>
           </div>
         </nav>
 
@@ -175,9 +175,9 @@ export default function Home() {
               <a className="button button-red shop-button" href="#menu">
                 开饭
               </a>
-              <a className="button button-light shop-button" href="#menu">
+              <Link className="button button-light shop-button" href="/burgers">
                 看菜单
-              </a>
+              </Link>
             </div>
           </div>
 
