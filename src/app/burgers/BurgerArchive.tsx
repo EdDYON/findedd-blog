@@ -43,6 +43,21 @@ const biteCrumbs = [
   { x: -148, y: 32, rotate: 28 },
 ]
 
+const routeBurstPieces = [
+  { x: '-52vw', y: '-42vh', rotate: '-48deg' },
+  { x: '-28vw', y: '-55vh', rotate: '36deg' },
+  { x: '4vw', y: '-58vh', rotate: '-22deg' },
+  { x: '34vw', y: '-48vh', rotate: '54deg' },
+  { x: '54vw', y: '-18vh', rotate: '-36deg' },
+  { x: '55vw', y: '24vh', rotate: '46deg' },
+  { x: '35vw', y: '52vh', rotate: '-52deg' },
+  { x: '2vw', y: '58vh', rotate: '28deg' },
+  { x: '-31vw', y: '51vh', rotate: '-38deg' },
+  { x: '-55vw', y: '24vh', rotate: '58deg' },
+  { x: '-58vw', y: '-8vh', rotate: '-28deg' },
+  { x: '48vw', y: '5vh', rotate: '32deg' },
+]
+
 type BurgerJourney = {
   burger: BurgerRecord
   href: string
@@ -54,7 +69,7 @@ type BurgerJourney = {
   }
   centered: boolean
   biteStage: number
-  finished: boolean
+  exploding: boolean
 }
 
 export default function BurgerArchive() {
@@ -177,7 +192,7 @@ export default function BurgerArchive() {
       },
       centered: false,
       biteStage: 0,
-      finished: false,
+      exploding: false,
     })
 
     journeyTimers.current = [
@@ -188,9 +203,9 @@ export default function BurgerArchive() {
         setJourney((current) => current ? { ...current, biteStage: index + 1 } : current)
       }, 500 + index * 135)),
       window.setTimeout(() => {
-        setJourney((current) => current ? { ...current, finished: true } : current)
-      }, 1370),
-      window.setTimeout(() => router.push(href), 1530),
+        setJourney((current) => current ? { ...current, exploding: true } : current)
+      }, 1410),
+      window.setTimeout(() => router.push(href), 1880),
     ]
   }
 
@@ -361,11 +376,11 @@ export default function BurgerArchive() {
 
       {journey && (
         <div
-          className={`archive-bite-transition ${journey.finished ? 'is-finished' : ''}`}
+          className={`archive-bite-transition ${journey.exploding ? 'is-exploding' : ''}`}
           aria-hidden="true"
         >
           <div
-            className={`archive-bite-specimen ${journey.centered ? 'is-centered' : ''} ${journey.finished ? 'is-consumed' : ''}`}
+            className={`archive-bite-specimen ${journey.centered ? 'is-centered' : ''} ${journey.exploding ? 'is-exploding' : ''}`}
             data-bite-stage={journey.biteStage}
             style={
               {
@@ -379,7 +394,7 @@ export default function BurgerArchive() {
             <BurgerSpecimen burger={journey.burger} large biteStage={journey.biteStage} />
           </div>
 
-          {journey.biteStage > 0 && !journey.finished && (
+          {journey.biteStage > 0 && !journey.exploding && (
             <div className="archive-bite-crumbs" key={journey.biteStage}>
               {biteCrumbs.map((crumb, index) => (
                 <span
@@ -390,6 +405,24 @@ export default function BurgerArchive() {
                       '--crumb-rotate': `${crumb.rotate}deg`,
                       '--crumb-x': `${crumb.x}px`,
                       '--crumb-y': `${crumb.y}px`,
+                    } as CSSProperties
+                  }
+                />
+              ))}
+            </div>
+          )}
+
+          {journey.exploding && (
+            <div className="archive-route-burst">
+              {routeBurstPieces.map((piece, index) => (
+                <span
+                  key={`${piece.x}-${piece.y}`}
+                  style={
+                    {
+                      '--burst-delay': `${index * 14}ms`,
+                      '--burst-rotate': piece.rotate,
+                      '--burst-x': piece.x,
+                      '--burst-y': piece.y,
                     } as CSSProperties
                   }
                 />

@@ -686,12 +686,36 @@ function BunTop({ visual }: LayerProps) {
 }
 
 const biteMarks = [
-  { cx: 278, cy: 52, r: 38 },
-  { cx: 287, cy: 108, r: 43 },
-  { cx: 280, cy: 169, r: 49 },
-  { cx: 224, cy: 84, r: 57 },
-  { cx: 218, cy: 164, r: 65 },
-  { cx: 137, cy: 119, r: 83 },
+  [
+    { cx: 282, cy: 39, r: 27 },
+    { cx: 294, cy: 68, r: 25 },
+    { cx: 267, cy: 67, r: 23 },
+  ],
+  [
+    { cx: 36, cy: 105, r: 27 },
+    { cx: 27, cy: 137, r: 25 },
+    { cx: 54, cy: 132, r: 23 },
+  ],
+  [
+    { cx: 281, cy: 178, r: 29 },
+    { cx: 259, cy: 203, r: 27 },
+    { cx: 295, cy: 211, r: 25 },
+  ],
+  [
+    { cx: 68, cy: 37, r: 28 },
+    { cx: 98, cy: 32, r: 25 },
+    { cx: 83, cy: 64, r: 24 },
+  ],
+  [
+    { cx: 67, cy: 188, r: 30 },
+    { cx: 96, cy: 207, r: 28 },
+    { cx: 48, cy: 216, r: 25 },
+  ],
+  [
+    { cx: 145, cy: 105, r: 43 },
+    { cx: 184, cy: 119, r: 45 },
+    { cx: 154, cy: 154, r: 42 },
+  ],
 ]
 
 export default function BurgerSpecimen({ burger, large = false, biteStage = 0 }: BurgerSpecimenProps) {
@@ -704,7 +728,7 @@ export default function BurgerSpecimen({ burger, large = false, biteStage = 0 }:
     '--specimen-sauce': burger.visual.sauce,
     '--specimen-accent': burger.visual.accent,
   } as CSSProperties
-  const visibleBites = biteMarks.slice(0, Math.max(0, biteStage))
+  const visibleBites = biteMarks.slice(0, Math.max(0, biteStage)).flat()
   const biteMaskId = `burger-bite-${burger.slug.replace(/[^a-z0-9-]/g, '')}`
 
   return (
