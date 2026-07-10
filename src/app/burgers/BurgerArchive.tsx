@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -10,7 +11,14 @@ import {
   RotateCcw,
   Search,
 } from 'lucide-react'
-import { useMemo, useState, type CSSProperties } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+} from 'react'
 import {
   burgerCountries,
   burgerFlavors,
@@ -18,18 +26,66 @@ import {
   burgers,
   type BurgerFlavor,
   type BurgerProtein,
+  type BurgerRecord,
 } from '@/data/burgers'
 import BurgerSpecimen from './BurgerSpecimen'
 
 const allValue = '全部'
 const pageSize = 18
+const biteCrumbs = [
+  { x: -128, y: -72, rotate: -26 },
+  { x: -84, y: 98, rotate: 18 },
+  { x: 96, y: -104, rotate: 34 },
+  { x: 142, y: -38, rotate: -18 },
+  { x: 126, y: 78, rotate: 24 },
+  { x: 42, y: 126, rotate: -32 },
+  { x: -36, y: -122, rotate: 16 },
+  { x: -148, y: 32, rotate: 28 },
+]
+
+type BurgerJourney = {
+  burger: BurgerRecord
+  href: string
+  origin: {
+    left: number
+    top: number
+    width: number
+    height: number
+  }
+  centered: boolean
+  biteStage: number
+  finished: boolean
+}
 
 export default function BurgerArchive() {
+  const router = useRouter()
   const [query, setQuery] = useState('')
   const [protein, setProtein] = useState<BurgerProtein | typeof allValue>(allValue)
   const [flavor, setFlavor] = useState<BurgerFlavor | typeof allValue>(allValue)
   const [country, setCountry] = useState(allValue)
   const [visibleCount, setVisibleCount] = useState(pageSize)
+  const [journey, setJourney] = useState<BurgerJourney | null>(null)
+  const journeyTimers = useRef<number[]>([])
+  const previousOverflow = useRef('')
+  const journeySlug = journey?.burger.slug
+
+  useEffect(() => {
+    return () => {
+      journeyTimers.current.forEach((timer) => window.clearTimeout(timer))
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!journeySlug) return
+
+    const root = document.documentElement
+    previousOverflow.current = root.style.overflow
+    root.style.overflow = 'hidden'
+
+    return () => {
+      root.style.overflow = previousOverflow.current
+    }
+  }, [journeySlug])
 
   const filteredBurgers = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase('zh-CN')
@@ -86,6 +142,56 @@ export default function BurgerArchive() {
   function updateCountry(value: string) {
     setCountry(value)
     setVisibleCount(pageSize)
+  }
+
+  function startBurgerJourney(event: MouseEvent<HTMLAnchorElement>, burger: BurgerRecord) {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+
+    event.preventDefault()
+    const href = `/burgers/${burger.slug}`
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      router.push(href)
+      return
+    }
+
+    const card = event.currentTarget.closest('.archive-card')
+    const specimen = card?.querySelector('.burger-specimen')
+
+    if (!(specimen instanceof HTMLElement)) {
+      router.push(href)
+      return
+    }
+
+    const bounds = specimen.getBoundingClientRect()
+    router.prefetch(href)
+
+    setJourney({
+      burger,
+      href,
+      origin: {
+        left: bounds.left,
+        top: bounds.top,
+        width: bounds.width,
+        height: bounds.height,
+      },
+      centered: false,
+      biteStage: 0,
+      finished: false,
+    })
+
+    journeyTimers.current = [
+      window.setTimeout(() => {
+        setJourney((current) => current ? { ...current, centered: true } : current)
+      }, 32),
+      ...Array.from({ length: 6 }, (_, index) => window.setTimeout(() => {
+        setJourney((current) => current ? { ...current, biteStage: index + 1 } : current)
+      }, 500 + index * 135)),
+      window.setTimeout(() => {
+        setJourney((current) => current ? { ...current, finished: true } : current)
+      }, 1370),
+      window.setTimeout(() => router.push(href), 1530),
+    ]
   }
 
   return (
@@ -201,6 +307,7 @@ export default function BurgerArchive() {
                     className="archive-card-hit"
                     href={`/burgers/${burger.slug}`}
                     aria-label={`阅读 ${burger.name} 完整档案`}
+                    onClick={(event) => startBurgerJourney(event, burger)}
                   />
                   <div className="archive-card-head">
                     <span>FILE NO. {burger.archiveNo}</span>
@@ -251,6 +358,46 @@ export default function BurgerArchive() {
           </div>
         )}
       </section>
+
+      {journey && (
+        <div
+          className={`archive-bite-transition ${journey.finished ? 'is-finished' : ''}`}
+          aria-hidden="true"
+        >
+          <div
+            className={`archive-bite-specimen ${journey.centered ? 'is-centered' : ''} ${journey.finished ? 'is-consumed' : ''}`}
+            data-bite-stage={journey.biteStage}
+            style={
+              {
+                '--journey-left': `${journey.origin.left}px`,
+                '--journey-top': `${journey.origin.top}px`,
+                '--journey-width': `${journey.origin.width}px`,
+                '--journey-height': `${journey.origin.height}px`,
+              } as CSSProperties
+            }
+          >
+            <BurgerSpecimen burger={journey.burger} large biteStage={journey.biteStage} />
+          </div>
+
+          {journey.biteStage > 0 && !journey.finished && (
+            <div className="archive-bite-crumbs" key={journey.biteStage}>
+              {biteCrumbs.map((crumb, index) => (
+                <span
+                  key={`${journey.biteStage}-${index}`}
+                  style={
+                    {
+                      '--crumb-delay': `${index * 12}ms`,
+                      '--crumb-rotate': `${crumb.rotate}deg`,
+                      '--crumb-x': `${crumb.x}px`,
+                      '--crumb-y': `${crumb.y}px`,
+                    } as CSSProperties
+                  }
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
     </main>
   )

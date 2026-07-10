@@ -4,6 +4,7 @@ import type { BurgerRecord, BurgerVisual } from '@/data/burgers'
 type BurgerSpecimenProps = {
   burger: BurgerRecord
   large?: boolean
+  biteStage?: number
 }
 
 type LayerProps = {
@@ -684,7 +685,16 @@ function BunTop({ visual }: LayerProps) {
   }
 }
 
-export default function BurgerSpecimen({ burger, large = false }: BurgerSpecimenProps) {
+const biteMarks = [
+  { cx: 278, cy: 52, r: 38 },
+  { cx: 287, cy: 108, r: 43 },
+  { cx: 280, cy: 169, r: 49 },
+  { cx: 224, cy: 84, r: 57 },
+  { cx: 218, cy: 164, r: 65 },
+  { cx: 137, cy: 119, r: 83 },
+]
+
+export default function BurgerSpecimen({ burger, large = false, biteStage = 0 }: BurgerSpecimenProps) {
   const style = {
     '--specimen-bun': burger.visual.bun,
     '--specimen-bun-shade': burger.visual.bunShade,
@@ -694,6 +704,8 @@ export default function BurgerSpecimen({ burger, large = false }: BurgerSpecimen
     '--specimen-sauce': burger.visual.sauce,
     '--specimen-accent': burger.visual.accent,
   } as CSSProperties
+  const visibleBites = biteMarks.slice(0, Math.max(0, biteStage))
+  const biteMaskId = `burger-bite-${burger.slug.replace(/[^a-z0-9-]/g, '')}`
 
   return (
     <div
@@ -707,14 +719,26 @@ export default function BurgerSpecimen({ burger, large = false }: BurgerSpecimen
     >
       <svg viewBox="0 0 320 236" role="img">
         <title>{burger.name}</title>
-        <ellipse className="specimen-shadow" cx="160" cy="211" rx="105" ry="13" />
-        <g className="specimen-stack">
-          <BunBottom visual={burger.visual} />
-          <MainLayer visual={burger.visual} />
-          <SauceLayer visual={burger.visual} />
-          <CheeseLayer visual={burger.visual} />
-          <FreshLayer visual={burger.visual} />
-          <BunTop visual={burger.visual} />
+        {visibleBites.length > 0 && (
+          <defs>
+            <mask id={biteMaskId}>
+              <rect width="320" height="236" fill="white" />
+              {visibleBites.map((bite) => (
+                <circle key={`${bite.cx}-${bite.cy}`} cx={bite.cx} cy={bite.cy} r={bite.r} fill="black" />
+              ))}
+            </mask>
+          </defs>
+        )}
+        <g mask={visibleBites.length > 0 ? `url(#${biteMaskId})` : undefined}>
+          <ellipse className="specimen-shadow" cx="160" cy="211" rx="105" ry="13" />
+          <g className="specimen-stack">
+            <BunBottom visual={burger.visual} />
+            <MainLayer visual={burger.visual} />
+            <SauceLayer visual={burger.visual} />
+            <CheeseLayer visual={burger.visual} />
+            <FreshLayer visual={burger.visual} />
+            <BunTop visual={burger.visual} />
+          </g>
         </g>
       </svg>
       <span className="specimen-pin">{burger.countryCode}</span>
