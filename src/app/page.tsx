@@ -1,9 +1,5 @@
 import Link from 'next/link'
-import { ArrowUpRight } from 'lucide-react'
-import type { CSSProperties } from 'react'
-import { burgerBeltBurgers } from '@/data/dinerMenu'
-import BurgerSpecimen from './burgers/BurgerSpecimen'
-import './burgers/burger-archive.css'
+import BurgerBelt from './BurgerBelt'
 
 function BurgerVisual() {
   return (
@@ -66,49 +62,6 @@ function BurgerVisual() {
       <div className="burger-sticker sticker-left">OPEN</div>
       <div className="burger-sticker sticker-right">HOT</div>
     </div>
-  )
-}
-
-function BurgerBelt() {
-  return (
-    <section className="burger-belt" id="menu" aria-labelledby="burger-belt-title">
-      <div className="burger-belt-head">
-        <div>
-          <p>ROTATING BURGER BAR</p>
-          <h2 id="burger-belt-title">回转汉堡</h2>
-        </div>
-        <Link href="/menu">
-          开饭
-          <ArrowUpRight aria-hidden="true" size={20} strokeWidth={3} />
-        </Link>
-      </div>
-
-      <div className="burger-belt-window">
-        <div className="burger-belt-track">
-          {[0, 1].map((copyIndex) => (
-            <div className="burger-belt-set" aria-hidden={copyIndex === 1} key={copyIndex}>
-              {burgerBeltBurgers.map((burger) => (
-                <Link
-                  className="burger-belt-item"
-                  href={`/burgers/${burger.slug}`}
-                  key={`${copyIndex}-${burger.slug}`}
-                  tabIndex={copyIndex === 1 ? -1 : undefined}
-                  style={
-                    {
-                      '--belt-accent': burger.visual.accent,
-                      '--belt-plate': burger.visual.cheese,
-                    } as CSSProperties
-                  }
-                >
-                  <BurgerSpecimen burger={burger} />
-                  <span>{burger.name}</span>
-                </Link>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
   )
 }
 

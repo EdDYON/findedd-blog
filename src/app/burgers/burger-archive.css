@@ -1109,8 +1109,8 @@
 .archive-bite-specimen.is-centered {
   top: 50%;
   left: 50%;
-  width: min(720px, 92vw);
-  height: min(560px, 78vh);
+  width: min(900px, 96vw);
+  height: min(660px, 88vh);
   transform: translate3d(-50%, -50%, 0) rotate(-2deg);
 }
 

@@ -1229,50 +1229,6 @@ h1 {
   overflow: hidden;
   border-block: 5px solid var(--ink);
   background: #f7e7cc;
-  padding: 34px 0 42px;
-}
-
-.burger-belt-head {
-  display: flex;
-  width: min(1240px, calc(100% - 40px));
-  align-items: end;
-  justify-content: space-between;
-  gap: 24px;
-  margin: 0 auto 24px;
-}
-
-.burger-belt-head p {
-  margin: 0;
-  color: var(--red);
-  font-size: 0.72rem;
-  font-weight: 950;
-}
-
-.burger-belt-head h2 {
-  margin: 7px 0 0;
-  font-size: 2.8rem;
-  line-height: 0.94;
-  letter-spacing: 0;
-}
-
-.burger-belt-head > a {
-  display: inline-flex;
-  min-height: 48px;
-  align-items: center;
-  gap: 9px;
-  padding: 0 15px;
-  border: 3px solid var(--ink);
-  border-radius: 5px;
-  background: var(--yellow);
-  box-shadow: 4px 4px 0 var(--ink);
-  font-size: 0.86rem;
-  font-weight: 950;
-  transition: transform 150ms ease, box-shadow 150ms ease;
-}
-
-.burger-belt-head > a:hover {
-  box-shadow: 1px 1px 0 var(--ink);
-  transform: translate(3px, 3px);
 }
 
 .burger-belt-window {
@@ -1308,11 +1264,6 @@ h1 {
   width: max-content;
   padding: 28px 0;
   animation: burger-belt-roll 42s linear infinite;
-}
-
-.burger-belt-window:hover .burger-belt-track,
-.burger-belt-window:focus-within .burger-belt-track {
-  animation-play-state: paused;
 }
 
 .burger-belt-set {
