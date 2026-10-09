@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>汉堡</title>
+  <path
+    d="M12 31C13 18 24 11 36 12C47 13 55 21 56 32C46 35 24 35 12 31Z"
+    fill="#f1a63b"
+    stroke="#281109"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="4"
+  />
+  <path
+    d="M22 22L27 19M34 18L39 22M45 24L50 22"
+    fill="none"
+    stroke="#fff3c7"
+    stroke-linecap="round"
+    stroke-width="4"
+  />
+  <path
+    d="M10 35L18 30L25 36L33 30L41 36L49 30L57 35L52 42L43 39L34 44L25 39L16 42Z"
+    fill="#58a944"
+    stroke="#281109"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="4"
+  />
+  <path
+    d="M12 40H55L48 49L40 44L32 51L24 44L17 49Z"
+    fill="#ffc329"
+    stroke="#281109"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="4"
+  />
+  <path
+    d="M14 45C22 41 45 41 53 45C57 48 55 55 49 56H19C13 55 10 48 14 45Z"
+    fill="#6b2d19"
+    stroke="#281109"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="4"
+  />
+  <path
+    d="M16 51C25 55 41 55 50 51"
+    fill="none"
+    stroke="#3b180e"
+    stroke-linecap="round"
+    stroke-width="3"
+  />
+  <path
+    d="M15 53C22 58 44 58 51 53L48 60H19Z"
+    fill="#d9812a"
+    stroke="#281109"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="4"
+  />
+</svg>
