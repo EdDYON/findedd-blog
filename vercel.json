@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "cleanUrls": true,
+  "crons": [
+    {
+      "path": "/api/cron/daily-spark",
+      "schedule": "10 16 * * *"
+    }
+  ]
+}
